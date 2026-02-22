@@ -2,23 +2,37 @@
 <html lang="en">
     <head>
         <title>PRISM</title>
-        <link rel="stylesheet" href="style.css">
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <style>
+            @font-face {
+                font-family: 'Valonik';
+                src: url(fonts/ValonikPersonalUse-Thin.ttf);
+            }
+
+            @font-face {
+                font-family: 'NeueMontreal';
+                src: url(fonts/ppneuemontreal-medium.ttf);
+            }
+        </style>
     </head>
 
-    <body>
+    <body class="bg-black text-white">
+        
         <div class="main">
-            <div class="navbar">
+            <div class="navbar flex justify-between items-center p-6">
+
                 <div class="icon">
-                    <h1 class="logo">PRISM</h1>
+                    <h1 class="text-4xl text-white" style="font-family: 'Valonik', sans-serif;">PRISM</h1>
                 </div>
 
-                <div class="menu">
-                    <ul>
-                        <li><a href="#">HOME</a></li>
-                        <li><a href="#">PRODUCT SCANNER</a></li>
-                        <li><a href="#">MARKET DASHBOARD</a></li>
-                        <li><a href="#">ADMIN PANEL</a></li>
-                        <li><a href="#">ABOUT</a></li>
+                <div class="menu" style="font-family: 'NeueMontreal';">
+                    <ul class="flex gap-12">
+                        <li class="text-sm"><a href="#">HOME</a></li>
+                        <li class="text-sm"><a href="#">PRODUCT SCANNER</a></li>
+                        <li class="text-sm"><a href="#">MARKET DASHBOARD</a></li>
+                        <li class="text-sm"><a href="#">ADMIN PANEL</a></li>
+                        <li class="text-sm"><a href="#">ABOUT</a></li>
                     </ul>
                 </div>
             </div>

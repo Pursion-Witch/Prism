@@ -5,6 +5,11 @@
       font-family: 'Neue Montreal', sans-serif;
     }
 
+    .logo{
+      text-align: justify;
+      display: flex;
+    }
+
     .menu {
       display: flex;
       justify-content: center;

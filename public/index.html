@@ -10,13 +10,34 @@
     
     <!-- diri refer for css jan -->
     <link rel="stylesheet" href="/css/main.css">
+
+    <style>
+
+      @font-face {
+        font-family: 'Valonik';
+        src: url(fonts/ValonikPersonalUse-Thin.ttf);
+      }
+
+      @font-face {
+        font-family: 'Neue Montreal';
+        src: url(fonts/ppneuemontreal-medium.ttf);
+      }
+    </style>
 </head>
+
+
 <body class="bg-black text-white min-h-screen flex flex-col">
 
   <!-- Navbar -->
-    
-  <div class="menu">
-    <div class="logo"><img src="images/prism.logo.png" alt="PRISM Logo"></div>
+
+  <div class="logo">
+    <div class="icon flex items-center gap-3 shrink-0">
+      <img src="images/PRISM_logo.png" alt="PRISM logo" class="w-10 h-10 object-contain">
+      <h1 class="text-2xl tracking-wide" style="font-family: 'Valonik', sans-serif;">PRISM</h1>
+    </div>
+  </div>
+
+  <div class="menu flex" style="font-family: 'Neue Montreal', sans-serif;">
     <div class="menu-item"><img src="images/home.svg" alt="Home"><span>HOME</span></div>
     <div class="menu-item"><img src="images/product.scanner.svg" alt="Product Scanner"><span>PRODUCT SCANNER</span></div>
     <div class="menu-item"><img src="images/dashboard.svg" alt="Dashboard"><span>DASHBOARD</span></div>

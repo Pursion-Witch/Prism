@@ -7,5 +7,5 @@ if (fs.existsSync(distServer)) {
   require(distServer);
 } else {
   require('ts-node/register');
-  require('./src/knowedgeBase.ts');
+  require('./src/server.ts');
 }

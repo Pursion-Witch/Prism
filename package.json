@@ -4,7 +4,7 @@
   "description": "seleton prototype",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "nodemon src/server.ts",
+    "dev": "nodemon --watch src --ext ts --exec \"ts-node\" src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js"
   },

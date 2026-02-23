@@ -30,36 +30,82 @@
 
   <!-- Navbar -->
 
-  <div class="logo">
-    <div class="icon flex items-center gap-3 shrink-0">
-      <img src="images/PRISM_logo.png" alt="PRISM logo" class="w-10 h-10 object-contain">
-      <h1 class="text-2xl tracking-wide" style="font-family: 'Valonik', sans-serif;">PRISM</h1>
+  <div class="w-full flex items-center justify-between px-[25px] py-4 bg-black text-white">
+
+    <!--logo-->
+    <div class="logo">
+      <div class="icon flex items-center gap-3 shrink-0">
+        <img src="images/PRISM_logo.png" alt="PRISM logo" class="w-10 h-10 object-contain">
+        <h1 class="text-2xl tracking-wide" style="font-family: 'Valonik', sans-serif;">PRISM</h1>
     </div>
   </div>
 
-  <div class="menu flex" style="font-family: 'Neue Montreal', sans-serif;">
-    <div class="menu-item"><img src="images/home.svg" alt="Home"><span>HOME</span></div>
-    <div class="menu-item"><img src="images/product.scanner.svg" alt="Product Scanner"><span>PRODUCT SCANNER</span></div>
-    <div class="menu-item"><img src="images/dashboard.svg" alt="Dashboard"><span>DASHBOARD</span></div>
-    <div class="menu-item"><img src="images/marketplace.svg" alt="Marketplace"><span>MARKET PLACE</span></div>
-    <div class="menu-item"><img src="images/admin.panel.svg" alt="Admin Panel"><span>ADMIN PANEL</span></div>
-    <div class="menu-right"><img src="images/menu.png" alt="Menu"></div>
+    <!--L menu items-->
+
+    <div class="flex-1 flex justify-center text-justify" style="font-family: 'Neue Montreal';">
+      <ul class="flex items-center gap-12 text-sm tracking-wide">
+
+        <li>
+          <a href="#" class="flex items-center gap-2 hover:text-green-400 transition">
+            <img src="images/home.svg" alt="Home" class="w-4 h-4" style="color: white;">
+            <span>HOME</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="#" class="flex items-center gap-2 hover:text-green-400 transition">
+            <img src="images/product.scanner.svg" alt="Product Scanner" class="w-4 h-4">
+            <span>PRODUCT SCANNER</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="#" class="flex items-center gap-2 hover:text-green-400 transition">
+            <img src="images/dashboard.svg" alt="Dashboard" class="w-4 h-4">
+            <span>DASHBOARD</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="#" class="flex items-center gap-2 hover:text-green-400 transition">
+            <img src="images/marketplace.svg" alt="MarketPlace" class="w-4 h-4">
+            <span>MARKET PLACE</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="#" class="flex items-center gap-2 hover:text-green-400 transition">
+            <img src="images/admin.panel.svg" alt="Admin Panel" class="w-4 h-4">
+            <span>ADMIN PANEL</span>
+          </a>
+        </li>
+      </ul>
+      </div>
+
+      <!--menu icon-->
+      <div>
+        <img src="images/menu.png" alt="Menu" class="w-12 h-12 cursor-pointer">
+      </div>
   </div>
 
-  <!-- Home Section -->
+  <!-- home section -->
    
-<section class="hero-section" style="margin-left: 180px; margin-right: 0;">
-  <h1> Empowering </h1>
-  <h1> <em>Smart Markets</em> </h1>
-  <h1> Through AI </h1>
-  <br>
-  <p>
-    PRISM is an AI-powered platform that analyzes real transaction data to determine fair market values and detect pricing anomalies with precision.
-  </p>
-  <div class="hero-buttons">
-    <button class="btn login">LOGIN</button>
-    <button class="btn create-account">CREATE ACCOUNT</button>
-  </div>
+<section class="hero-section flex items-center justify-center min-h-screen px-6">
+    <div class="text-center max-w-3xl">
+
+      <h1 class="text-5xl font-semibold tracking-tight text-balance text-white sm:text-7xl">
+      Empowering 
+      <br><i>Smart Markets</i><br>
+      Through AI</h1>
+
+      <p class="mt-8 text-lg font-medium text-pretty text-gray-400 sm:text-xl/8" style="font-family: 'Neue Montreal';">
+        PRISM is an AI-powered platform that analyzes real transaction data to determine fair market values and detect pricing anomalies with precision.
+      </p>
+
+      <div class="mt-10 flex items-center justify-center gap-x-6">
+       <a href="#" class="rounded-md bg-green-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-green-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500">Create Account</a>
+       <a href="#" class="text-sm/6 font-semibold text-white">Log in<span aria-hidden="true">→</span></a>
+    </div>
 </section>
 
     <!--price checker -->

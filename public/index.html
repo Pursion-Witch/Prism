@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRISM – Price Transparency</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- diri refer for css jan -->
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="bg-black text-white min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <div class="navbar flex justify-between items-center p-6">
+        <div class="icon flex items-center gap-3 shrink-0">
+            <img src="/images/PRISM_logo.png" alt="PRISM logo" class="w-10 h-10 object-contain">
+            <h1 class="text-2xl tracking-wide" style="font-family: 'Valonik', sans-serif;">PRISM</h1>
+        </div>
+        <div class="flex-1 flex justify-center" style="font-family: 'NeueMontreal';">
+            <ul class="flex items-center gap-16 text-sm tracking-wide">
+                <li><a href="#" class="hover:text-green-400 transition">PRODUCT SCANNER</a></li>
+                <li><a href="#" class="hover:text-green-400 transition">PRODUCT SCANNER</a></li>
+                <li><a href="#" class="hover:text-green-400 transition">MARKET DASHBOARD</a></li>
+                <li><a href="#" class="hover:text-green-400 transition">ADMIN PANEL</a></li>
+                <li><a href="#" class="hover:text-green-400 transition">ABOUT</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!--price checker -->
+    <main class="flex-1 flex items-center justify-center p-4">
+        <div class="bg-gray-900 rounded-xl shadow-2xl p-8 max-w-md w-full border border-gray-800">
+            <h2 class="text-2xl font-light mb-2 text-green-400" style="font-family: 'Valonik';">Check a price</h2>
+            <p class="text-gray-400 mb-6 text-sm">Enter an item and the price you were charged.</p>
+
+            <div class="space-y-4">
+                <input type="text" id="item" placeholder="e.g., red onions" 
+                       class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 text-white placeholder-gray-500">
+                <input type="number" id="price" placeholder="Price in ₱" 
+                       class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 text-white placeholder-gray-500">
+                <button onclick="checkPrice()" 
+                        class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition font-medium">
+                    Check Fairness
+                </button>
+            </div>
+
+            <div id="result" class="mt-6 p-4 rounded-lg hidden"></div>
+        </div>
+    </main>
+
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

@@ -71,3 +71,24 @@
       font-size: 1rem;
       transition: background-color 0.3s;
     }
+
+
+
+    
+@font-face {
+  font-family: 'Neue Montreal';
+  src: url('/fonts/ppneumontreal-medium.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Valonik';
+  src: url('/fonts/ValonikPersonalUse-Thin.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+body {
+  font-family: 'Neue Montreal', sans-serif;
+}

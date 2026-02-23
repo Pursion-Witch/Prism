@@ -68,7 +68,7 @@ app.post('/api/assess', (req, res) => {
 // gian pa check kos ratio pricing diay ani later
   if (ratio > 1.3) {
     return res.json({
-      flag: 'high-risk',
+      flag: 'high-risk of corruption',
       message: `This looks high-risk. Expected around ₱${expectedPrice.toFixed(2)}, but got ₱${price.toFixed(2)}.`
     });
   }
@@ -77,6 +77,20 @@ app.post('/api/assess', (req, res) => {
     return res.json({
       flag: 'overpriced',
       message: `This looks slightly overpriced. Expected around ₱${expectedPrice.toFixed(2)}, but got ₱${price.toFixed(2)}.`
+    });
+  }
+
+    if (ratio > 0.9) {
+    return res.json({
+      flag: 'cheap',
+      message: `This looks slightly underpriced than normal. Expected around ₱${expectedPrice.toFixed(2)}, but got ₱${price.toFixed(2)}.`
+    });
+  }
+
+      if (ratio > 0.8) {
+    return res.json({
+      flag: 'steal',
+      message: `This looks like a steal. Expected around ₱${expectedPrice.toFixed(2)}, but got ₱${price.toFixed(2)}.`
     });
   }
 

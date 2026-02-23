@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- diri refer for css jan -->
-    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/public/css/main..css">
 
     <style>
 
@@ -21,6 +21,11 @@
       @font-face {
         font-family: 'Neue Montreal';
         src: url(fonts/ppneuemontreal-medium.ttf);
+      }
+
+      @font-face {
+        font-family: 'Neue Book';
+        src: url(fonts/ppneuemontreal-book.ttf);
       }
     </style>
 </head>
@@ -35,8 +40,7 @@
     <!--logo-->
     <div class="logo">
       <div class="icon flex items-center gap-3 shrink-0">
-        <img src="images/PRISM_logo.png" alt="PRISM logo" class="w-10 h-10 object-contain">
-        <h1 class="text-2xl tracking-wide" style="font-family: 'Valonik', sans-serif;">PRISM</h1>
+        <img src="images/prism.logo.wtext.png" alt="PRISM logo" class="w-10 h-10 object-contain">
     </div>
   </div>
 
@@ -93,17 +97,15 @@
 <section class="hero-section flex items-center justify-center min-h-screen px-6">
     <div class="text-center max-w-3xl">
 
-      <h1 class="text-5xl font-semibold tracking-tight text-balance text-white sm:text-7xl">
-      Empowering 
-      <br><i>Smart Markets</i><br>
-      Through AI</h1>
+      <h1 class="text-5xl tracking-tight text-balance text-white sm:text-7xl" style="font-family: 'Neue Montreal';">
+      Empowering <br><i>Smart Markets</i><br>Through AI</h1>
 
-      <p class="mt-8 text-lg font-medium text-pretty text-gray-400 sm:text-xl/8" style="font-family: 'Neue Montreal';">
+      <p class="mt-8 text-lg font-medium text-pretty text-gray-400 sm:text-xl/8" style="font-family: 'Neue Book';">
         PRISM is an AI-powered platform that analyzes real transaction data to determine fair market values and detect pricing anomalies with precision.
       </p>
 
       <div class="mt-10 flex items-center justify-center gap-x-6">
-       <a href="#" class="rounded-md bg-green-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-green-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500">Create Account</a>
+       <a href="#" class="rounded-md bg-green-500 px-3.5 py-2.5 text-sm font-semibold text-black shadow-xs hover:bg-green-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500">Create Account</a>
        <a href="#" class="text-sm/6 font-semibold text-white">Log in<span aria-hidden="true">→</span></a>
     </div>
 </section>

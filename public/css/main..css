@@ -1,13 +1,13 @@
-    body {
+body {
       background-color: black;
       color: white;
       margin: 0;
       font-family: 'Neue Montreal', sans-serif;
     }
 
-    .logo{
-      text-align: justify;
-      display: flex;
+    .logo img{
+      height: 40px;
+      width:auto
     }
 
     .menu {
@@ -38,19 +38,10 @@
       background-color: black;
       color: white;
       padding: 60px 20px;
-      max-width: 900px;
-      margin: 0 auto;
-      text-align: left;
     }
 
-    .hero-section h1 {
-      font-size: 5rem;
-      font-weight: 700;
-      line-height: 1.1;
-      margin-bottom: -1px;
-    }
-
-    .hero-section h1 em {
+    .hero-section h1 i,
+    h1 em {
       font-style: italic;
       color: #1ED760;
     }
@@ -76,24 +67,3 @@
       font-size: 1rem;
       transition: background-color 0.3s;
     }
-
-
-
-    
-@font-face {
-  font-family: 'Neue Montreal';
-  src: url('/fonts/ppneumontreal-medium.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Valonik';
-  src: url('/fonts/ValonikPersonalUse-Thin.ttf') format('truetype');
-  font-weight: 300;
-  font-style: normal;
-}
-
-body {
-  font-family: 'Neue Montreal', sans-serif;
-}

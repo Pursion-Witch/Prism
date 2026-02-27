@@ -1,6 +1,11 @@
 import express from 'express';
-import fs from 'fs';
 import path from 'path';
+import {
+  assessPrice,
+  ingestDocumentToBaseline,
+  readBaselineFile,
+  type BaselineMap
+} from './ai';
 
 const app = express();
 const port = Number(process.env.PORT ?? 3000);
@@ -21,20 +26,8 @@ const pageRoutes: Record<string, string> = {
   '/admin-panel': 'admin-panel.html'
 };
 
-function readBaseline(): Record<string, number> {
-  try {
-    const raw = fs.readFileSync(baselinePath, 'utf-8');
-    const parsed = JSON.parse(raw) as Record<string, unknown>;
-
-    return Object.entries(parsed).reduce<Record<string, number>>((acc, [key, value]) => {
-      if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
-        acc[key.toLowerCase()] = value;
-      }
-      return acc;
-    }, {});
-  } catch (_error) {
-    return {};
-  }
+function readBaseline(): BaselineMap {
+  return readBaselineFile(baselinePath);
 }
 
 for (const [route, fileName] of Object.entries(pageRoutes)) {
@@ -64,39 +57,102 @@ app.post('/api/assess', (req, res) => {
     });
   }
 
-  const ratio = price / expectedPrice;
-// gian pa check kos ratio pricing diay ani later
-  if (ratio > 1.3) {
-    return res.json({
-      flag: 'high-risk of corruption',
-      message: `This looks high-risk. Expected around ₱${expectedPrice.toFixed(2)}, but got ₱${price.toFixed(2)}.`
-    });
-  }
-// if tyako raba nang .1/.3 kay i feel like in the hundredths place dapat ang ratio
-  if (ratio > 1.1) {
-    return res.json({
-      flag: 'overpriced',
-      message: `This looks slightly overpriced. Expected around ₱${expectedPrice.toFixed(2)}, but got ₱${price.toFixed(2)}.`
+  return res.json(assessPrice(item, price, expectedPrice));
+});
+
+app.post('/api/ingest-document', (req, res) => {
+  const documentText = String(req.body?.document ?? '').trim();
+
+  if (!documentText) {
+    return res.status(400).json({
+      message: 'Please provide document text in the "document" field.'
     });
   }
 
-    if (ratio > 0.9) {
-    return res.json({
-      flag: 'cheap',
-      message: `This looks slightly underpriced than normal. Expected around ₱${expectedPrice.toFixed(2)}, but got ₱${price.toFixed(2)}.`
-    });
-  }
+  const baselineBefore = readBaseline();
+  const ingestResult = ingestDocumentToBaseline(documentText, baselinePath);
 
-      if (ratio > 0.8) {
-    return res.json({
-      flag: 'steal',
-      message: `This looks like a steal. Expected around ₱${expectedPrice.toFixed(2)}, but got ₱${price.toFixed(2)}.`
-    });
-  }
+  const expensiveFindings = Object.entries(ingestResult.extracted)
+    .map(([item, observedPrice]) => {
+      const expected = baselineBefore[item];
+      if (!expected) {
+        return null;
+      }
+
+      const result = assessPrice(item, observedPrice, expected);
+      if (result.flag === 'overpriced' || result.flag === 'high-risk of corruption') {
+        return {
+          item,
+          observedPrice,
+          expectedPrice: expected,
+          flag: result.flag,
+          message: result.message
+        };
+      }
+
+      return null;
+    })
+    .filter((value): value is NonNullable<typeof value> => value !== null);
 
   return res.json({
-    flag: 'fair',
-    message: `This price looks fair. Market average is around ₱${expectedPrice.toFixed(2)}.`
+    message: 'Doc has been merged cuh (check baseline)',
+    summary: {
+      extractedItems: Object.keys(ingestResult.extracted).length,
+      createdItems: ingestResult.created.length,
+      updatedItems: ingestResult.updated.length,
+      ignoredLines: ingestResult.ignoredLines
+    },
+    expensiveRecommendations: expensiveFindings
+  });
+});
+
+app.post('/api/recommend-expensive', (req, res) => {
+  const entries = req.body?.entries;
+
+  if (!Array.isArray(entries) || entries.length === 0) {
+    return res.status(400).json({
+      message: 'Please provide entries as an array: [{ item, price }].'
+    });
+  }
+
+  const baseline = readBaseline();
+
+  const recommendations = entries
+    .map((entry) => {
+      const item = String(entry?.item ?? '').trim().toLowerCase();
+      const price = Number(entry?.price);
+
+      if (!item || !Number.isFinite(price) || price <= 0) {
+        return null;
+      }
+
+      const expectedPrice = baseline[item];
+      if (!expectedPrice) {
+        return {
+          item,
+          price,
+          flag: 'unknown',
+          message: `No wawart available for "${item}" yet.`
+        };
+      }
+
+      const assessment = assessPrice(item, price, expectedPrice);
+      return {
+        item,
+        price,
+        expectedPrice,
+        ...assessment
+      };
+    })
+    .filter((value): value is NonNullable<typeof value> => value !== null);
+
+  const expensiveOnly = recommendations.filter(
+    (row) => row.flag === 'overpriced' || row.flag === 'hell naw bruh, high risk of price manip'
+  );
+
+  return res.json({
+    recommendations,
+    expensive: expensiveOnly
   });
 });
 

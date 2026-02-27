@@ -11,11 +11,16 @@ Track: SDG 8 - Decent Work and Sustainable Growth
 
 ## Docker Setup
 
-1. Open cmd (or VSCode internal terminal)
+**Prerequisite:** [Docker Desktop](www.docker.com)
 
-2. Run `docker compose up --build`
+1. Open VSCode Terminal (or Command Prompt)
+   - If using cmd, make sure to change directory to repo folder first: `cd <PRISM FILEPATH HERE>`
+
+2. Run `docker compose up --watch`
 
 3. Open http://localhost:3000
 
-**Note**: Does not live updates yet. Idk how.
+4. To stop build, press Ctrl+C in terminal
+
+**Note**: Now support live update. After saving changes, refresh to see updated page.
 

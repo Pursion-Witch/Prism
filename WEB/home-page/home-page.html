@@ -1,1 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>PRISM – Price Transparency</title>
+    <link rel="icon" type="image/png" href="/images/prism.favicon.png">
+    <link rel="stylesheet" href="home-page.css">
+</head>
 
+<body>
+
+<!-- Stars Background -->
+
+    <div class="stars-container" id="stars"></div>
+
+<!-- Main Content -->
+
+    <div class="content">
+
+<!-- Navbar -->
+
+        <nav class="navbar">
+            <div class="logo">
+                <img src="/prism/HTML/images/prism.logo.png" alt="PRISM Logo" class="img-logo">
+            </div>
+            
+            <button class="hamburger" id="hamburgerBtn">
+                <img src="/prism/HTML/images/menu.png" alt="Menu" class="img-menu">
+            </button>
+
+            <ul class="nav-links" id="navLinks">
+                <li><a href="post.html"><span>HOME</span></a></li>
+                <li><a href="product-scanner.html"><span>PRODUCT SCANNER</span></a></li>
+                <li><a href="dashboard.html"><span>DASHBOARD</span></a></li>
+                <li><a href="marketplace.html"><span>MARKETPLACE</span></a></li>
+                <li><a href="admin.html"><span>ADMIN PANEL</span></a></li>
+            </ul>
+        </nav>
+
+<!-- Home Page -->
+
+        <section class="home-page" id="home">
+            <div class="home-content">
+                <div class="home-text">
+                    <h1 class="animated-headline">
+                    Bringing </h1>
+                     <h1> <span>Transparency</span></h1>
+                     <h1>to Every Price </h1>
+                     <h1> in the Philippines</h1>
+
+                    
+                    <pre class="home-description">
+PRISM uses AI-powered forensic analysis on real transaction data to detect 
+unfair pricing, monitor market health, and protect consumers and businesses.
+                    </pre>
+                    
+                    <div class="home-buttons">
+                        <button class="login" onclick="window.location.href='login.html'">LOGIN</button>
+                        <button class="create-account" onclick="window.location.href='create-account.html'">CREATE ACCOUNT</button>
+                    </div>
+                </div>
+                
+                <div class="home-image">
+                    <img src="/prism/HTML/images/home.pages.png" alt="Home Preview" onclick="document.getElementById('imgModal').checked=true;" class="home-preview-img">
+                </div>
+            </div>
+        </section>
+
+<!-- Problem Hero -->
+
+        <section class="problem-hero">
+            <div class="hero-content">
+<pre> <h2>
+Most of consumers overpay 
+due to <span>hidden price distortions</span> </h2> </pre>
+                <p class="subtitle"> 
+Not because prices are higher, but because pricing lacks transparency. </p>
+            </div>
+
+            <div class="visual-area">
+                <div class="floating-card-good">₱50 <span>per/kg</span><br><small>Rice</small></div>
+                <div class="floating-card-bad">₱280 <span>per/tray</span><br><small>Eggs</small></div>
+                <div class="floating-card-good">₱150 <span>per/liter</span><br><small>Milk</small></div>
+                <div class="floating-card-bad">₱250 <span>per/kg</span><br><small>Chicken</small></div>
+                <div class="floating-card-good">₱40 <span>per/loaf</span><br><small>Bread</small></div>
+                <div class="floating-card-bad">₱200 <span>per/liter</span><br><small>Cooking Oil</small></div>
+            </div>
+
+            <div class="insights">
+                <div class="insight-box">
+                    <span class="insight-icon"> <img src="/prism/HTML/images/prices.svg" alt="Price Confusion"> </span>
+                    <h2>Price Confusion</h2>
+                    <p>
+Consumers lack live visibility into fair market value.
+Leaving them unsure if prices are inflated. </p>
+                </div>
+                <div class="insight-box">
+                    <span class="insight-icon"> <img src="/prism/HTML/images/markets.svg" alt="Market Fragmentation"> </span>
+                    <h2>Market Fragmentation</h2>
+                    <p>Regional price variations create inefficiencies.
+Data leads to distorted supply-demand signals.</p>
+                </div>
+                <div class="insight-box">
+                    <span class="insight-icon"> <img src="/prism/HTML/images/monitoringss.svg" alt="Monitoring Gaps"> </span>
+                    <h2>Monitoring Gaps</h2>
+                    <p>Manual price checking wastes time and patterns.
+                     Letting anomalies pass undetected.</p>
+                </div>
+            </div>
+        </section>
+
+<!-- Who PRISM Serves -->
+
+        <section class="who-we-serve">
+            <div class="container">
+                <h1 class="section-title"> 
+                    <pre> 
+Smart AI that watches 
+the market for you
+</pre> 
+
+<img src="/prism/HTML/images/serves.png" alt="Market Fragmentation">
+
+<pre class="serves description"> 
+Imagine having a <span>personal guide </span> that helps you know if a price is fair before you buy. 
+Our AI keeps an eye on the market, <span> spotting unusual pricing trends </span> and making sure every 
+purchase feels right. It’s like having a market-savvy friend who helps companies build 
+trust and keeps customers confident, while giving you a clear, real-time view of what’s 
+happening in the market. <span>No surprises. Just transparency and peace of mind </span>.
+</pre>
+
+</section>
+
+<!-- Market Impact -->
+
+        <section class="market-impact">
+            <div class="container">
+                <h2 class="section-title">Solutions that work for everyone</h2>
+                
+                <div class="impact-grid">
+                    <div class="impact-card">
+                        <div class="impact-number" id="shopsCount">0</div>
+                        <div class="impact-label">Items Monitored</div>
+                        <div class="impact-trend positive">+12% this week</div>
+                    </div>
+                    
+                    <div class="impact-card">
+                        <div class="impact-number" id="fairnessCount">0<small>%</small></div>
+                        <div class="impact-label">Average Fairness Score</div>
+                        <div class="impact-trend positive">↑ 5% from last quarter</div>
+                    </div>
+                    
+                    <div class="impact-card">
+                        <div class="impact-number" id="anomaliesCount">0</div>
+                        <div class="impact-label">Anomalies Flagged</div>
+                        <div class="impact-trend warning">12 high priority</div>
+                    </div>
+                </div>
+                
+                <div class="ai-forensics">
+                    <div class="ai-badge">
+                        <h2> <pre> Powered by AI 
+and Data Forensics </pre> </h2>
+                    </div>
+                    <p class="ai-description">
+                        Combines supervised and unsupervised anomaly clustering, and real-time API monitoring to build a secure and scalable national price intelligence network. It turns complex market data into actionable insights, helping consumers make smarter and financially sound decisions in real time.
+                    </p>
+                </div>
+                
+        </section>
+
+<!-- Workflow -->
+
+<h2 class="workflow-header"> <pre>
+Everything You Need in 
+ One <span>Smart Market </span> Tool 
+         </pre> </h2>
+
+ <!-- Subscriptions -->
+
+        <section class="subscriptions">
+
+            <div class="pricing-container">
+                <div class="card" onclick="showNotification('Selected Basic plan')">
+                    <img src="/prism/HTML/images/basic.png" alt="Basic" class="plan-img">
+                    <h3>Basic</h3>
+                    <h1>FREE</h1>
+                    <p>Free access to basic features.</p>
+                    <ul>
+                        <li><img src="/prism/HTML/images/check.png" alt="check" class="check-icon"> Limited price searches</li>
+                        <li><img src="/prism/HTML/images/check.png" alt="check" class="check-icon"> Basic trend data</li>
+                        <li><img src="/prism/HTML/images/check.png" alt="check" class="check-icon"> Community support</li>
+                        <li> and many more... </li>
+                    </ul>
+                </div>
+                
+                <div class="card featured" onclick="showNotification('Selected Enterprise plan')">
+                    <img src="/prism/HTML/images/enterprise.svg" alt="Enterprise" class="plan-imgss">
+                    <h3>Enterprise</h3>
+                    <h1>₱999<span>/month</span></h1>
+                    <p>Advanced analytics + API access</p>
+                    <ul>
+                        <li><img src="/prism/HTML/images/check.png" alt="check" class="check-icon"> Real-time monitoring</li>
+                        <li><img src="/prism/HTML/images/check.png" alt="check" class="check-icon"> API access</li>
+                        <li><img src="/prism/HTML/images/check.png" alt="check" class="check-icon"> Team dashboard</li>
+                        <li><img src="/prism/HTML/images/check.png" alt="check" class="check-icon"> Dedicated support</li>
+                        <li><img src="/prism/HTML/images/check.png" alt="check" class="check-icon"> Custom thresholds</li>
+                        <li> and many more... </li>
+                    </ul>
+                </div>
+                
+                <div class="card" onclick="showNotification('Selected Premium plan')">
+                    <img src="/prism/HTML/images/premium.png" alt="Premium" class="plan-imgs">
+                    <h3>Premium</h3>
+                    <h1>₱199<span>/month</span></h1>
+                    <p>AI detection & detailed breakdown</p>
+                    <ul>
+                        <li><img src="/prism/HTML/images/check.png" alt="check" class="check-icon"> Unlimited searches</li>
+                        <li><img src="/prism/HTML/images/check.png" alt="check" class="check-icon"> Advanced analytics</li>
+                        <li><img src="/prism/HTML/images/check.png" alt="check" class="check-icon"> Priority support</li>
+                        <li> and many more... </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+<!-- Agency Section -->
+ 
+        <section class="prism-section">
+            <div class="prism-container">
+                <div class="prism-left">
+                    <h2>PRISM <span>by SRPeak</span></h2>
+                    <pre class="description">
+The next generation platform for price intelligence.
+Built to empower Filipino individuals and organizations.
+                    </pre>
+                </div>
+                <div class="prism-right">
+                    <ul class="agency">
+                        <li><a href="https://www.da.gov.ph/" target="_blank"><img src="/prism/HTML/images/da.logo.png" alt="DA"></a></li>
+                        <li><a href="https://www.coa.gov.ph/" target="_blank"><img src="/prism/HTML/images/coa.logo.png" alt="COA"></a></li>
+                        <li><a href="https://www.psa.gov.ph/" target="_blank"><img src="/prism/HTML/images/psa.logo.png" alt="PSA"></a></li>
+                        <li><a href="https://www.dti.gov.ph/" target="_blank"><img src="/prism/HTML/images/dti.logos.png" alt="DTI"></a></li>
+                        <li><a href="https://www.ibon.org/" target="_blank"><img src="/prism/HTML/images/ibon.logo.png" alt="IBON"></a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+<!-- Footer -->
+
+        <footer class="prism-section footer">
+            <div class="prism-container footer-container">
+                <div class="footer-left">
+                    <span>© PRISM 2026</span>
+                    <span>•</span>
+                            <a href="terms.html">Terms of Service</a>
+                    <span>•</span>
+                      <a href="privacy.html">Privacy Policy</a>
+                    <span>•</span>
+ <a href="faq.html">FAQs</a>
+                    <span>•</span>
+ <a href="About.html">About</a>
+                </div>
+                <div class="footer-right">
+                    <pre>Transparency    •    Protection    •    Integrity    •    Intelligence</pre>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+<!-- JavaScript  -->
+
+    <script src="home-page.js"></script>
+    
+</body>
+
+</html>

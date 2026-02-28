@@ -11,7 +11,7 @@ Track: SDG 8 - Decent Work and Sustainable Growth
 
 ## Docker Setup
 
-**Prerequisite:** [Docker Desktop](www.docker.com)
+**Prerequisite:** [Docker Desktop](https://www.docker.com)
 
 1. Open VSCode Terminal (or Command Prompt)
    - If using cmd, make sure to change directory to repo folder first: `cd <PRISM FILEPATH HERE>`

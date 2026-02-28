@@ -1,1 +1,245 @@
+/* ----- Stars Background ----- */
 
+.stars-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0; 
+    overflow: hidden;
+}
+
+.star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            animation: twinkle linear infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #000; 
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Background */
+body {
+min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Login Box */
+.login-box {
+  background-color: #121212;
+  width: 380px;
+  padding: 35px;
+  border-radius: 14px;
+  text-align: center;
+  border: 1px solid #333;
+
+  box-shadow:
+    0 12px 35px rgba(0, 0, 0, 0.8);
+
+  animation: fadeUp 0.8s ease forwards;
+}
+
+/* Heading */
+
+.login-box h2 {
+  margin-bottom: 25px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+/* Social Button */
+
+.social-btn {
+  width: 100%;
+  padding: 13px;
+  margin-bottom: 14px;
+  border-radius: 50px;
+  border: 1px solid #333;
+  background-color: #121212;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  transition: all 0.25s ease;
+}
+
+.social-btn img {
+  height: 20px;
+  width: 20px;
+}
+
+.social-btn.facebook img{
+  height: 20px; 
+  width: 14px;
+}
+
+.social-btn:hover {
+  border-color: #1ED760;
+  background-color: #0e0e0e;
+  transform: scale(1.02);
+}
+
+/* Divider */
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 22px 0;
+  color: #aaa;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #333;
+}
+
+.divider span {
+  margin: 0 12px;
+  font-size: 13px;
+}
+
+/* Input Fields */
+
+.login-box input {
+  width: 100%;
+  padding: 13px;
+  margin-bottom: 14px;
+  border-radius: 6px;
+  border: 1px solid #222;
+  background-color: #0d0d0d;
+  color: #fff;
+  font-size: 14px;
+
+  transition: border 0.2s ease;
+}
+
+.login-box input::placeholder {
+  color: #888;
+}
+
+.login-box input:focus {
+  outline: none;
+  border-color: #1ED760; 
+;
+}
+
+/* Login Button */
+
+.login-btn {
+  width: 100%;
+  padding: 15px;
+  border-radius: 50px;
+  border: none;
+  background-color: #1ED760;
+  color: #000;
+  font-weight: 400;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 10px;
+
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.login-btn:hover {
+  font-weight: 600;
+  background-color: #1ED760;
+  transform: scale(1.04);
+}
+
+/* Signup Text */
+
+.signup {
+  margin-top: 24px;
+  font-size: 14px;
+  color: #aaa;
+}
+
+.signup a {
+  color: #1ED760;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.signup a:hover {
+  text-decoration: underline;
+}
+
+
+/* Animation */
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+
+@media (max-width: 480px) {
+  .login-box {
+    width: 92%;
+    padding: 28px;
+  }
+
+  .footer {
+    padding: 0 15px;
+    line-height: 1.6;
+    position: relative; 
+    z-index: 1; 
+  }
+}
+
+
+.footer-links {
+    list-style: none;
+    padding-top: 50px;
+    display: flex;
+    gap: 10px;
+    color: #ffffff;
+}
+
+.footer-links a {
+    text-decoration: none;
+    color: #ffffff;
+}
+
+.footer-links a:hover {
+    text-decoration: underline;
+}

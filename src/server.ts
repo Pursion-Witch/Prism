@@ -1,4 +1,5 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
+import fs from 'node:fs';
 import path from 'node:path';
 import {
   assessPrice,
@@ -27,23 +28,88 @@ const rootDir = path.join(__dirname, '..');
 const publicDir = path.join(rootDir, 'public');
 const baselinePath = path.join(rootDir, 'data', 'baseline.json');
 
-const pageRoutes: Record<string, string> = {
-  '/': 'index.html',
-  '/home': 'index.html',
-  '/index.html': 'index.html',
-  '/product-scanner': 'product-scanner.html',
-  '/product-scanner.html': 'product-scanner.html',
-  '/dashboard': 'dashboard.html',
-  '/dashboard.html': 'dashboard.html',
-  '/marketplace': 'marketplace.html',
-  '/marketplace.html': 'marketplace.html',
-  '/admin-panel': 'admin-panel.html',
-  '/admin-panel.html': 'admin-panel.html'
-};
+function collectHtmlPages(directory: string, nestedPath = ''): string[] {
+  const absoluteDirectory = nestedPath ? path.join(directory, nestedPath) : directory;
+  const entries = fs.readdirSync(absoluteDirectory, { withFileTypes: true });
+  const pages: string[] = [];
+
+  for (const entry of entries) {
+    const relativePath = nestedPath ? path.join(nestedPath, entry.name) : entry.name;
+
+    if (entry.isDirectory()) {
+      pages.push(...collectHtmlPages(directory, relativePath));
+      continue;
+    }
+
+    if (entry.isFile() && entry.name.toLowerCase().endsWith('.html')) {
+      pages.push(relativePath);
+    }
+  }
+
+  return pages;
+}
+
+function toRoutePath(relativeFilePath: string): string {
+  return `/${relativeFilePath.split(path.sep).join('/')}`;
+}
+
+function buildPageRedirects(pageRoutes: string[]): Map<string, string> {
+  const redirects = new Map<string, string>();
+  const knownRoutes = new Set(pageRoutes);
+  const topLevelPages = new Map<string, string[]>();
+
+  for (const routePath of pageRoutes) {
+    const segments = routePath.split('/').filter(Boolean);
+
+    if (segments.length !== 2) {
+      continue;
+    }
+
+    const [folder] = segments;
+    const folderPages = topLevelPages.get(folder) ?? [];
+    folderPages.push(routePath);
+    topLevelPages.set(folder, folderPages);
+  }
+
+  for (const [folder, routes] of topLevelPages.entries()) {
+    if (routes.length !== 1) {
+      continue;
+    }
+
+    const canonicalRoute = routes[0];
+    redirects.set(`/${folder}`, canonicalRoute);
+    redirects.set(`/${folder}/`, canonicalRoute);
+    redirects.set(`/${folder}.html`, canonicalRoute);
+  }
+
+  const homeCandidates = ['/home-page/home-page.html', '/login/login.html', '/about/about.html'];
+  const homePage = homeCandidates.find((candidate) => knownRoutes.has(candidate));
+  if (homePage) {
+    redirects.set('/', homePage);
+    redirects.set('/home', homePage);
+    redirects.set('/index.html', homePage);
+  }
+
+  if (knownRoutes.has('/privacy/privacy.html')) {
+    redirects.set('/privavy/privacy.html', '/privacy/privacy.html');
+  }
+
+  return redirects;
+}
+
+const pageRoutes = collectHtmlPages(publicDir).map(toRoutePath);
+const pageRedirects = buildPageRedirects(pageRoutes);
 
 app.disable('x-powered-by');
 app.use(express.json({ limit: '512kb' }));
-app.use(express.static(publicDir));
+
+for (const [route, destination] of pageRedirects.entries()) {
+  app.get(route, (_req, res) => {
+    return res.redirect(302, destination);
+  });
+}
+
+app.use(express.static(publicDir, { redirect: false }));
 
 function readBaseline(): BaselineMap {
   return readBaselineFile(baselinePath);
@@ -65,12 +131,6 @@ function parsePositivePrice(value: unknown): number | null {
   }
 
   return Number(parsed.toFixed(2));
-}
-
-for (const [route, fileName] of Object.entries(pageRoutes)) {
-  app.get(route, (_req, res) => {
-    res.sendFile(path.join(publicDir, fileName));
-  });
 }
 
 app.get('/api/health', (_req, res) => {

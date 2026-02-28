@@ -18,7 +18,7 @@ Track: SDG 8 - Decent Work and Sustainable Growth
 
 2. Run `docker compose up --build`
    - To enable live updates: run `docker compose up --watch` instead. Every time you save changes, refresh to see the updated page.
-   - If these commands fail: run `docker build -t prism .`
+   - If these commands fail: run `docker compose down`. Then try above commands again.
 
 3. Open http://localhost:3000
 

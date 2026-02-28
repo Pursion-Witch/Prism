@@ -1,0 +1,44 @@
+[
+  {
+    "id": "PRD-101",
+    "name": "Sinandomeng Rice",
+    "category": "Rice",
+    "supplier": "Mega Mart",
+    "basePrice": 52,
+    "status": "active",
+    "imageName": "sinandomeng-rice.jpg",
+    "imageText": "Sinandomeng Rice Premium 50kg",
+    "createdAt": "2026-03-01T08:10:00.000Z",
+    "updatedAt": "2026-03-01T08:10:00.000Z"
+  },
+  {
+    "id": "PRD-102",
+    "name": "Whole Chicken",
+    "category": "Meat",
+    "supplier": "FarmFresh",
+    "basePrice": 180,
+    "status": "active",
+    "createdAt": "2026-03-01T08:12:00.000Z",
+    "updatedAt": "2026-03-01T08:12:00.000Z"
+  },
+  {
+    "id": "PRD-103",
+    "name": "Cooking Oil",
+    "category": "Canned",
+    "supplier": "Tindahan PH",
+    "basePrice": 45,
+    "status": "low-stock",
+    "createdAt": "2026-03-01T08:14:00.000Z",
+    "updatedAt": "2026-03-01T08:14:00.000Z"
+  },
+  {
+    "id": "PRD-104",
+    "name": "Red Onions",
+    "category": "Vegetables",
+    "supplier": "Palengke Direct",
+    "basePrice": 140,
+    "status": "active",
+    "createdAt": "2026-03-01T08:16:00.000Z",
+    "updatedAt": "2026-03-01T08:16:00.000Z"
+  }
+]

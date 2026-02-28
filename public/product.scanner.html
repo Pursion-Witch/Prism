@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>PRISM – Product Scanner</title>
+    <link rel="icon" type="image/png" href="images/prism.favicon.png">
+    <link rel="stylesheet" href="css/product-scanner.css">
+</head>
+
+<body>
+    <div class="stars-container" id="stars"></div>
+    <div class="content">
+
+<!-- Navbar -->
+
+        <nav class="navbar">
+            <div class="logo">
+                <img src="images/prism.logo.png" alt="PRISM Logo" class="img-logo">
+            </div>
+            <button class="hamburger" id="hamburgerBtn">
+                <img src="images/menu.png" alt="Menu">
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="home-page.html"><span>HOME</span></a></li>
+                <li><a href="product.scanner.html"><span>PRODUCT SCANNER</span></a></li>
+                <li><a href="dashboard.html"><span>DASHBOARD</span></a></li>
+                <li><a href="marketplace.html"><span>MARKETPLACE</span></a></li>
+                <li><a href="admin-panel.html"><span>ADMIN PANEL</span></a></li>
+            </ul>
+        </nav>
+
+<!-- Product Scanner Hero -->
+
+        <div class="scanner-header">
+            <h1>Bantay Presyo Platform</h1>
+            <div class="subhead">
+                AI‑powered fair value analysis for the Filipino consumer. <span>Compare prices</span> against DTI SRP, Lazada, Shopee, and local Palengke trends.
+            </div>
+        </div>
+
+<!-- Mode Toggle -->
+
+        <div class="mode-toggle">
+            <div class="mode-option active" onclick="switchMode('basic')">BASIC</div>
+            <div class="mode-option" onclick="switchMode('advanced')">ADVANCED</div>
+        </div>
+
+<!-- Main Scanner Card -->
+
+        <div class="scanner-card">
+            <div class="mode-badge" id="modeBadge">BASIC CHECK (AI)</div>
+            <div class="instruction" id="instruction"><span>Instant Price Check</span> — paste a product title, or type naturally. AI detects the details.</div>
+            
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <input type="text" id="productInput" placeholder="e.g., 'Samsung A14 128GB black brand new from Lazada ₱7,990' or 'Bigas NFA sa palengke ₱45/kilo'">
+                    <button id="checkPriceBtn">CHECK PRICE NOW</button>
+                </div>
+                
+                <div class="examples">
+                    <span class="example-chip" onclick="fillExample('Samsung A14 128GB black brand new from Lazada ₱7,990')">Samsung A14 128GB ₱7,990</span>
+                    <span class="example-chip" onclick="fillExample('Bigas NFA sa palengke ₱45/kilo')"> Bigas NFA ₱45/kilo</span>
+                    <span class="example-chip" onclick="fillExample('Dole Pineapple juice 1L Shopee ₱89')"> Dole Pineapple 1L ₱89</span>
+                    <span class="example-chip" onclick="fillExample('Mangan Tzu crackers 50g sari-sari store ₱7')"> Mangan Tzu ₱7</span>
+                </div>
+            </div>
+
+<!-- Advanced Options -->
+
+            <div class="advanced-options" id="advancedOptions">
+                <div class="options-grid">
+                    <div class="option-item">
+                        <label>Region / Location</label>
+                        <select id="regionSelect">
+                            <option>Metro Manila</option>
+                            <option>North Luzon</option>
+                            <option>South Luzon</option>
+                            <option>Visayas</option>
+                            <option>Mindanao</option>
+                        </select>
+                    </div>
+                    <div class="option-item">
+                        <label>Price Range (₱)</label>
+                        <input type="text" placeholder="Min - Max" id="priceRange">
+                    </div>
+                    <div class="option-item">
+                        <label>Date Range</label>
+                        <select id="dateRange">
+                            <option>Last 7 days</option>
+                            <option>Last 30 days</option>
+                            <option>Last 3 months</option>
+                            <option>Last year</option>
+                        </select>
+                    </div>
+                    <div class="option-item">
+                        <label>Data Sources</label>
+                        <select id="dataSources">
+                            <option>All Sources</option>
+                            <option>DTI SRP Only</option>
+                            <option>Online Stores Only</option>
+                            <option>Palengke Only</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="historicalTrends" checked> <label for="historicalTrends">Include historical trends</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="pricePredictions"> <label for="pricePredictions">Show AI price predictions</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="competitorPrices"> <label for="competitorPrices">Compare competitor prices</label>
+                    </div>
+                </div>
+            </div>
+
+<!-- AI auto-detect row -->
+
+            <div class="ai-detect-row">
+                <div class="detect-item"><span class="label">[Auto-detects</span> <span class="value" id="detectBrand">Brand</span>]</div>
+                <div class="detect-item"><span class="label">[Infor</span> <span class="value" id="detectLocation">Location</span>]</div>
+                <div class="detect-item"><span class="label">[Pin</span> <span class="value" id="detectLanguage">Tagalog Support</span>]</div>
+                <div class="pinoy-badge">ENGLISH ‑ TAGALOG</div>
+            </div>
+
+<!-- Results Section -->
+
+            <div class="results-section" id="resultsSection">
+                <div class="results-header">
+                    <h3 id="resultProduct">Price Analysis Results</h3>
+                    <div class="fairness-score" id="fairnessScore">82/100</div>
+                </div>
+                <div class="price-comparison" id="priceComparison">
+                </div>
+                <div class="insights-box" id="insightsBox">
+                </div>
+                <div id="advancedResults" style="display: none;">
+                </div>
+            </div>
+        </div>
+
+<!-- PH Basic Commodities Index with Graph -->
+
+        <div class="index-section">
+            <div class="index-header">
+                <h2>PH Basic Commodities Index</h2>
+                <div class="update-note">Updating from PSA & DTI sources...</div>
+            </div>
+            
+            <!-- Interactive Graph -->
+            <div class="graph-container">
+                <div class="graph-title">
+                    <h3>Price Trends (Last 30 Days)</h3>
+                    <div class="graph-legend">
+                        <div class="legend-item"><span class="legend-color rice"></span> Rice</div>
+                        <div class="legend-item"><span class="legend-color fuel"></span> Fuel</div>
+                        <div class="legend-item"><span class="legend-color meat"></span> Meat</div>
+                        <div class="legend-item"><span class="legend-color veggies"></span> Vegetables</div>
+                    </div>
+                </div>
+
+<!-- Multi-line graph -->
+
+                <div class="multi-line-graph">
+                    <div class="graph-grid">
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                        <div class="grid-line"></div>
+                    </div>
+                    <div class="graph-lines" id="trendLines">
+                        <!-- Points will be generated by JS -->
+                    </div>
+                    <div class="x-axis">
+                        <span>Week 1</span>
+                        <span>Week 2</span>
+                        <span>Week 3</span>
+                        <span>Week 4</span>
+                        <span>Today</span>
+                    </div>
+                </div>
+
+<!-- Bar graph summary -->
+
+                <div class="trend-graph" id="trendGraph">
+                    <!-- Bars will be generated by JS -->
+                </div>
+            </div>
+
+<!-- Data Table -->
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Commodity</th>
+                            <th>Current CPI</th>
+                            <th>Weekly Change</th>
+                            <th>Monthly Trend</th>
+                            <th>Forecast</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Rice</td>
+                            <td>128.5</td>
+                            <td class="trend-up">+2.3%</td>
+                            <td class="trend-volatile">Volatile </td>
+                            <td class="trend-up">Rising</td>
+                        </tr>
+                        <tr>
+                            <td>Fuel</td>
+                            <td>152.3</td>
+                            <td class="trend-up">+5.1%</td>
+                            <td class="trend-up">Upward</td>
+                            <td class="trend-up">Rising</td>
+                        </tr>
+                        <tr>
+                            <td>Meat (pork/chicken)</td>
+                            <td>138.7</td>
+                            <td class="trend-stable">-0.5%</td>
+                            <td class="trend-stable">Stable </td>
+                            <td class="trend-stable">Stable</td>
+                        </tr>
+                        <tr>
+                            <td>Vegetables</td>
+                            <td>119.2</td>
+                            <td class="trend-volatile">-3.2%</td>
+                            <td class="trend-volatile">Volatile </td>
+                            <td class="trend-volatile"> Mixed</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="source-badge">PSA & DTI real‑time integration • Last updated: February 27, 2026</div>
+            </div>
+        </div>
+
+<!-- Footer -->
+
+        <footer class="prism-section footer">
+            <div class="prism-container footer-container">
+                <div class="footer-left">
+                    <span>© PRISM 2026</span>
+                    <span>•</span>
+                    <a href="terms.html">Terms</a>
+                    <span>•</span>
+                    <a href="privacy.html">Privacy</a>
+                    <span>•</span>
+                    <a href="faqs.html">FAQs</a>
+                    <span>•</span>
+                    <a href="about.html">About</a>
+                </div>
+                <div class="footer-right">
+                    <pre>Transparency   •   Protection   •   Integrity   •   Intelligence</pre>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <div class="notification" id="notification" style="display:none;"></div>
+
+    <!-- JavaScript  -->
+
+    <script src="js/product-scanner.js"></script>
+
+</body>
+
+</html>

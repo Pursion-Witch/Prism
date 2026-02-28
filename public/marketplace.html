@@ -1,39 +1,360 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" type="image/png" href="images/prism.favicon.png">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRISM – Product Scanner</title>
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/css/main..css">
-
-    <style>
-      @font-face { font-family: 'Neue Montreal'; src: url(fonts/ppneuemontreal-medium.ttf); }
-      @font-face { font-family: 'Neue Book'; src: url(fonts/ppneuemontreal-book.ttf); }
-      @font-face { font-family: 'PPEditorialNew'; src: url(fonts/PPEditorialNew-Italic.ttf); }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>PRISM – Market Place</title>
+    <link rel="icon" type="image/png" href="images/prism.favicon.png">
+    <link rel="stylesheet" href="css/marketplace.css">
 </head>
-<body class="bg-black text-white min-h-screen flex flex-col">
-  <div class="w-full flex items-center justify-between px-[25px] py-4 bg-black text-white">
-    <div class="logo"><div class="icon flex items-center gap-3 shrink-0"><img src="images/prism.logo.wtext.png" alt="PRISM logo" class="w-10 h-10 object-contain"></div></div>
-    <div class="flex-1 flex justify-center text-justify" style="font-family: 'Neue Montreal';">
-      <ul class="flex items-center gap-12 text-sm tracking-wide">
-        <li><a href="/" class="flex items-center gap-2 hover:text-green-400 transition"><img src="images/home.svg" alt="Home" class="w-4 h-4"><span>HOME</span></a></li>
-        <li><a href="/product-scanner" class="flex items-center gap-2 hover:text-green-400 transition"><img src="images/product.scanner.svg" alt="Product Scanner" class="w-4 h-4"><span>PRODUCT SCANNER</span></a></li>
-        <li><a href="/dashboard" class="flex items-center gap-2 hover:text-green-400 transition"><img src="images/dashboard.svg" alt="Dashboard" class="w-4 h-4"><span>DASHBOARD</span></a></li>
-        <li><a href="/marketplace" class="flex items-center gap-2 hover:text-green-400 transition"><img src="images/marketplace.svg" alt="MarketPlace" class="w-4 h-4"><span>MARKET PLACE</span></a></li>
-        <li><a href="/admin-panel" class="flex items-center gap-2 hover:text-green-400 transition"><img src="images/admin.panel.svg" alt="Admin Panel" class="w-4 h-4"><span>ADMIN PANEL</span></a></li>
-      </ul>
+
+    <div class="stars-container" id="stars"></div>
+    <div class="content">
+
+<!-- Navbar -->
+
+        <nav class="navbar">
+            <div class="logo">
+                <img src="images/prism.logo.png" alt="PRISM Logo" class="img-logo">
+            </div>
+            <button class="hamburger" id="hamburgerBtn">
+                <img src="images/menu.png" alt="Menu">
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html"><span>HOME</span></a></li>
+                <li><a href="product.scanner.html"><span>PRODUCT SCANNER</span></a></li>
+                <li><a href="dashboard.html"><span>DASHBOARD</span></a></li>
+                <li><a href="marketplace.html"><span>MARKETPLACE</span></a></li>
+                <li><a href="admin-panel.html"><span>ADMIN PANEL</span></a></li>
+            </ul>
+        </nav>
+
+<!-- Marketplace Header -->
+
+        <div class="marketplace-header">
+            <h1>PRISM Marketplace</h1>
+            <div class="subhead"><span>Connect with trusted suppliers</span> — 500+ products from verified vendors</div>
+        </div>
+
+<!-- Search -->
+
+        <div class="marketplace-search">
+            <div class="search-wrapper">
+                <input type="text" id="searchInput" placeholder="Search products, brands, or suppliers...">
+                <button onclick="searchProducts()">Search</button>
+            </div>
+        </div>
+
+ <!-- Category Pills -->
+
+        <div class="category-section">
+            <div class="category-pills">
+                <div class="pill active" onclick="filterCategory('all')">All Items (26)</div>
+                <div class="pill" onclick="filterCategory('rice')">Rice & Grains (4)</div>
+                <div class="pill" onclick="filterCategory('vegetables')">Vegetables (6)</div>
+                <div class="pill" onclick="filterCategory('meat')">Meat & Poultry (6)</div>
+                <div class="pill" onclick="filterCategory('canned')">Canned Goods (4)</div>
+                <div class="pill" onclick="filterCategory('noodles')">Noodles (2)</div>
+                <div class="pill" onclick="filterCategory('beverages')">Beverages (4)</div>
+            </div>
+        </div>
+
+<!-- Main layout -->
+
+        <div class="marketplace-layout">
+            <!-- Left Sidebar - Filters -->
+            <div class="left-sidebar">
+                <div class="filter-section">
+                    <div class="filter-title"><span></span> Price Range</div>
+                    <div class="price-range">
+                        <input type="text" placeholder="Min" id="minPrice">
+                        <input type="text" placeholder="Max" id="maxPrice">
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <div class="filter-title"><span></span> Suppliers</div>
+                    <div class="filter-option" onclick="filterSupplier('all')">
+                        <input type="radio" name="supplier" checked> All Suppliers
+                    </div>
+                    <div class="filter-option" onclick="filterSupplier('megamart')">
+                        <input type="radio" name="supplier"> Mega Mart (45)
+                    </div>
+                    <div class="filter-option" onclick="filterSupplier('palengke')">
+                        <input type="radio" name="supplier"> Palengke Direct (38)
+                    </div>
+                    <div class="filter-option" onclick="filterSupplier('farmfresh')">
+                        <input type="radio" name="supplier"> FarmFresh (29)
+                    </div>
+                    <div class="filter-option" onclick="filterSupplier('tindahan')">
+                        <input type="radio" name="supplier"> Tindahan PH (44)
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <div class="filter-title"><span> ★ </span> Rating</div>
+                    <div class="filter-option" onclick="filterRating(4)">
+                        <span> ★★★★☆</span> 4.0 & above
+                    </div>
+                    <div class="filter-option" onclick="filterRating(3)">
+                        <span> ★★★☆☆</span> 3.0 & above
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <div class="filter-title"><span></span> Location</div>
+                    <div class="filter-option" onclick="filterLocation('metro')">Metro Manila</div>
+                    <div class="filter-option" onclick="filterLocation('luzon')">Luzon</div>
+                    <div class="filter-option" onclick="filterLocation('visayas')">Visayas</div>
+                    <div class="filter-option" onclick="filterLocation('mindanao')">Mindanao</div>
+                </div>
+
+                <button class="filter-option" 
+                style="background: #1ED760; 
+                color: #000; 
+                border: none; 
+                padding: 1rem; 
+                border-radius: 40px; 
+                margin-top: 1rem; 
+                width: 100%;" 
+                onclick="applyFilters()">
+                    Apply Filters
+                </button>
+            </div>
+
+<!-- Product Grid -->
+
+            <div class="products-grid" id="productsGrid"></div>
+
+<!-- Right Sidebar - Chats -->
+
+            <div class="right-sidebar" id="chatSidebar">
+                <div class="chat-tabs">
+                    <div class="chat-tab active" onclick="switchChatTab('recent')">Recent (8)</div>
+                    <div class="chat-tab" onclick="switchChatTab('online')">Online (4)</div>
+                    <div class="chat-tab" onclick="switchChatTab('archived')">Archived</div>
+                </div>
+
+                <div class="chat-list" id="chatList">
+                    <!-- Populated by JS -->
+                </div>
+
+                <div class="chat-window" id="chatWindow">
+                    <div class="chat-window-header" id="chatWindowHeader">
+                        <div class="chat-avatar" id="currentChatAvatar">MM</div>
+                        <div>
+                            <div id="currentChatName">Mega Mart</div>
+                            <div style="font-size: 0.7rem; color: #1ED760;">Online</div>
+                        </div>
+                    </div>
+                    <div class="chat-window-messages" id="chatMessages"></div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chatMessageInput" placeholder="Type your message...">
+                        <button onclick="sendMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!-- Footer -->
+
+        <footer class="prism-section footer">
+            <div class="prism-container footer-container">
+                <div class="footer-left">
+                    <span>© prism.ph</span>
+                    <span>•</span>
+                    <a href="terms.html">Terms</a>
+                    <span>•</span>
+                    <a href="privacy.html">Privacy</a>
+                    <span>•</span>
+                    <a href="faqs.html">FAQs</a>
+                    <span>•</span>
+                    <a href="about.html">About</a>
+                </div>
+                <div class="footer-right">
+                    <pre>Transparency   •   Protection  •   Integrity   •   Intelligence</pre>
+                </div>
+            </div>
+        </footer>
     </div>
     <div><img src="images/menu.png" alt="Menu" class="w-12 h-12 cursor-pointer"></div>
   </div>
 
-  <main class="flex-1 flex items-center justify-center px-6">
-    <div class="text-center max-w-3xl">
-      <h1 class="text-5xl tracking-tight text-white sm:text-7xl" style="font-family: 'Neue Montreal';">Product Scanner</h1>
-      <p class="mt-8 text-lg font-medium text-gray-400 sm:text-xl/8" style="font-family: 'Neue Book';">Upload or input product details to parse item data and run fair-value checks.</p>
+    <div class="stars-container" id="stars"></div>
+    <div class="content">
+
+<!-- Navbar -->
+
+        <nav class="navbar">
+            <div class="logo">
+                <img src="images/prism.logo.png" alt="PRISM Logo" class="img-logo">
+            </div>
+            <button class="hamburger" id="hamburgerBtn">
+                <img src="images/menu.png" alt="Menu">
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="home-page.html"><span>HOME</span></a></li>
+                <li><a href="product.scanner.html"><span>PRODUCT SCANNER</span></a></li>
+                <li><a href="dashboard.html"><span>DASHBOARD</span></a></li>
+                <li><a href="marketplace.html"><span>MARKETPLACE</span></a></li>
+                <li><a href="admin-panel.html"><span>ADMIN PANEL</span></a></li>
+            </ul>
+        </nav>
+
+<!-- Marketplace Header -->
+
+        <div class="marketplace-header">
+            <h1>PRISM Marketplace</h1>
+            <div class="subhead"><span>Connect with trusted suppliers</span> — 500+ products from verified vendors</div>
+        </div>
+
+<!-- Search -->
+
+        <div class="marketplace-search">
+            <div class="search-wrapper">
+                <input type="text" id="searchInput" placeholder="Search products, brands, or suppliers...">
+                <button onclick="searchProducts()">Search</button>
+            </div>
+        </div>
+
+ <!-- Category Pills -->
+
+        <div class="category-section">
+            <div class="category-pills">
+                <div class="pill active" onclick="filterCategory('all')">All Items (26)</div>
+                <div class="pill" onclick="filterCategory('rice')">Rice & Grains (4)</div>
+                <div class="pill" onclick="filterCategory('vegetables')">Vegetables (6)</div>
+                <div class="pill" onclick="filterCategory('meat')">Meat & Poultry (6)</div>
+                <div class="pill" onclick="filterCategory('canned')">Canned Goods (4)</div>
+                <div class="pill" onclick="filterCategory('noodles')">Noodles (2)</div>
+                <div class="pill" onclick="filterCategory('beverages')">Beverages (4)</div>
+            </div>
+        </div>
+
+<!-- Main layout -->
+
+        <div class="marketplace-layout">
+            <!-- Left Sidebar - Filters -->
+            <div class="left-sidebar">
+                <div class="filter-section">
+                    <div class="filter-title"><span></span> Price Range</div>
+                    <div class="price-range">
+                        <input type="text" placeholder="Min" id="minPrice">
+                        <input type="text" placeholder="Max" id="maxPrice">
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <div class="filter-title"><span></span> Suppliers</div>
+                    <div class="filter-option" onclick="filterSupplier('all')">
+                        <input type="radio" name="supplier" checked> All Suppliers
+                    </div>
+                    <div class="filter-option" onclick="filterSupplier('megamart')">
+                        <input type="radio" name="supplier"> Mega Mart (45)
+                    </div>
+                    <div class="filter-option" onclick="filterSupplier('palengke')">
+                        <input type="radio" name="supplier"> Palengke Direct (38)
+                    </div>
+                    <div class="filter-option" onclick="filterSupplier('farmfresh')">
+                        <input type="radio" name="supplier"> FarmFresh (29)
+                    </div>
+                    <div class="filter-option" onclick="filterSupplier('tindahan')">
+                        <input type="radio" name="supplier"> Tindahan PH (44)
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <div class="filter-title"><span> ★ </span> Rating</div>
+                    <div class="filter-option" onclick="filterRating(4)">
+                        <span> ★★★★☆</span> 4.0 & above
+                    </div>
+                    <div class="filter-option" onclick="filterRating(3)">
+                        <span> ★★★☆☆</span> 3.0 & above
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <div class="filter-title"><span></span> Location</div>
+                    <div class="filter-option" onclick="filterLocation('metro')">Metro Manila</div>
+                    <div class="filter-option" onclick="filterLocation('luzon')">Luzon</div>
+                    <div class="filter-option" onclick="filterLocation('visayas')">Visayas</div>
+                    <div class="filter-option" onclick="filterLocation('mindanao')">Mindanao</div>
+                </div>
+
+                <button class="filter-option" 
+                style="background: #1ED760; 
+                color: #000; 
+                border: none; 
+                padding: 1rem; 
+                border-radius: 40px; 
+                margin-top: 1rem; 
+                width: 100%;" 
+                onclick="applyFilters()">
+                    Apply Filters
+                </button>
+            </div>
+
+<!-- Product Grid -->
+
+            <div class="products-grid" id="productsGrid"></div>
+
+<!-- Right Sidebar - Chats -->
+
+            <div class="right-sidebar" id="chatSidebar">
+                <div class="chat-tabs">
+                    <div class="chat-tab active" onclick="switchChatTab('recent')">Recent (8)</div>
+                    <div class="chat-tab" onclick="switchChatTab('online')">Online (4)</div>
+                    <div class="chat-tab" onclick="switchChatTab('archived')">Archived</div>
+                </div>
+
+                <div class="chat-list" id="chatList">
+                    <!-- Populated by JS -->
+                </div>
+
+                <div class="chat-window" id="chatWindow">
+                    <div class="chat-window-header" id="chatWindowHeader">
+                        <div class="chat-avatar" id="currentChatAvatar">MM</div>
+                        <div>
+                            <div id="currentChatName">Mega Mart</div>
+                            <div style="font-size: 0.7rem; color: #1ED760;">Online</div>
+                        </div>
+                    </div>
+                    <div class="chat-window-messages" id="chatMessages"></div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chatMessageInput" placeholder="Type your message...">
+                        <button onclick="sendMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!-- Footer -->
+
+        <footer class="prism-section footer">
+            <div class="prism-container footer-container">
+                <div class="footer-left">
+                    <span>© prism.ph</span>
+                    <span>•</span>
+                    <a href="terms.html">Terms</a>
+                    <span>•</span>
+                    <a href="privacy.html">Privacy</a>
+                    <span>•</span>
+                    <a href="faqs.html">FAQs</a>
+                    <span>•</span>
+                    <a href="about.html">About</a>
+                </div>
+                <div class="footer-right">
+                    <pre>Transparency   •   Protection  •   Integrity   •   Intelligence</pre>
+                </div>
+            </div>
+        </footer>
     </div>
-  </main>
+
+    <div class="notification" id="notification" style="display:none;"></div>
+
+        <!-- JavaScript  -->
+    <script src="js/marketplace.js"></script>
+
 </body>
+
+</html>

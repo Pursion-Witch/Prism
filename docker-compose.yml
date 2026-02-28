@@ -23,7 +23,7 @@ services:
           target: /usr/src/app
           ignore:
             - node_modules/
-        
+          
         - action: rebuild
           path: package.json
 

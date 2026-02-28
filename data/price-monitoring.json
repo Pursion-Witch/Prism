@@ -1,0 +1,38 @@
+[
+  {
+    "id": "PM-1001",
+    "item": "red onions",
+    "observedPrice": 199,
+    "expectedPrice": 140,
+    "differencePct": 42.14,
+    "flag": "high-risk",
+    "location": "Metro Manila",
+    "source": "market scan",
+    "message": "High-risk price for red onions: expected around PHP 140.00, observed PHP 199.00.",
+    "recordedAt": "2026-03-01T08:20:00.000Z"
+  },
+  {
+    "id": "PM-1002",
+    "item": "pork liempo",
+    "observedPrice": 415,
+    "expectedPrice": 340,
+    "differencePct": 22.06,
+    "flag": "overpriced",
+    "location": "Quezon City",
+    "source": "market scan",
+    "message": "Slightly overpriced pork liempo: expected around PHP 340.00, observed PHP 415.00.",
+    "recordedAt": "2026-03-01T08:22:00.000Z"
+  },
+  {
+    "id": "PM-1003",
+    "item": "cooking oil",
+    "observedPrice": 44,
+    "expectedPrice": 45,
+    "differencePct": -2.22,
+    "flag": "fair",
+    "location": "Manila",
+    "source": "market scan",
+    "message": "Fair price for cooking oil. Baseline is around PHP 45.00.",
+    "recordedAt": "2026-03-01T08:24:00.000Z"
+  }
+]

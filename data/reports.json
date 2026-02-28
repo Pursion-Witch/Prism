@@ -1,0 +1,19 @@
+[
+  {
+    "id": "RPT-7001",
+    "title": "Monthly Price Report",
+    "period": "monthly",
+    "generatedAt": "2026-03-01T08:30:00.000Z",
+    "metrics": {
+      "averageFairness": 50,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 0,
+      "totalUsers": 4,
+      "totalProducts": 4,
+      "openAlerts": 3,
+      "estimatedSavings": 1
+    },
+    "summary": "Monthly report generated for March 2026 baseline."
+  }
+]

@@ -1,0 +1,33 @@
+[
+  {
+    "id": "ALT-9001",
+    "title": "Price surge detected",
+    "message": "Red onions up 42% in Metro Manila",
+    "type": "price",
+    "priority": "high",
+    "status": "open",
+    "relatedEntityId": "PM-1001",
+    "createdAt": "2026-03-01T08:25:00.000Z",
+    "updatedAt": "2026-03-01T08:25:00.000Z"
+  },
+  {
+    "id": "ALT-9002",
+    "title": "New supplier pending approval",
+    "message": "Fresh Farms Inc. is waiting for verification",
+    "type": "supplier",
+    "priority": "medium",
+    "status": "open",
+    "createdAt": "2026-03-01T08:27:00.000Z",
+    "updatedAt": "2026-03-01T08:27:00.000Z"
+  },
+  {
+    "id": "ALT-9003",
+    "title": "User report submitted",
+    "message": "Five users flagged the same price anomaly",
+    "type": "user",
+    "priority": "medium",
+    "status": "acknowledged",
+    "createdAt": "2026-03-01T08:28:00.000Z",
+    "updatedAt": "2026-03-01T08:28:00.000Z"
+  }
+]

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>PRISM - Add Product</title>
+    <link rel="icon" type="image/png" href="/images/prism.favicon.png">
+    <link rel="stylesheet" href="add-product.css">
+</head>
+<body>
+    <div class="stars-container" id="stars"></div>
+    <div class="content">
+        <nav class="navbar">
+            <div class="logo">
+                <img src="/images/prism.logo.png" alt="PRISM Logo" class="img-logo">
+            </div>
+            <button class="hamburger" id="hamburgerBtn" type="button">
+                <img src="/images/menu.png" alt="Menu">
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="/home-page/home-page.html"><span>HOME</span></a></li>
+                <li><a href="/product-scanner/product.scanner.html"><span>PRODUCT SCANNER</span></a></li>
+                <li><a href="/dashboard/dashboard.html"><span>DASHBOARD</span></a></li>
+                <li><a href="/marketplace/marketplace.html"><span>MARKETPLACE</span></a></li>
+                <li><a href="/admin-panel/admin-panel.html"><span>ADMIN PANEL</span></a></li>
+            </ul>
+        </nav>
+
+        <header class="page-header">
+            <h1>Add Product</h1>
+            <p class="subhead"><span>Product Catalog</span> entry with image-to-text saved to JSON database.</p>
+        </header>
+
+        <main class="form-wrap">
+            <form id="addProductForm" class="panel">
+                <div class="panel-head">
+                    <h2>New Product Record</h2>
+                    <a class="link-btn" href="/admin-panel/admin-panel.html">Back to Admin Panel</a>
+                </div>
+
+                <div class="grid">
+                    <section class="card">
+                        <h3>Product Details</h3>
+                        <label for="productName">Product Name</label>
+                        <input id="productName" name="name" type="text" placeholder="e.g. Refined Sugar" required>
+
+                        <label for="productCategory">Category</label>
+                        <input id="productCategory" name="category" type="text" placeholder="e.g. Essentials" required>
+
+                        <label for="productSupplier">Supplier</label>
+                        <input id="productSupplier" name="supplier" type="text" placeholder="e.g. Mega Mart" required>
+
+                        <div class="row">
+                            <div>
+                                <label for="productPrice">Base Price (PHP)</label>
+                                <input id="productPrice" name="basePrice" type="number" step="0.01" min="0.01" placeholder="95" required>
+                            </div>
+                            <div>
+                                <label for="productStatus">Status</label>
+                                <select id="productStatus" name="status">
+                                    <option value="active">Active</option>
+                                    <option value="low-stock">Low Stock</option>
+                                    <option value="hidden">Hidden</option>
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <h3>Picture To Text</h3>
+                        <label for="productImage">Product Image</label>
+                        <input id="productImage" name="image" type="file" accept="image/*">
+
+                        <div class="preview" id="imagePreview">No image selected</div>
+
+                        <div class="row-actions">
+                            <button id="extractTextBtn" type="button" class="ghost-btn">Extract Text</button>
+                            <button id="useTextAsNameBtn" type="button" class="ghost-btn">Use Text As Name</button>
+                        </div>
+
+                        <label for="imageText">Extracted Text (editable)</label>
+                        <textarea id="imageText" name="imageText" placeholder="OCR result will appear here, then you can edit it."></textarea>
+                        <p class="hint">This text and image metadata are saved to <code>data/products.json</code>.</p>
+                    </section>
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="btn-primary" id="saveProductBtn">Save Product</button>
+                    <button type="button" class="btn-secondary" id="saveAndReturnBtn">Save And Return</button>
+                </div>
+            </form>
+        </main>
+
+        <footer class="prism-section footer">
+            <div class="prism-container footer-container">
+                <div class="footer-left">
+                    <span>&copy; PRISM 2026</span>
+                    <span>&bull;</span>
+                    <a href="/terms/terms.html">Terms</a>
+                    <span>&bull;</span>
+                    <a href="/privacy/privacy.html">Privacy</a>
+                    <span>&bull;</span>
+                    <a href="/faqs/faqs.html">FAQs</a>
+                    <span>&bull;</span>
+                    <a href="/about/about.html">About</a>
+                </div>
+                <div class="footer-right">
+                    <pre>Transparency   |   Protection   |   Integrity   |   Intelligence</pre>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <div class="notification" id="notification" style="display:none;"></div>
+    <script src="add-product.js"></script>
+</body>
+</html>

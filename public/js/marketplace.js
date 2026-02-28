@@ -49,37 +49,37 @@
 
             const products = [
                 // Rice & Grains
-                { id:1, name:'Sinandomeng Rice (50kg)', supplier:'Mega Mart', price:2450, imageUrl:'/images/sinandomeng.png', category:'rice', location:'Bulacan', rating:4.8, supplierAvatar:'MM' },
-                { id:2, name:'Jasmine Rice (25kg)', supplier:'Mega Mart', price:1350, imageUrl:'/images/jasmine.jpg', category:'rice', location:'Bulacan', rating:4.7, supplierAvatar:'MM' },
-                { id:3, name:'Dinorado Rice (10kg)', supplier:'Palengke Direct', price:680, imageUrl:'/images/rice3.png', category:'rice', location:'Nueva Ecija', rating:4.9, supplierAvatar:'PD' },
-                { id:4, name:'Brown Rice (5kg)', supplier:'FarmFresh', price:320, imageUrl:'/images/rice4.png', category:'rice', location:'Isabela', rating:4.6, supplierAvatar:'FF' },
+                { id:1, name:'Sinandomeng Rice (50kg)', supplier:'Mega Mart', price:2450, imageUrl:'images/sinandomeng.png', category:'rice', location:'Bulacan', rating:4.8, supplierAvatar:'MM' },
+                { id:2, name:'Jasmine Rice (25kg)', supplier:'Mega Mart', price:1350, imageUrl:'images/jasmine.jpg', category:'rice', location:'Bulacan', rating:4.7, supplierAvatar:'MM' },
+                { id:3, name:'Dinorado Rice (10kg)', supplier:'Palengke Direct', price:680, imageUrl:'images/rice3.png', category:'rice', location:'Nueva Ecija', rating:4.9, supplierAvatar:'PD' },
+                { id:4, name:'Brown Rice (5kg)', supplier:'FarmFresh', price:320, imageUrl:'images/rice4.png', category:'rice', location:'Isabela', rating:4.6, supplierAvatar:'FF' },
                 // Meat
-                { id:5, name:'Whole Chicken (1kg)', supplier:'FarmFresh', price:180, imageUrl:'/images/chicken.jpg', category:'meat', location:'Laguna', rating:4.8, supplierAvatar:'FF' },
-                { id:6, name:'Pork Liempo (1kg)', supplier:'FarmFresh', price:340, imageUrl:'/images/pork-liempo.jpg', category:'meat', location:'Pampanga', rating:4.7, supplierAvatar:'FF' },
-                { id:7, name:'Beef Sirloin (1kg)', supplier:'Mega Mart', price:520, imageUrl:'/images/beef.png', category:'meat', location:'Bulacan', rating:4.8, supplierAvatar:'MM' },
-                { id:8, name:'Chicken Thighs (1kg)', supplier:'Palengke Direct', price:165, imageUrl:'/images/thighs.webp', category:'meat', location:'Laguna', rating:4.6, supplierAvatar:'PD' },
-                { id:9, name:'Ground Pork (1kg)', supplier:'Tindahan PH', price:290, imageUrl:'/images/pork.jpg', category:'meat', location:'Manila', rating:4.5, supplierAvatar:'TP' },
+                { id:5, name:'Whole Chicken (1kg)', supplier:'FarmFresh', price:180, imageUrl:'images/chicken.jpg', category:'meat', location:'Laguna', rating:4.8, supplierAvatar:'FF' },
+                { id:6, name:'Pork Liempo (1kg)', supplier:'FarmFresh', price:340, imageUrl:'images/pork-liempo.jpg', category:'meat', location:'Pampanga', rating:4.7, supplierAvatar:'FF' },
+                { id:7, name:'Beef Sirloin (1kg)', supplier:'Mega Mart', price:520, imageUrl:'images/beef.png', category:'meat', location:'Bulacan', rating:4.8, supplierAvatar:'MM' },
+                { id:8, name:'Chicken Thighs (1kg)', supplier:'Palengke Direct', price:165, imageUrl:'images/thighs.webp', category:'meat', location:'Laguna', rating:4.6, supplierAvatar:'PD' },
+                { id:9, name:'Ground Pork (1kg)', supplier:'Tindahan PH', price:290, imageUrl:'images/pork.jpg', category:'meat', location:'Manila', rating:4.5, supplierAvatar:'TP' },
                 // Vegetables
-                { id:10, name:'Red Onions (1kg)', supplier:'Palengke Direct', price:80, imageUrl:'/images/onions.webp', category:'vegetables', location:'Nueva Ecija', rating:4.7, supplierAvatar:'PD' },
-                { id:11, name:'Garlic (1kg)', supplier:'Palengke Direct', price:100, imageUrl:'/images/garlic.webp', category:'vegetables', location:'Ilocos', rating:4.8, supplierAvatar:'PD' },
-                { id:12, name:'Potatoes (1kg)', supplier:'FarmFresh', price:75, imageUrl:'/images/potato.webp', category:'vegetables', location:'Benguet', rating:4.6, supplierAvatar:'FF' },
-                { id:13, name:'Tomatoes (1kg)', supplier:'Tindahan PH', price:65, imageUrl:'/images/tomato.webp', category:'vegetables', location:'Mindanao', rating:4.4, supplierAvatar:'TP' },
-                { id:14, name:'Carrots (1kg)', supplier:'Mega Mart', price:85, imageUrl:'/images/carrots.webp', category:'vegetables', location:'Benguet', rating:4.5, supplierAvatar:'MM' },
-                { id:15, name:'Cabbage (1 head)', supplier:'FarmFresh', price:45, imageUrl:'/images/cabbage.webp', category:'vegetables', location:'Benguet', rating:4.6, supplierAvatar:'FF' },
+                { id:10, name:'Red Onions (1kg)', supplier:'Palengke Direct', price:80, imageUrl:'images/onions.webp', category:'vegetables', location:'Nueva Ecija', rating:4.7, supplierAvatar:'PD' },
+                { id:11, name:'Garlic (1kg)', supplier:'Palengke Direct', price:100, imageUrl:'images/garlic.webp', category:'vegetables', location:'Ilocos', rating:4.8, supplierAvatar:'PD' },
+                { id:12, name:'Potatoes (1kg)', supplier:'FarmFresh', price:75, imageUrl:'images/potato.webp', category:'vegetables', location:'Benguet', rating:4.6, supplierAvatar:'FF' },
+                { id:13, name:'Tomatoes (1kg)', supplier:'Tindahan PH', price:65, imageUrl:'images/tomato.webp', category:'vegetables', location:'Mindanao', rating:4.4, supplierAvatar:'TP' },
+                { id:14, name:'Carrots (1kg)', supplier:'Mega Mart', price:85, imageUrl:'images/carrots.webp', category:'vegetables', location:'Benguet', rating:4.5, supplierAvatar:'MM' },
+                { id:15, name:'Cabbage (1 head)', supplier:'FarmFresh', price:45, imageUrl:'images/cabbage.webp', category:'vegetables', location:'Benguet', rating:4.6, supplierAvatar:'FF' },
                 // Canned
-                { id:16, name:'Corned Beef (380g)', supplier:'Tindahan PH', price:85, imageUrl:'/images/corned-beef.png', category:'canned', location:'Manila', rating:4.5, supplierAvatar:'TP' },
-                { id:17, name:'Sardines (155g)', supplier:'Tindahan PH', price:18, imageUrl:'/images/sardines.jpg', category:'canned', location:'Zamboanga', rating:4.4, supplierAvatar:'TP' },
-                { id:18, name:'Tuna Flakes (180g)', supplier:'Mega Mart', price:42, imageUrl:'/images/tuna.jpg', category:'canned', location:'General Santos', rating:4.6, supplierAvatar:'MM' },
+                { id:16, name:'Corned Beef (380g)', supplier:'Tindahan PH', price:85, imageUrl:'images/corned-beef.png', category:'canned', location:'Manila', rating:4.5, supplierAvatar:'TP' },
+                { id:17, name:'Sardines (155g)', supplier:'Tindahan PH', price:18, imageUrl:'images/sardines.jpg', category:'canned', location:'Zamboanga', rating:4.4, supplierAvatar:'TP' },
+                { id:18, name:'Tuna Flakes (180g)', supplier:'Mega Mart', price:42, imageUrl:'images/tuna.jpg', category:'canned', location:'General Santos', rating:4.6, supplierAvatar:'MM' },
                 // Noodles
-                { id:20, name:'Lucky Me Beef (60g x30)', supplier:'Mega Mart', price:285, imageUrl:'/images/lucky-me.webp', category:'noodles', location:'Quezon City', rating:4.7, supplierAvatar:'MM' },
-                { id:21, name:'Pancit Canton (80g x30)', supplier:'Mega Mart', price:450, imageUrl:'/images/canton.jpg', category:'noodles', location:'Quezon City', rating:4.8, supplierAvatar:'MM' },
+                { id:20, name:'Lucky Me Beef (60g x30)', supplier:'Mega Mart', price:285, imageUrl:'images/lucky-me.webp', category:'noodles', location:'Quezon City', rating:4.7, supplierAvatar:'MM' },
+                { id:21, name:'Pancit Canton (80g x30)', supplier:'Mega Mart', price:450, imageUrl:'images/canton.jpg', category:'noodles', location:'Quezon City', rating:4.8, supplierAvatar:'MM' },
                 // Beverages
-                { id:23, name:'Coca-Cola (1.5L x12)', supplier:'Tindahan PH', price:720, imageUrl:'/images/coke.png', category:'beverages', location:'Makati', rating:4.6, supplierAvatar:'TP' },
-                { id:24, name:'Mineral Water (6L x4)', supplier:'FarmFresh', price:200, imageUrl:'/images/water.webp', category:'beverages', location:'Rizal', rating:4.7, supplierAvatar:'FF' },
-                { id:25, name:'Energy Drink (250ml x24)', supplier:'Mega Mart', price:720, imageUrl:'/images/energy.webp', category:'beverages', location:'Bulacan', rating:4.5, supplierAvatar:'MM' },
-                { id:26, name:'Coffee (3in1 x50)', supplier:'Tindahan PH', price:380, imageUrl:'/images/coffee.jpg', category:'beverages', location:'Manila', rating:4.6, supplierAvatar:'TP' },
-                { id:27, name:'Cooking Oil (1L x6)', supplier:'Mega Mart', price:270, imageUrl:'/images/oil.webp', category:'canned', location:'Bulacan', rating:4.7, supplierAvatar:'MM' },
-                { id:28, name:'Eggs (30pcs)', supplier:'FarmFresh', price:210, imageUrl:'/images/egg.jpg', category:'meat', location:'Laguna', rating:4.8, supplierAvatar:'FF' },
+                { id:23, name:'Coca-Cola (1.5L x12)', supplier:'Tindahan PH', price:720, imageUrl:'images/coke.png', category:'beverages', location:'Makati', rating:4.6, supplierAvatar:'TP' },
+                { id:24, name:'Mineral Water (6L x4)', supplier:'FarmFresh', price:200, imageUrl:'images/water.webp', category:'beverages', location:'Rizal', rating:4.7, supplierAvatar:'FF' },
+                { id:25, name:'Energy Drink (250ml x24)', supplier:'Mega Mart', price:720, imageUrl:'images/energy.webp', category:'beverages', location:'Bulacan', rating:4.5, supplierAvatar:'MM' },
+                { id:26, name:'Coffee (3in1 x50)', supplier:'Tindahan PH', price:380, imageUrl:'images/coffee.jpg', category:'beverages', location:'Manila', rating:4.6, supplierAvatar:'TP' },
+                { id:27, name:'Cooking Oil (1L x6)', supplier:'Mega Mart', price:270, imageUrl:'images/oil.webp', category:'canned', location:'Bulacan', rating:4.7, supplierAvatar:'MM' },
+                { id:28, name:'Eggs (30pcs)', supplier:'FarmFresh', price:210, imageUrl:'images/egg.jpg', category:'meat', location:'Laguna', rating:4.8, supplierAvatar:'FF' },
             ];
 
 // Chat data 

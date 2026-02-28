@@ -65,7 +65,7 @@
             window.declineTerms = function() {
                 showNotification('You must accept the Terms to continue using PRISM');
                 setTimeout(() => {
-                    window.location.href = '/home-page/home-page.html';
+                    window.location.href = 'prism.html';
                 }, 2000);
             };
 

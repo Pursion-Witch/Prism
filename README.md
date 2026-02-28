@@ -16,11 +16,11 @@ Track: SDG 8 - Decent Work and Sustainable Growth
 1. Open VSCode Terminal (or Command Prompt)
    - If using cmd, make sure to change directory to repo folder first: `cd <PRISM FILEPATH HERE>`
 
-2. Run `docker compose up --watch`
+2. Run `docker compose up --build`
+   - To enable live updates: run `docker compose up --watch` instead. Every time you save changes, refresh to see the updated page.
+   - If these commands fail: run `docker build -t prism .`
 
 3. Open http://localhost:3000
 
 4. To stop build, press Ctrl+C in terminal
-
-**Note**: Now support live update. After saving changes, refresh to see updated page.
 

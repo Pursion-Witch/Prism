@@ -53,6 +53,8 @@ FROM base as final
 # Use production node environment by default.
 ENV NODE_ENV production
 
+RUN mkdir -p /usr/src/app/data && chown -R node:node /usr/src/app
+
 # Run the application as a non-root user.
 USER node
 

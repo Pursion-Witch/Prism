@@ -551,6 +551,17 @@
             text-decoration: underline;
         }
 
+/*  Footer Mobile  */
+
+        @media (max-width: 768px) {
+            .footer-right{
+                font-size: 15px;
+                text-align: center;
+                overflow-wrap: break-word;
+                word-wrap: break-word;
+            }
+        }
+
 /* Notification */
 
         .notification {
@@ -575,6 +586,19 @@
         @media (max-width: 900px) {
             .admin-layout { grid-template-columns: 1fr; }
             .admin-sidebar { position: static; }
+        }
+
+/*  Notification mobile  */
+
+        @media (max-width: 768px) {
+            .notification{
+                position: fixed;
+                text-align: center;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 50%;
+                z-index: 1000;
+            }
         }
 
 /* --Mobile Version-- */

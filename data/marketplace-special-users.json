@@ -1,0 +1,512 @@
+[
+  {
+    "id": "MSU-LAZADA-01-01",
+    "marketplaceId": "lazada",
+    "marketplaceName": "Lazada Philippines",
+    "userId": "USR-002",
+    "name": "Juan Dela Cruz",
+    "email": "juan@supplier.com",
+    "title": "Marketplace Admin",
+    "permissions": [
+      "catalog:write",
+      "prices:write",
+      "alerts:write",
+      "users:review"
+    ],
+    "status": "on-leave",
+    "createdAt": "2026-02-28T18:17:53.455Z",
+    "updatedAt": "2026-02-28T18:17:53.455Z"
+  },
+  {
+    "id": "MSU-LAZADA-02-01",
+    "marketplaceId": "lazada",
+    "marketplaceName": "Lazada Philippines",
+    "userId": "USR-003",
+    "name": "DTI Officer",
+    "email": "dti@gov.ph",
+    "title": "Price Analyst",
+    "permissions": [
+      "prices:read",
+      "prices:write",
+      "reports:generate"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-28T16:47:53.455Z",
+    "updatedAt": "2026-02-28T16:47:53.455Z"
+  },
+  {
+    "id": "MSU-LAZADA-03-01",
+    "marketplaceId": "lazada",
+    "marketplaceName": "Lazada Philippines",
+    "userId": "USR-007",
+    "name": "Carlos Santos",
+    "email": "carlos.santos7@example.com",
+    "title": "Catalog Curator",
+    "permissions": [
+      "catalog:read",
+      "catalog:write"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-28T15:17:53.455Z",
+    "updatedAt": "2026-02-28T15:17:53.455Z"
+  },
+  {
+    "id": "MSU-LAZADA-04-01",
+    "marketplaceId": "lazada",
+    "marketplaceName": "Lazada Philippines",
+    "userId": "USR-008",
+    "name": "Diana Santos",
+    "email": "diana.santos8@example.com",
+    "title": "Compliance Officer",
+    "permissions": [
+      "alerts:read",
+      "alerts:write",
+      "users:review"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-28T13:47:53.455Z",
+    "updatedAt": "2026-02-28T13:47:53.455Z"
+  },
+  {
+    "id": "MSU-LAZADA-05-01",
+    "marketplaceId": "lazada",
+    "marketplaceName": "Lazada Philippines",
+    "userId": "USR-011",
+    "name": "Gina Santos",
+    "email": "gina.santos11@example.com",
+    "title": "Fraud Reviewer",
+    "permissions": [
+      "alerts:read",
+      "monitoring:read",
+      "users:review"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-28T12:17:53.455Z",
+    "updatedAt": "2026-02-28T12:17:53.455Z"
+  },
+  {
+    "id": "MSU-SHOPEE-01-02",
+    "marketplaceId": "shopee",
+    "marketplaceName": "Shopee Philippines",
+    "userId": "USR-012",
+    "name": "Harold Santos",
+    "email": "harold.santos12@example.com",
+    "title": "Marketplace Admin",
+    "permissions": [
+      "catalog:write",
+      "prices:write",
+      "alerts:write",
+      "users:review"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-28T10:47:53.455Z",
+    "updatedAt": "2026-02-28T10:47:53.455Z"
+  },
+  {
+    "id": "MSU-SHOPEE-02-02",
+    "marketplaceId": "shopee",
+    "marketplaceName": "Shopee Philippines",
+    "userId": "USR-015",
+    "name": "Kim Santos",
+    "email": "kim.santos15@example.com",
+    "title": "Price Analyst",
+    "permissions": [
+      "prices:read",
+      "prices:write",
+      "reports:generate"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-28T09:17:53.455Z",
+    "updatedAt": "2026-02-28T09:17:53.455Z"
+  },
+  {
+    "id": "MSU-SHOPEE-03-02",
+    "marketplaceId": "shopee",
+    "marketplaceName": "Shopee Philippines",
+    "userId": "USR-016",
+    "name": "Liam Santos",
+    "email": "liam.santos16@example.com",
+    "title": "Catalog Curator",
+    "permissions": [
+      "catalog:read",
+      "catalog:write"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-28T07:47:53.455Z",
+    "updatedAt": "2026-02-28T07:47:53.455Z"
+  },
+  {
+    "id": "MSU-SHOPEE-04-02",
+    "marketplaceId": "shopee",
+    "marketplaceName": "Shopee Philippines",
+    "userId": "USR-019",
+    "name": "Olive Santos",
+    "email": "olive.santos19@example.com",
+    "title": "Compliance Officer",
+    "permissions": [
+      "alerts:read",
+      "alerts:write",
+      "users:review"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-28T06:17:53.455Z",
+    "updatedAt": "2026-02-28T06:17:53.455Z"
+  },
+  {
+    "id": "MSU-SHOPEE-05-02",
+    "marketplaceId": "shopee",
+    "marketplaceName": "Shopee Philippines",
+    "userId": "USR-020",
+    "name": "Paolo Santos",
+    "email": "paolo.santos20@example.com",
+    "title": "Fraud Reviewer",
+    "permissions": [
+      "alerts:read",
+      "monitoring:read",
+      "users:review"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-28T04:47:53.455Z",
+    "updatedAt": "2026-02-28T04:47:53.455Z"
+  },
+  {
+    "id": "MSU-PUREGOLD-01-03",
+    "marketplaceId": "puregold",
+    "marketplaceName": "Puregold",
+    "userId": "USR-023",
+    "name": "Sean Santos",
+    "email": "sean.santos23@example.com",
+    "title": "Marketplace Admin",
+    "permissions": [
+      "catalog:write",
+      "prices:write",
+      "alerts:write",
+      "users:review"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-28T03:17:53.455Z",
+    "updatedAt": "2026-02-28T03:17:53.455Z"
+  },
+  {
+    "id": "MSU-PUREGOLD-02-03",
+    "marketplaceId": "puregold",
+    "marketplaceName": "Puregold",
+    "userId": "USR-024",
+    "name": "Tina Santos",
+    "email": "tina.santos24@example.com",
+    "title": "Price Analyst",
+    "permissions": [
+      "prices:read",
+      "prices:write",
+      "reports:generate"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-28T01:47:53.455Z",
+    "updatedAt": "2026-02-28T01:47:53.455Z"
+  },
+  {
+    "id": "MSU-PUREGOLD-03-03",
+    "marketplaceId": "puregold",
+    "marketplaceName": "Puregold",
+    "userId": "USR-027",
+    "name": "Carlos Dela Cruz",
+    "email": "carlos.delacruz27@example.com",
+    "title": "Catalog Curator",
+    "permissions": [
+      "catalog:read",
+      "catalog:write"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-28T00:17:53.456Z",
+    "updatedAt": "2026-02-28T00:17:53.456Z"
+  },
+  {
+    "id": "MSU-PUREGOLD-04-03",
+    "marketplaceId": "puregold",
+    "marketplaceName": "Puregold",
+    "userId": "USR-028",
+    "name": "Diana Dela Cruz",
+    "email": "diana.delacruz28@example.com",
+    "title": "Compliance Officer",
+    "permissions": [
+      "alerts:read",
+      "alerts:write",
+      "users:review"
+    ],
+    "status": "on-leave",
+    "createdAt": "2026-02-27T22:47:53.456Z",
+    "updatedAt": "2026-02-27T22:47:53.456Z"
+  },
+  {
+    "id": "MSU-PUREGOLD-05-03",
+    "marketplaceId": "puregold",
+    "marketplaceName": "Puregold",
+    "userId": "USR-031",
+    "name": "Gina Dela Cruz",
+    "email": "gina.delacruz31@example.com",
+    "title": "Fraud Reviewer",
+    "permissions": [
+      "alerts:read",
+      "monitoring:read",
+      "users:review"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-27T21:17:53.456Z",
+    "updatedAt": "2026-02-27T21:17:53.456Z"
+  },
+  {
+    "id": "MSU-SM-SUPERMARKET-01-04",
+    "marketplaceId": "sm-supermarket",
+    "marketplaceName": "SM Supermarket",
+    "userId": "USR-032",
+    "name": "Harold Dela Cruz",
+    "email": "harold.delacruz32@example.com",
+    "title": "Marketplace Admin",
+    "permissions": [
+      "catalog:write",
+      "prices:write",
+      "alerts:write",
+      "users:review"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-27T19:47:53.456Z",
+    "updatedAt": "2026-02-27T19:47:53.456Z"
+  },
+  {
+    "id": "MSU-SM-SUPERMARKET-02-04",
+    "marketplaceId": "sm-supermarket",
+    "marketplaceName": "SM Supermarket",
+    "userId": "USR-035",
+    "name": "Kim Dela Cruz",
+    "email": "kim.delacruz35@example.com",
+    "title": "Price Analyst",
+    "permissions": [
+      "prices:read",
+      "prices:write",
+      "reports:generate"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-27T18:17:53.456Z",
+    "updatedAt": "2026-02-27T18:17:53.456Z"
+  },
+  {
+    "id": "MSU-SM-SUPERMARKET-03-04",
+    "marketplaceId": "sm-supermarket",
+    "marketplaceName": "SM Supermarket",
+    "userId": "USR-036",
+    "name": "Liam Dela Cruz",
+    "email": "liam.delacruz36@example.com",
+    "title": "Catalog Curator",
+    "permissions": [
+      "catalog:read",
+      "catalog:write"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-27T16:47:53.456Z",
+    "updatedAt": "2026-02-27T16:47:53.456Z"
+  },
+  {
+    "id": "MSU-SM-SUPERMARKET-04-04",
+    "marketplaceId": "sm-supermarket",
+    "marketplaceName": "SM Supermarket",
+    "userId": "USR-039",
+    "name": "Olive Dela Cruz",
+    "email": "olive.delacruz39@example.com",
+    "title": "Compliance Officer",
+    "permissions": [
+      "alerts:read",
+      "alerts:write",
+      "users:review"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-27T15:17:53.456Z",
+    "updatedAt": "2026-02-27T15:17:53.456Z"
+  },
+  {
+    "id": "MSU-SM-SUPERMARKET-05-04",
+    "marketplaceId": "sm-supermarket",
+    "marketplaceName": "SM Supermarket",
+    "userId": "USR-040",
+    "name": "Paolo Dela Cruz",
+    "email": "paolo.delacruz40@example.com",
+    "title": "Fraud Reviewer",
+    "permissions": [
+      "alerts:read",
+      "monitoring:read",
+      "users:review"
+    ],
+    "status": "suspended",
+    "createdAt": "2026-02-27T13:47:53.456Z",
+    "updatedAt": "2026-02-27T13:47:53.456Z"
+  },
+  {
+    "id": "MSU-ROBINSONS-SUPERMARKET-01-05",
+    "marketplaceId": "robinsons-supermarket",
+    "marketplaceName": "Robinsons Supermarket",
+    "userId": "USR-043",
+    "name": "Sean Dela Cruz",
+    "email": "sean.delacruz43@example.com",
+    "title": "Marketplace Admin",
+    "permissions": [
+      "catalog:write",
+      "prices:write",
+      "alerts:write",
+      "users:review"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-27T12:17:53.456Z",
+    "updatedAt": "2026-02-27T12:17:53.456Z"
+  },
+  {
+    "id": "MSU-ROBINSONS-SUPERMARKET-02-05",
+    "marketplaceId": "robinsons-supermarket",
+    "marketplaceName": "Robinsons Supermarket",
+    "userId": "USR-044",
+    "name": "Tina Dela Cruz",
+    "email": "tina.delacruz44@example.com",
+    "title": "Price Analyst",
+    "permissions": [
+      "prices:read",
+      "prices:write",
+      "reports:generate"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-27T10:47:53.456Z",
+    "updatedAt": "2026-02-27T10:47:53.456Z"
+  },
+  {
+    "id": "MSU-ROBINSONS-SUPERMARKET-03-05",
+    "marketplaceId": "robinsons-supermarket",
+    "marketplaceName": "Robinsons Supermarket",
+    "userId": "USR-047",
+    "name": "Carlos Reyes",
+    "email": "carlos.reyes47@example.com",
+    "title": "Catalog Curator",
+    "permissions": [
+      "catalog:read",
+      "catalog:write"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-27T09:17:53.456Z",
+    "updatedAt": "2026-02-27T09:17:53.456Z"
+  },
+  {
+    "id": "MSU-ROBINSONS-SUPERMARKET-04-05",
+    "marketplaceId": "robinsons-supermarket",
+    "marketplaceName": "Robinsons Supermarket",
+    "userId": "USR-048",
+    "name": "Diana Reyes",
+    "email": "diana.reyes48@example.com",
+    "title": "Compliance Officer",
+    "permissions": [
+      "alerts:read",
+      "alerts:write",
+      "users:review"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-27T07:47:53.456Z",
+    "updatedAt": "2026-02-27T07:47:53.456Z"
+  },
+  {
+    "id": "MSU-ROBINSONS-SUPERMARKET-05-05",
+    "marketplaceId": "robinsons-supermarket",
+    "marketplaceName": "Robinsons Supermarket",
+    "userId": "USR-051",
+    "name": "Gina Reyes",
+    "email": "gina.reyes51@example.com",
+    "title": "Fraud Reviewer",
+    "permissions": [
+      "alerts:read",
+      "monitoring:read",
+      "users:review"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-27T06:17:53.456Z",
+    "updatedAt": "2026-02-27T06:17:53.456Z"
+  },
+  {
+    "id": "MSU-WALTERMART-01-06",
+    "marketplaceId": "waltermart",
+    "marketplaceName": "Waltermart",
+    "userId": "USR-052",
+    "name": "Harold Reyes",
+    "email": "harold.reyes52@example.com",
+    "title": "Marketplace Admin",
+    "permissions": [
+      "catalog:write",
+      "prices:write",
+      "alerts:write",
+      "users:review"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-27T04:47:53.456Z",
+    "updatedAt": "2026-02-27T04:47:53.456Z"
+  },
+  {
+    "id": "MSU-WALTERMART-02-06",
+    "marketplaceId": "waltermart",
+    "marketplaceName": "Waltermart",
+    "userId": "USR-055",
+    "name": "Kim Reyes",
+    "email": "kim.reyes55@example.com",
+    "title": "Price Analyst",
+    "permissions": [
+      "prices:read",
+      "prices:write",
+      "reports:generate"
+    ],
+    "status": "on-leave",
+    "createdAt": "2026-02-27T03:17:53.456Z",
+    "updatedAt": "2026-02-27T03:17:53.456Z"
+  },
+  {
+    "id": "MSU-WALTERMART-03-06",
+    "marketplaceId": "waltermart",
+    "marketplaceName": "Waltermart",
+    "userId": "USR-056",
+    "name": "Liam Reyes",
+    "email": "liam.reyes56@example.com",
+    "title": "Catalog Curator",
+    "permissions": [
+      "catalog:read",
+      "catalog:write"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-27T01:47:53.456Z",
+    "updatedAt": "2026-02-27T01:47:53.456Z"
+  },
+  {
+    "id": "MSU-WALTERMART-04-06",
+    "marketplaceId": "waltermart",
+    "marketplaceName": "Waltermart",
+    "userId": "USR-059",
+    "name": "Olive Reyes",
+    "email": "olive.reyes59@example.com",
+    "title": "Compliance Officer",
+    "permissions": [
+      "alerts:read",
+      "alerts:write",
+      "users:review"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-27T00:17:53.456Z",
+    "updatedAt": "2026-02-27T00:17:53.456Z"
+  },
+  {
+    "id": "MSU-WALTERMART-05-06",
+    "marketplaceId": "waltermart",
+    "marketplaceName": "Waltermart",
+    "userId": "USR-060",
+    "name": "Paolo Reyes",
+    "email": "paolo.reyes60@example.com",
+    "title": "Fraud Reviewer",
+    "permissions": [
+      "alerts:read",
+      "monitoring:read",
+      "users:review"
+    ],
+    "status": "active",
+    "createdAt": "2026-02-26T22:47:53.456Z",
+    "updatedAt": "2026-02-26T22:47:53.456Z"
+  }
+]

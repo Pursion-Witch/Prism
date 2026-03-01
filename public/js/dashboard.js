@@ -1,133 +1,138 @@
-(function() {
+(function () {
     'use strict';
 
-// Stars background
+    const REFRESH_MS = 60 * 1000;
+    const DRIFT_MS = 20 * 1000;
+
+    let refreshTimer = null;
+    let driftTimer = null;
+    let trendState = [64, 68, 66, 71, 73, 72, 75];
+    let categoryState = [82, 71, 66, 48, 40];
 
     function createStars() {
         const stars = document.getElementById('stars');
         if (!stars) return;
-
         stars.innerHTML = '';
-        
         for (let i = 0; i < 180; i++) {
             const s = document.createElement('div');
             s.className = 'star';
-            s.style.cssText = `left:${Math.random()*100}%; top:${Math.random()*100}%; width:${Math.random()*3+1}px; height:${Math.random()*3+1}px; animation-delay:${Math.random()*3}s`;
+            s.style.cssText = `left:${Math.random() * 100}%; top:${Math.random() * 100}%; width:${Math.random() * 3 + 1}px; height:${Math.random() * 3 + 1}px; animation-delay:${Math.random() * 3}s`;
             stars.appendChild(s);
         }
     }
-    createStars();
 
-// Hamburger menu
+    function setupMenu() {
+        const hamburger = document.getElementById('hamburgerBtn');
+        const nav = document.getElementById('navLinks');
+        if (!hamburger || !nav) return;
 
-    const hamburger = document.getElementById('hamburgerBtn');
-    const nav = document.getElementById('navLinks');
-    
-    if (hamburger && nav) {
-        hamburger.addEventListener('click', (e) => { 
-            e.stopPropagation(); 
-            nav.classList.toggle('active'); 
+        hamburger.addEventListener('click', function (event) {
+            event.stopPropagation();
+            nav.classList.toggle('active');
         });
-        
-        document.querySelectorAll('.nav-links a').forEach(l => {
-            l.addEventListener('click', () => nav.classList.remove('active'));
+        document.querySelectorAll('.nav-links a').forEach(function (link) {
+            link.addEventListener('click', function () {
+                nav.classList.remove('active');
+            });
         });
-        
-        document.addEventListener('click', (e) => { 
-            if (!hamburger.contains(e.target) && !nav.contains(e.target)) {
-                nav.classList.remove('active'); 
+        document.addEventListener('click', function (event) {
+            if (!hamburger.contains(event.target) && !nav.contains(event.target)) {
+                nav.classList.remove('active');
             }
         });
     }
 
-// Notification system
-
-    window.showNotification = function(msg) {
-        let n = document.getElementById('notification');
-        if (!n) {
-            n = document.createElement('div');
-            n.id = 'notification';
-            n.className = 'notification';
-            document.body.appendChild(n);
+    window.showNotification = function (message) {
+        let node = document.getElementById('notification');
+        if (!node) {
+            node = document.createElement('div');
+            node.id = 'notification';
+            node.className = 'notification';
+            document.body.appendChild(node);
         }
-        n.textContent = msg;
-        n.style.display = 'block';
-        n.style.animation = 'slideIn 0.2s';
-        
-// Clear any existing timeout
+        node.textContent = message;
+        node.style.display = 'block';
+        node.style.animation = 'slideIn 0.2s';
 
-        if (n._timeout) {
-            clearTimeout(n._timeout);
-            clearTimeout(n._hideTimeout);
-        }
-        
-        n._timeout = setTimeout(() => {
-            n.style.animation = 'slideOut 0.25s';
-            n._hideTimeout = setTimeout(() => { 
-                n.style.display = 'none'; 
-                n.style.animation = ''; 
-                delete n._timeout;
-                delete n._hideTimeout;
+        if (node._timeout) clearTimeout(node._timeout);
+        if (node._hideTimeout) clearTimeout(node._hideTimeout);
+
+        node._timeout = setTimeout(function () {
+            node.style.animation = 'slideOut 0.25s';
+            node._hideTimeout = setTimeout(function () {
+                node.style.display = 'none';
+                node.style.animation = '';
+                node._timeout = null;
+                node._hideTimeout = null;
             }, 250);
-        }, 2000);
+        }, 2200);
     };
 
-// Date filter
-
-    window.filterDate = function(range, event) {
-        if (!event && arguments.length > 1) {
-            event = arguments[1];
+    window.filterDate = function (range, explicitEvent) {
+        const eventRef = explicitEvent || window.event;
+        document.querySelectorAll('.date-btn').forEach(function (btn) {
+            btn.classList.remove('active');
+        });
+        if (eventRef && eventRef.target) {
+            eventRef.target.classList.add('active');
         }
-        
-        document.querySelectorAll('.date-btn').forEach(btn => btn.classList.remove('active'));
-        
-        if (event && event.target) {
-            event.target.classList.add('active');
-        } else {
-            const buttons = document.querySelectorAll('.date-btn');
-            for (let btn of buttons) {
-                if (btn.textContent.includes(range)) {
-                    btn.classList.add('active');
-                    break;
-                }
-            }
-        }
-        
         showNotification(`Showing data for: ${range}`);
     };
 
-// Generate trend graph points
+    function normalizePoints(series, size, fallback) {
+        if (!Array.isArray(series) || series.length === 0) {
+            return fallback.slice(0, size);
+        }
+        const values = series
+            .slice(-size)
+            .map(function (entry) {
+                const value = Number(entry && entry.value);
+                return Number.isFinite(value) ? value : null;
+            })
+            .filter(function (value) {
+                return value !== null;
+            });
+        if (values.length === 0) return fallback.slice(0, size);
 
-    function generateTrendPoints() {
+        const min = Math.min.apply(null, values);
+        const max = Math.max.apply(null, values);
+        if (max - min < 0.001) {
+            return values.map(function (value, index) {
+                return 62 + index * 2 + (value - min) * 0.1;
+            });
+        }
+
+        return values.map(function (value) {
+            const scaled = 45 + ((value - min) / (max - min)) * 40;
+            return Number(scaled.toFixed(2));
+        });
+    }
+
+    function renderTrendPoints() {
         const container = document.getElementById('trendPoints');
         if (!container) return;
-        
-        const points = [65, 72, 68, 85, 82, 78, 88];
+
         let html = '';
-        
-        for (let i = 0; i < points.length; i++) {
-            const left = (i / (points.length - 1)) * 100;
-            const bottom = points[i]; 
-            const randomPrice = Math.floor(80 + Math.random() * 50);
-            html += `<div class="point" style="left: ${left}%; bottom: ${bottom}px;" data-value="₱${randomPrice}" onclick="showNotification('Price: ₱${randomPrice}')"></div>`;
+        for (let i = 0; i < trendState.length; i++) {
+            const left = (i / Math.max(1, trendState.length - 1)) * 100;
+            const bottom = Math.max(18, trendState[i]);
+            const peso = (90 + trendState[i]).toFixed(2);
+            html += `<div class="point" style="left:${left}%; bottom:${bottom}px;" data-value="PHP ${peso}" onclick="showNotification('Price: PHP ${peso}')"></div>`;
         }
         container.innerHTML = html;
     }
 
-// Generate category chart
-
-    function generateCategoryChart() {
+    function renderCategoryChart() {
         const container = document.getElementById('categoryChart');
         if (!container) return;
-        
+
         const categories = ['Rice', 'Meat', 'Veg', 'Oil', 'Canned'];
-        const values = [85, 72, 68, 45, 38];
-        
         let html = '';
         for (let i = 0; i < categories.length; i++) {
+            const height = Math.max(12, categoryState[i]);
             html += `
                 <div class="bar-item">
-                    <div class="bar" style="height: ${values[i]}px;" onclick="showNotification('${categories[i]}: ${values[i]}k items')"></div>
+                    <div class="bar" style="height:${height}px;" onclick="showNotification('${categories[i]}: ${Math.round(height)} index')"></div>
                     <div class="bar-label">${categories[i]}</div>
                 </div>
             `;
@@ -135,83 +140,217 @@
         container.innerHTML = html;
     }
 
-    if (document.getElementById('trendPoints')) {
-        generateTrendPoints();
+    function setKpiValue(node, value, kind) {
+        if (!node) return;
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) return;
+        node.dataset.liveBase = String(numeric);
+        node.dataset.liveKind = kind;
+        if (kind === 'percent') {
+            node.textContent = `${numeric.toFixed(1)}%`;
+            return;
+        }
+        if (kind === 'peso') {
+            node.textContent = numeric >= 1000000 ? `PHP ${(numeric / 1000000).toFixed(2)}M` : `PHP ${numeric.toFixed(2)}`;
+            return;
+        }
+        node.textContent = String(Math.round(numeric));
     }
-    
-    if (document.getElementById('categoryChart')) {
-        generateCategoryChart();
+
+    function applyKpiDrift() {
+        document.querySelectorAll('.kpi-value[data-live-base]').forEach(function (node) {
+            const base = Number(node.dataset.liveBase);
+            if (!Number.isFinite(base)) return;
+            const kind = node.dataset.liveKind || 'count';
+            if (kind === 'percent') {
+                const value = Math.max(0, base + (Math.random() - 0.5) * 0.25);
+                node.textContent = `${value.toFixed(1)}%`;
+                return;
+            }
+            if (kind === 'peso') {
+                const value = Math.max(0, base + (Math.random() - 0.5) * 1200);
+                node.textContent = value >= 1000000 ? `PHP ${(value / 1000000).toFixed(2)}M` : `PHP ${value.toFixed(2)}`;
+                return;
+            }
+            const value = Math.max(0, base + (Math.random() - 0.5) * 1.5);
+            node.textContent = String(Math.round(value));
+        });
+    }
+
+    function renderOverpriced(snapshot) {
+        const host = document.querySelector('.dashboard-two-col .card');
+        if (!host || !Array.isArray(snapshot.priceMonitoring)) return;
+
+        const rows = snapshot.priceMonitoring
+            .slice()
+            .sort(function (a, b) {
+                return Math.abs(Number(b.differencePct || 0)) - Math.abs(Number(a.differencePct || 0));
+            })
+            .slice(0, 2);
+
+        const items = host.querySelectorAll('.overpriced-item');
+        rows.forEach(function (row, index) {
+            const node = items[index];
+            if (!node) return;
+            const title = node.querySelector('h4');
+            const srp = node.querySelector('.srp');
+            const badge = node.querySelector('.change-badge');
+            const market = node.querySelector('.market-price');
+            if (title) title.textContent = row.item;
+            if (srp) srp.textContent = `SRP: ${Number(row.expectedPrice || row.observedPrice).toFixed(2)}`;
+            if (badge) badge.textContent = `${Number(row.differencePct || 0) >= 0 ? '+' : ''}${Number(row.differencePct || 0).toFixed(1)}%`;
+            if (market) market.textContent = Number(row.observedPrice).toFixed(2);
+        });
+    }
+
+    function renderSuppliers(snapshot) {
+        const supplierCards = document.querySelectorAll('.supplier-item');
+        if (!supplierCards.length || !Array.isArray(snapshot.products)) return;
+
+        const supplierMap = {};
+        snapshot.products.forEach(function (product) {
+            const key = product.supplier || 'Unknown';
+            if (!supplierMap[key]) supplierMap[key] = 0;
+            supplierMap[key] += 1;
+        });
+
+        const top = Object.keys(supplierMap)
+            .map(function (name) {
+                return { name: name, count: supplierMap[name] };
+            })
+            .sort(function (a, b) {
+                return b.count - a.count;
+            })
+            .slice(0, supplierCards.length);
+
+        top.forEach(function (row, index) {
+            const card = supplierCards[index];
+            const avatar = card.querySelector('.supplier-avatar');
+            const name = card.querySelector('.supplier-name');
+            const meta = card.querySelector('.supplier-meta');
+            const score = card.querySelector('.supplier-score');
+            if (avatar) avatar.textContent = row.name.split(/\s+/).map(function (part) { return part[0] || ''; }).join('').slice(0, 2).toUpperCase();
+            if (name) name.textContent = row.name;
+            if (meta) meta.textContent = `${row.count} listed products`;
+            if (score) score.textContent = `${Math.max(70, Math.min(99, 70 + row.count))}%`;
+        });
+    }
+
+    function renderAlerts(snapshot) {
+        const nodes = document.querySelectorAll('.dashboard-two-col .card .alert-item');
+        if (!nodes.length || !Array.isArray(snapshot.alerts)) return;
+
+        snapshot.alerts.slice(0, nodes.length).forEach(function (alert, index) {
+            const node = nodes[index];
+            const title = node.querySelector('.alert-title');
+            const meta = node.querySelector('.alert-meta');
+            const action = node.querySelector('.alert-action');
+            if (title) title.textContent = alert.title || 'System Alert';
+            if (meta) meta.textContent = alert.updatedAt ? new Date(alert.updatedAt).toLocaleTimeString() : 'just now';
+            if (action) {
+                action.textContent = alert.status === 'resolved' ? 'Resolved' : 'Review';
+            }
+        });
+    }
+
+    function jitterSeries() {
+        trendState = trendState.map(function (value) {
+            return Math.max(20, Math.min(92, value + (Math.random() - 0.5) * 1.2));
+        });
+        categoryState = categoryState.map(function (value) {
+            return Math.max(16, Math.min(95, value + (Math.random() - 0.5) * 1.1));
+        });
+        renderTrendPoints();
+        renderCategoryChart();
     }
 
     function setupInteractiveElements() {
-        const interactiveSelectors = [
-            '.overpriced-item', 
-            '.alert-item', 
-            '.supplier-item', 
-            '.heatmap-cell'
-        ];
-        
-        interactiveSelectors.forEach(selector => {
-            document.querySelectorAll(selector).forEach(el => {
-                el.removeEventListener('click', handleInteractiveClick);
-                el.addEventListener('click', handleInteractiveClick);
+        const selectors = ['.overpriced-item', '.alert-item', '.supplier-item', '.heatmap-cell'];
+        selectors.forEach(function (selector) {
+            document.querySelectorAll(selector).forEach(function (node) {
+                node.removeEventListener('click', node._dashboardClickHandler);
+                node._dashboardClickHandler = function () {
+                    const text = (node.innerText || '').slice(0, 42);
+                    showNotification(text);
+                };
+                node.addEventListener('click', node._dashboardClickHandler);
             });
         });
     }
 
-    function handleInteractiveClick() {
-        const text = this.innerText.slice(0, 40);
-        showNotification(text + '…');
+    async function refreshLiveData(showToast) {
+        try {
+            const [metricsRes, snapshotRes] = await Promise.all([
+                fetch('/api/live/metrics'),
+                fetch('/api/admin/snapshot')
+            ]);
+            if (!snapshotRes.ok) {
+                throw new Error('Unable to load dashboard snapshot.');
+            }
+
+            const snapshot = await snapshotRes.json();
+            const liveMetrics = metricsRes.ok ? await metricsRes.json() : null;
+
+            const kpis = document.querySelectorAll('.kpi-value');
+            if (kpis.length >= 4) {
+                const variance =
+                    snapshot.metrics.productsTracked > 0
+                        ? (snapshot.metrics.flaggedListings / snapshot.metrics.productsTracked) * 100
+                        : 0;
+                setKpiValue(kpis[0], variance, 'percent');
+                setKpiValue(kpis[1], snapshot.metrics.flaggedListings, 'count');
+                setKpiValue(kpis[2], snapshot.metrics.averageFairness, 'percent');
+                setKpiValue(kpis[3], snapshot.metrics.estimatedSavings, 'peso');
+            }
+
+            renderOverpriced(snapshot);
+            renderSuppliers(snapshot);
+            renderAlerts(snapshot);
+
+            if (liveMetrics && liveMetrics.chart) {
+                trendState = normalizePoints(liveMetrics.chart.fairnessTrend, 7, trendState);
+                categoryState = normalizePoints(liveMetrics.chart.varianceTrend, 5, categoryState);
+            } else {
+                jitterSeries();
+            }
+            renderTrendPoints();
+            renderCategoryChart();
+
+            setupInteractiveElements();
+            if (showToast) {
+                showNotification('Dashboard refreshed from live data.');
+            }
+        } catch (error) {
+            jitterSeries();
+            if (showToast) {
+                const message = error instanceof Error ? error.message : 'Dashboard refresh failed.';
+                showNotification(message);
+            }
+        }
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', setupInteractiveElements);
-    } else {
-        setupInteractiveElements();
+    function startLiveLoops() {
+        if (refreshTimer) clearInterval(refreshTimer);
+        if (driftTimer) clearInterval(driftTimer);
+        refreshTimer = setInterval(function () {
+            void refreshLiveData(false);
+        }, REFRESH_MS);
+        driftTimer = setInterval(function () {
+            applyKpiDrift();
+            jitterSeries();
+        }, DRIFT_MS);
     }
 
-// Refresh data simulation
-
-    let refreshInterval = setInterval(() => {
-        
-// Update KPI values slightly for demo
-
-        const kpiValues = document.querySelectorAll('.kpi-value');
-        kpiValues.forEach(el => {
-            if (el.innerText.includes('M')) return; 
-
-            let val = parseFloat(el.innerText.replace(/[^0-9.-]/g, ''));
-            
-            if (!isNaN(val)) {
-                const variation = (Math.random() * 2 - 1) * 0.5; 
-                const newVal = (val + variation).toFixed(1);
-                
-                if (el.innerText.includes('₱')) {
-                    el.innerText = '₱' + newVal;
-                } else if (el.innerText.includes('%')) {
-                    el.innerText = newVal + '%';
-                } else {
-                    el.innerText = newVal;
-                }
-            }
-        });
-    }, 30000);
-
-    window.addEventListener('beforeunload', () => {
-        clearInterval(refreshInterval);
+    window.addEventListener('beforeunload', function () {
+        if (refreshTimer) clearInterval(refreshTimer);
+        if (driftTimer) clearInterval(driftTimer);
     });
 
-    let resizeTimeout;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-            if (document.getElementById('trendPoints')) {
-                generateTrendPoints();
-            }
-            if (document.getElementById('categoryChart')) {
-                generateCategoryChart();
-            }
-        }, 250);
-    });
-
+    createStars();
+    setupMenu();
+    renderTrendPoints();
+    renderCategoryChart();
+    setupInteractiveElements();
+    void refreshLiveData(false);
+    startLiveLoops();
 })();

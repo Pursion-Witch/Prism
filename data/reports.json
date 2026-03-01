@@ -1,5 +1,940 @@
 [
   {
+    "id": "RPT-mm73icqa-d9loe8",
+    "title": "AI Maintenance Report - 2026-03-01 01:52",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:52:59.889Z",
+    "metrics": {
+      "averageFairness": 53.17,
+      "flaggedListings": 38,
+      "highRiskCount": 2,
+      "underpricedCount": 55,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 40,
+      "estimatedSavings": 817.51
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm73gz40-6os597",
+    "title": "AI Maintenance Report - 2026-03-01 01:51",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:51:55.583Z",
+    "metrics": {
+      "averageFairness": 53.17,
+      "flaggedListings": 37,
+      "highRiskCount": 2,
+      "underpricedCount": 54,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 39,
+      "estimatedSavings": 802.89
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm73g2v6-9ia6zv",
+    "title": "AI Maintenance Report - 2026-03-01 01:51",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:51:13.793Z",
+    "metrics": {
+      "averageFairness": 53.17,
+      "flaggedListings": 36,
+      "highRiskCount": 2,
+      "underpricedCount": 53,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 38,
+      "estimatedSavings": 788.47
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm73fowx-1evimf",
+    "title": "AI Maintenance Report - 2026-03-01 01:50",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:50:55.711Z",
+    "metrics": {
+      "averageFairness": 53.17,
+      "flaggedListings": 35,
+      "highRiskCount": 2,
+      "underpricedCount": 52,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 37,
+      "estimatedSavings": 773.71
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm73f5ry-t300d7",
+    "title": "AI Maintenance Report - 2026-03-01 01:50",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:50:30.909Z",
+    "metrics": {
+      "averageFairness": 53.17,
+      "flaggedListings": 34,
+      "highRiskCount": 2,
+      "underpricedCount": 51,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 36,
+      "estimatedSavings": 758.91
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm73f0wr-1hblda",
+    "title": "AI Maintenance Report - 2026-03-01 01:50",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:50:24.601Z",
+    "metrics": {
+      "averageFairness": 53.17,
+      "flaggedListings": 33,
+      "highRiskCount": 2,
+      "underpricedCount": 50,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 35,
+      "estimatedSavings": 744.51
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm73etep-ov0o0f",
+    "title": "AI Maintenance Report - 2026-03-01 01:50",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:50:14.880Z",
+    "metrics": {
+      "averageFairness": 53.17,
+      "flaggedListings": 32,
+      "highRiskCount": 2,
+      "underpricedCount": 49,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 34,
+      "estimatedSavings": 729.94
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm73eoi5-c45ilj",
+    "title": "AI Maintenance Report - 2026-03-01 01:50",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:50:08.524Z",
+    "metrics": {
+      "averageFairness": 53.17,
+      "flaggedListings": 31,
+      "highRiskCount": 2,
+      "underpricedCount": 48,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 33,
+      "estimatedSavings": 715.51
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm73e58e-yiwzji",
+    "title": "AI Maintenance Report - 2026-03-01 01:49",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:49:43.549Z",
+    "metrics": {
+      "averageFairness": 53.17,
+      "flaggedListings": 30,
+      "highRiskCount": 2,
+      "underpricedCount": 47,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 32,
+      "estimatedSavings": 700.92
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72lnw9-qhx8ga",
+    "title": "AI Maintenance Report - 2026-03-01 01:27",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:27:34.712Z",
+    "metrics": {
+      "averageFairness": 53.19,
+      "flaggedListings": 29,
+      "highRiskCount": 1,
+      "underpricedCount": 46,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 31,
+      "estimatedSavings": 686.3
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72hofo-6uovt5",
+    "title": "AI Maintenance Report - 2026-03-01 01:24",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:24:28.786Z",
+    "metrics": {
+      "averageFairness": 53.19,
+      "flaggedListings": 28,
+      "highRiskCount": 1,
+      "underpricedCount": 45,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 30,
+      "estimatedSavings": 671.65
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72hjxl-ljh39n",
+    "title": "AI Maintenance Report - 2026-03-01 01:24",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:24:22.952Z",
+    "metrics": {
+      "averageFairness": 53.19,
+      "flaggedListings": 27,
+      "highRiskCount": 1,
+      "underpricedCount": 44,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 29,
+      "estimatedSavings": 657.35
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72hb63-mgwzm4",
+    "title": "AI Maintenance Report - 2026-03-01 01:24",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:24:11.594Z",
+    "metrics": {
+      "averageFairness": 53.19,
+      "flaggedListings": 26,
+      "highRiskCount": 1,
+      "underpricedCount": 43,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 28,
+      "estimatedSavings": 642.58
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72gsfa-fv6iwm",
+    "title": "AI Maintenance Report - 2026-03-01 01:23",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:23:47.299Z",
+    "metrics": {
+      "averageFairness": 53.19,
+      "flaggedListings": 25,
+      "highRiskCount": 1,
+      "underpricedCount": 42,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 27,
+      "estimatedSavings": 627.66
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72gm05-t3lon4",
+    "title": "AI Maintenance Report - 2026-03-01 01:23",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:23:38.980Z",
+    "metrics": {
+      "averageFairness": 53.19,
+      "flaggedListings": 24,
+      "highRiskCount": 1,
+      "underpricedCount": 41,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 26,
+      "estimatedSavings": 613.01
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72gh7s-2y3ddw",
+    "title": "AI Maintenance Report - 2026-03-01 01:23",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:23:32.775Z",
+    "metrics": {
+      "averageFairness": 53.2,
+      "flaggedListings": 23,
+      "highRiskCount": 1,
+      "underpricedCount": 40,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 25,
+      "estimatedSavings": 598.49
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72gc9n-sxs5cs",
+    "title": "AI Maintenance Report - 2026-03-01 01:23",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:23:26.362Z",
+    "metrics": {
+      "averageFairness": 53.2,
+      "flaggedListings": 22,
+      "highRiskCount": 1,
+      "underpricedCount": 39,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 24,
+      "estimatedSavings": 583.61
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72fyvy-uj9czg",
+    "title": "AI Maintenance Report - 2026-03-01 01:23",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:23:09.021Z",
+    "metrics": {
+      "averageFairness": 53.2,
+      "flaggedListings": 21,
+      "highRiskCount": 1,
+      "underpricedCount": 38,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 23,
+      "estimatedSavings": 569.17
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72ftiy-l63hqg",
+    "title": "AI Maintenance Report - 2026-03-01 01:23",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:23:02.073Z",
+    "metrics": {
+      "averageFairness": 53.2,
+      "flaggedListings": 20,
+      "highRiskCount": 1,
+      "underpricedCount": 37,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 22,
+      "estimatedSavings": 554.63
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72fomn-g05buj",
+    "title": "AI Maintenance Report - 2026-03-01 01:22",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:22:55.725Z",
+    "metrics": {
+      "averageFairness": 53.2,
+      "flaggedListings": 19,
+      "highRiskCount": 1,
+      "underpricedCount": 36,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 21,
+      "estimatedSavings": 540.05
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72fh3i-vgn324",
+    "title": "AI Maintenance Report - 2026-03-01 01:22",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:22:45.965Z",
+    "metrics": {
+      "averageFairness": 53.21,
+      "flaggedListings": 18,
+      "highRiskCount": 1,
+      "underpricedCount": 35,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 20,
+      "estimatedSavings": 525.2
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72f3b4-96rx3f",
+    "title": "AI Maintenance Report - 2026-03-01 01:22",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:22:28.094Z",
+    "metrics": {
+      "averageFairness": 53.21,
+      "flaggedListings": 17,
+      "highRiskCount": 1,
+      "underpricedCount": 34,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 19,
+      "estimatedSavings": 510.41
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72epzm-1jsva7",
+    "title": "AI Maintenance Report - 2026-03-01 01:22",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:22:10.834Z",
+    "metrics": {
+      "averageFairness": 53.21,
+      "flaggedListings": 16,
+      "highRiskCount": 1,
+      "underpricedCount": 33,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 18,
+      "estimatedSavings": 496.02
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72db4x-f5p8j8",
+    "title": "AI Maintenance Report - 2026-03-01 01:21",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:21:04.928Z",
+    "metrics": {
+      "averageFairness": 53.21,
+      "flaggedListings": 15,
+      "highRiskCount": 1,
+      "underpricedCount": 32,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 17,
+      "estimatedSavings": 481.94
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72d8in-vzyo05",
+    "title": "AI Maintenance Report - 2026-03-01 01:21",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:21:01.534Z",
+    "metrics": {
+      "averageFairness": 53.22,
+      "flaggedListings": 14,
+      "highRiskCount": 1,
+      "underpricedCount": 31,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 16,
+      "estimatedSavings": 467.17
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72d3j5-v1evoj",
+    "title": "AI Maintenance Report - 2026-03-01 01:20",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:20:55.073Z",
+    "metrics": {
+      "averageFairness": 53.22,
+      "flaggedListings": 13,
+      "highRiskCount": 1,
+      "underpricedCount": 30,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 15,
+      "estimatedSavings": 452.26
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72cwyj-uew3lt",
+    "title": "AI Maintenance Report - 2026-03-01 01:20",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:20:46.554Z",
+    "metrics": {
+      "averageFairness": 53.22,
+      "flaggedListings": 12,
+      "highRiskCount": 1,
+      "underpricedCount": 29,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 14,
+      "estimatedSavings": 438.06
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72crfz-cxpypk",
+    "title": "AI Maintenance Report - 2026-03-01 01:20",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:20:39.407Z",
+    "metrics": {
+      "averageFairness": 53.23,
+      "flaggedListings": 11,
+      "highRiskCount": 1,
+      "underpricedCount": 28,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 13,
+      "estimatedSavings": 423.5
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72cmqo-1pzaet",
+    "title": "AI Maintenance Report - 2026-03-01 01:20",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:20:33.311Z",
+    "metrics": {
+      "averageFairness": 53.23,
+      "flaggedListings": 10,
+      "highRiskCount": 1,
+      "underpricedCount": 27,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 12,
+      "estimatedSavings": 408.97
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm72cgt1-144bqj",
+    "title": "AI Maintenance Report - 2026-03-01 01:20",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T01:20:25.620Z",
+    "metrics": {
+      "averageFairness": 53.23,
+      "flaggedListings": 9,
+      "highRiskCount": 1,
+      "underpricedCount": 26,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 11,
+      "estimatedSavings": 394.28
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm712gf7-dhnorz",
+    "title": "AI Maintenance Report - 2026-03-01 00:44",
+    "period": "weekly",
+    "generatedAt": "2026-03-01T00:44:38.947Z",
+    "metrics": {
+      "averageFairness": 53.24,
+      "flaggedListings": 8,
+      "highRiskCount": 1,
+      "underpricedCount": 25,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 10,
+      "estimatedSavings": 380.01
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6yxan4-ol15l8",
+    "title": "AI Maintenance Report - 2026-02-28 23:44",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T23:44:38.943Z",
+    "metrics": {
+      "averageFairness": 53.24,
+      "flaggedListings": 7,
+      "highRiskCount": 1,
+      "underpricedCount": 24,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 9,
+      "estimatedSavings": 364.82
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6ws4v0-g7dy3p",
+    "title": "AI Maintenance Report - 2026-02-28 22:44",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T22:44:38.939Z",
+    "metrics": {
+      "averageFairness": 53.25,
+      "flaggedListings": 6,
+      "highRiskCount": 1,
+      "underpricedCount": 23,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 8,
+      "estimatedSavings": 350.15
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6umz2p-otvkjj",
+    "title": "AI Maintenance Report - 2026-02-28 21:44",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T21:44:38.928Z",
+    "metrics": {
+      "averageFairness": 53.25,
+      "flaggedListings": 5,
+      "highRiskCount": 1,
+      "underpricedCount": 22,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 7,
+      "estimatedSavings": 336
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6shtag-lff2y9",
+    "title": "AI Maintenance Report - 2026-02-28 20:44",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T20:44:38.920Z",
+    "metrics": {
+      "averageFairness": 53.26,
+      "flaggedListings": 4,
+      "highRiskCount": 1,
+      "underpricedCount": 21,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 6,
+      "estimatedSavings": 321.16
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6qcni9-hptajy",
+    "title": "AI Maintenance Report - 2026-02-28 19:44",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T19:44:38.913Z",
+    "metrics": {
+      "averageFairness": 53.26,
+      "flaggedListings": 3,
+      "highRiskCount": 1,
+      "underpricedCount": 20,
+      "totalUsers": 180,
+      "totalProducts": 5,
+      "openAlerts": 5,
+      "estimatedSavings": 307.75
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6objlv-cusw5f",
+    "title": "AI Maintenance Report - 2026-02-28 18:47",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:47:47.971Z",
+    "metrics": {
+      "averageFairness": 53.24,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 19,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 4,
+      "estimatedSavings": 291.43
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6o7hpq-7l5tx4",
+    "title": "AI Maintenance Report - 2026-02-28 18:44",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:44:38.893Z",
+    "metrics": {
+      "averageFairness": 53.24,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 18,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 4,
+      "estimatedSavings": 275.78
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6o7dp1-obnpav",
+    "title": "AI Maintenance Report - 2026-02-28 18:44",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:44:33.685Z",
+    "metrics": {
+      "averageFairness": 53.24,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 17,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 4,
+      "estimatedSavings": 260.62
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6o6jih-d37xq5",
+    "title": "AI Maintenance Report - 2026-02-28 18:43",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:43:54.568Z",
+    "metrics": {
+      "averageFairness": 53.23,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 16,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 4,
+      "estimatedSavings": 245.07
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6o65s1-mgh4d2",
+    "title": "AI Maintenance Report - 2026-02-28 18:43",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:43:36.768Z",
+    "metrics": {
+      "averageFairness": 53.23,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 15,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 4,
+      "estimatedSavings": 229.72
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6o5r1u-m3bvh3",
+    "title": "AI Maintenance Report - 2026-02-28 18:43",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:43:17.681Z",
+    "metrics": {
+      "averageFairness": 53.23,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 14,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 4,
+      "estimatedSavings": 214.49
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6o56zb-s9ieby",
+    "title": "AI Maintenance Report - 2026-02-28 18:42",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:42:51.670Z",
+    "metrics": {
+      "averageFairness": 53.23,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 13,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 3,
+      "estimatedSavings": 199.12
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6o4vb5-gm7wxj",
+    "title": "AI Maintenance Report - 2026-02-28 18:42",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:42:36.544Z",
+    "metrics": {
+      "averageFairness": 53.23,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 12,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 3,
+      "estimatedSavings": 183.88
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6o4iwo-easpqn",
+    "title": "AI Maintenance Report - 2026-02-28 18:42",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:42:20.471Z",
+    "metrics": {
+      "averageFairness": 53.23,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 11,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 3,
+      "estimatedSavings": 168.64
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6o4f6e-4dnbcq",
+    "title": "AI Maintenance Report - 2026-02-28 18:42",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:42:15.637Z",
+    "metrics": {
+      "averageFairness": 53.23,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 10,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 3,
+      "estimatedSavings": 153.4
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6o4cpa-xfra2s",
+    "title": "AI Maintenance Report - 2026-02-28 18:42",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:42:12.429Z",
+    "metrics": {
+      "averageFairness": 53.22,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 9,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 3,
+      "estimatedSavings": 138.16
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6o3yoe-3pwzj5",
+    "title": "AI Maintenance Report - 2026-02-28 18:41",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:41:54.253Z",
+    "metrics": {
+      "averageFairness": 53.22,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 8,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 3,
+      "estimatedSavings": 122.92
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6o3twh-ksc90u",
+    "title": "AI Maintenance Report - 2026-02-28 18:41",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:41:48.065Z",
+    "metrics": {
+      "averageFairness": 53.22,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 7,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 3,
+      "estimatedSavings": 107.68
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6o3gwj-tw59uh",
+    "title": "AI Maintenance Report - 2026-02-28 18:41",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:41:31.218Z",
+    "metrics": {
+      "averageFairness": 53.21,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 6,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 3,
+      "estimatedSavings": 92.44
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6nw0g0-cdr61q",
+    "title": "AI Maintenance Report - 2026-02-28 18:35",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:35:43.296Z",
+    "metrics": {
+      "averageFairness": 53.2,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 5,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 3,
+      "estimatedSavings": 77.2
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6nsv2k-fbzarm",
+    "title": "AI Maintenance Report - 2026-02-28 18:33",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:33:16.363Z",
+    "metrics": {
+      "averageFairness": 53.19,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 4,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 3,
+      "estimatedSavings": 61.96
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6nsiv8-3iow32",
+    "title": "AI Maintenance Report - 2026-02-28 18:33",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:33:00.548Z",
+    "metrics": {
+      "averageFairness": 53.17,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 3,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 3,
+      "estimatedSavings": 46.72
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6ns63f-xlggxf",
+    "title": "AI Maintenance Report - 2026-02-28 18:32",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:32:43.995Z",
+    "metrics": {
+      "averageFairness": 53.13,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 2,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 3,
+      "estimatedSavings": 31.48
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
+    "id": "RPT-mm6nri1y-t387b9",
+    "title": "AI Maintenance Report - 2026-02-28 18:32",
+    "period": "weekly",
+    "generatedAt": "2026-02-28T18:32:12.837Z",
+    "metrics": {
+      "averageFairness": 53.02,
+      "flaggedListings": 2,
+      "highRiskCount": 1,
+      "underpricedCount": 1,
+      "totalUsers": 180,
+      "totalProducts": 4,
+      "openAlerts": 3,
+      "estimatedSavings": 16.24
+    },
+    "summary": "Created 40 monitoring rows, resolved 0 alerts."
+  },
+  {
     "id": "RPT-7001",
     "title": "Monthly Price Report",
     "period": "monthly",

@@ -240,6 +240,12 @@ export interface ProductRecord {
   imageName?: string;
   imageData?: string;
   imageText?: string;
+  analysisProvider?: string;
+  analysisSummary?: string;
+  criticalLevel?: number;
+  criticalLabel?: string;
+  criticalColor?: string;
+  criticalMessage?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -251,6 +257,10 @@ export interface PriceMonitoringRecord {
   item: string;
   observedPrice: number;
   expectedPrice?: number;
+  ratio?: number;
+  ratioBand: string;
+  ratioStart: string;
+  flagColor: string;
   differencePct?: number;
   flag: PriceMonitoringFlag;
   location: string;
@@ -270,6 +280,10 @@ export interface AlertRecord {
   type: AlertType;
   priority: AlertPriority;
   status: AlertStatus;
+  issueLabel: string;
+  displayColor: string;
+  displayIcon: string;
+  displayBackground: string;
   relatedEntityId?: string;
   createdAt: string;
   updatedAt: string;
@@ -454,6 +468,10 @@ function normalizeModule(value: unknown): AdminModule | null {
   return MODULE_ALIASES[normalized] ?? null;
 }
 
+export function resolveAdminModuleAlias(value: unknown): AdminModule | null {
+  return normalizeModule(value);
+}
+
 function findKey(record: Record<string, unknown>, key: string): string | null {
   const lower = key.toLowerCase();
   for (const existing of Object.keys(record)) {
@@ -478,6 +496,71 @@ function getRecordValue(record: Record<string, unknown>, keys: string[]): unknow
 
 function hasRecordValue(record: Record<string, unknown>, keys: string[]): boolean {
   return keys.some((key) => findKey(record, key) !== null);
+}
+
+export function inferAdminModuleFromPayload(value: unknown): AdminModule | null {
+  const record = toRecord(value);
+  if (!record) {
+    return null;
+  }
+
+  if (hasRecordValue(record, ['module', 'entity', 'collection', 'target'])) {
+    const explicit = normalizeModule(getRecordValue(record, ['module', 'entity', 'collection', 'target']));
+    if (explicit) {
+      return explicit;
+    }
+  }
+
+  const scoreByModule: Record<AdminModule, number> = {
+    users: 0,
+    products: 0,
+    priceMonitoring: 0,
+    alerts: 0,
+    reports: 0
+  };
+
+  const applyScore = (moduleName: AdminModule, keys: string[], points: number): void => {
+    for (const key of keys) {
+      if (findKey(record, key) !== null) {
+        scoreByModule[moduleName] += points;
+      }
+    }
+  };
+
+  applyScore('users', ['email', 'mail', 'role', 'fullName', 'username', 'userStatus'], 2);
+  applyScore('products', ['supplier', 'basePrice', 'category', 'imageText', 'imageName', 'stock'], 2);
+  applyScore('priceMonitoring', ['observedPrice', 'expectedPrice', 'ratio', 'flag', 'ratioBand', 'ratioStart', 'location'], 2);
+  applyScore('alerts', ['priority', 'type', 'issueLabel', 'displayColor', 'displayIcon', 'relatedEntityId'], 2);
+  applyScore('reports', ['period', 'metrics', 'generatedAt', 'averageFairness', 'flaggedListings'], 2);
+
+  const title = String(getRecordValue(record, ['title']) ?? '').toLowerCase();
+  const message = String(getRecordValue(record, ['message']) ?? '').toLowerCase();
+  if (title || message) {
+    if (title.includes('report') || message.includes('report')) {
+      scoreByModule.reports += 2;
+    }
+    if (title.includes('alert') || message.includes('alert') || message.includes('surge') || message.includes('anomaly')) {
+      scoreByModule.alerts += 2;
+    }
+  }
+
+  const nameValue = String(getRecordValue(record, ['name', 'product', 'item']) ?? '').toLowerCase();
+  if (nameValue) {
+    if (/(rice|oil|milk|onion|chicken|beef|soap|detergent|canned|juice)/.test(nameValue)) {
+      scoreByModule.products += 2;
+      scoreByModule.priceMonitoring += 1;
+    }
+  }
+
+  const ranking = (Object.keys(scoreByModule) as AdminModule[])
+    .map((moduleName) => ({ moduleName, score: scoreByModule[moduleName] }))
+    .sort((a, b) => b.score - a.score);
+
+  if (ranking[0].score <= 0) {
+    return null;
+  }
+
+  return ranking[0].moduleName;
 }
 
 function toEnum<T extends string>(value: unknown, allowed: readonly T[], fallback: T): T {
@@ -652,6 +735,12 @@ function createProductRecord(payload: Record<string, unknown>, rows: ProductReco
     imageName: toStringValue(getRecordValue(payload, ['imageName', 'pictureName', 'fileName'])) ?? undefined,
     imageData: toStringValue(getRecordValue(payload, ['imageData', 'image', 'photo'])) ?? undefined,
     imageText: toStringValue(getRecordValue(payload, ['imageText', 'pictureText', 'ocrText', 'text'])) ?? undefined,
+    analysisProvider: toStringValue(getRecordValue(payload, ['analysisProvider', 'aiProvider'])) ?? undefined,
+    analysisSummary: toStringValue(getRecordValue(payload, ['analysisSummary', 'aiSummary'])) ?? undefined,
+    criticalLevel: toNumberValue(getRecordValue(payload, ['criticalLevel'])) ?? undefined,
+    criticalLabel: toStringValue(getRecordValue(payload, ['criticalLabel'])) ?? undefined,
+    criticalColor: toStringValue(getRecordValue(payload, ['criticalColor'])) ?? undefined,
+    criticalMessage: toStringValue(getRecordValue(payload, ['criticalMessage'])) ?? undefined,
     createdAt: nowIso,
     updatedAt: nowIso
   };
@@ -699,7 +788,123 @@ function updateProductRecord(current: ProductRecord, payload: Record<string, unk
     next.imageText = imageText;
   }
 
+  const analysisProvider = toStringValue(getRecordValue(payload, ['analysisProvider', 'aiProvider']));
+  if (analysisProvider) {
+    next.analysisProvider = analysisProvider;
+  }
+
+  const analysisSummary = toStringValue(getRecordValue(payload, ['analysisSummary', 'aiSummary']));
+  if (analysisSummary) {
+    next.analysisSummary = analysisSummary;
+  }
+
+  const criticalLevel = toNumberValue(getRecordValue(payload, ['criticalLevel']));
+  if (criticalLevel !== null) {
+    next.criticalLevel = criticalLevel;
+  }
+
+  const criticalLabel = toStringValue(getRecordValue(payload, ['criticalLabel']));
+  if (criticalLabel) {
+    next.criticalLabel = criticalLabel;
+  }
+
+  const criticalColor = toStringValue(getRecordValue(payload, ['criticalColor']));
+  if (criticalColor) {
+    next.criticalColor = criticalColor;
+  }
+
+  const criticalMessage = toStringValue(getRecordValue(payload, ['criticalMessage']));
+  if (criticalMessage) {
+    next.criticalMessage = criticalMessage;
+  }
+
   return next;
+}
+
+function getRatioVisualMetadata(
+  observedPrice: number,
+  expectedPrice?: number
+): { ratio?: number; ratioBand: string; ratioStart: string; flagColor: string } {
+  if (expectedPrice === undefined || expectedPrice <= 0) {
+    return {
+      ratio: undefined,
+      ratioBand: 'unknown',
+      ratioStart: 'N/A',
+      flagColor: '#7a7a7a'
+    };
+  }
+
+  const ratio = roundPrice(observedPrice / expectedPrice);
+
+  if (ratio >= 1.5) {
+    return { ratio, ratioBand: 'critical', ratioStart: '>= 1.50x', flagColor: '#ff1f1f' };
+  }
+
+  if (ratio >= 1.3) {
+    return { ratio, ratioBand: 'high-risk', ratioStart: '>= 1.30x', flagColor: '#ff5a5a' };
+  }
+
+  if (ratio >= 1.1) {
+    return { ratio, ratioBand: 'overpriced', ratioStart: '>= 1.10x', flagColor: '#ff9f1a' };
+  }
+
+  if (ratio >= 0.9) {
+    return { ratio, ratioBand: 'fair', ratioStart: '>= 0.90x', flagColor: '#1ed760' };
+  }
+
+  if (ratio >= 0.8) {
+    return { ratio, ratioBand: 'cheap', ratioStart: '>= 0.80x', flagColor: '#6ecf8b' };
+  }
+
+  return { ratio, ratioBand: 'steal', ratioStart: '< 0.80x', flagColor: '#35b06f' };
+}
+
+function getAlertDisplayMetadata(
+  type: AlertType,
+  priority: AlertPriority,
+  status: AlertStatus
+): { issueLabel: string; displayColor: string; displayIcon: string; displayBackground: string } {
+  const issueLabelByType: Record<AlertType, string> = {
+    price: 'Price Issue',
+    supplier: 'Supplier Issue',
+    user: 'User Issue',
+    system: 'System Issue'
+  };
+
+  const iconByType: Record<AlertType, string> = {
+    price: 'price-tag',
+    supplier: 'truck',
+    user: 'user',
+    system: 'shield'
+  };
+
+  if (status === 'resolved') {
+    return {
+      issueLabel: issueLabelByType[type],
+      displayColor: '#7a7a7a',
+      displayIcon: iconByType[type],
+      displayBackground: 'rgba(122,122,122,0.16)'
+    };
+  }
+
+  const colorByPriority: Record<AlertPriority, string> = {
+    high: '#ff5a5a',
+    medium: '#ffaa33',
+    low: '#4ecdc4'
+  };
+
+  const backgroundByPriority: Record<AlertPriority, string> = {
+    high: 'rgba(255,90,90,0.16)',
+    medium: 'rgba(255,170,51,0.16)',
+    low: 'rgba(78,205,196,0.16)'
+  };
+
+  return {
+    issueLabel: issueLabelByType[type],
+    displayColor: colorByPriority[priority],
+    displayIcon: iconByType[type],
+    displayBackground: backgroundByPriority[priority]
+  };
 }
 
 function createPriceMonitoringRecord(
@@ -727,11 +932,17 @@ function createPriceMonitoringRecord(
     message = assessment.message;
   }
 
+  const ratioVisual = getRatioVisualMetadata(observedPrice, expectedPrice);
+
   return {
     id: createId('PM', rows),
     item,
     observedPrice,
     expectedPrice: expectedPrice === undefined ? undefined : roundPrice(expectedPrice),
+    ratio: ratioVisual.ratio,
+    ratioBand: ratioVisual.ratioBand,
+    ratioStart: ratioVisual.ratioStart,
+    flagColor: ratioVisual.flagColor,
     differencePct:
       expectedPrice === undefined ? undefined : roundPrice(((observedPrice - expectedPrice) / expectedPrice) * 100),
     flag,
@@ -784,11 +995,20 @@ function updatePriceMonitoringRecord(
   if (next.expectedPrice === undefined) {
     next.flag = 'unknown';
     next.message = `No baseline available for "${next.item}" yet.`;
+    next.ratio = undefined;
+    next.ratioBand = 'unknown';
+    next.ratioStart = 'N/A';
+    next.flagColor = '#7a7a7a';
     next.differencePct = undefined;
   } else {
     const assessment = assessPrice(next.item, next.observedPrice, next.expectedPrice);
+    const ratioVisual = getRatioVisualMetadata(next.observedPrice, next.expectedPrice);
     next.flag = assessment.flag;
     next.message = assessment.message;
+    next.ratio = ratioVisual.ratio;
+    next.ratioBand = ratioVisual.ratioBand;
+    next.ratioStart = ratioVisual.ratioStart;
+    next.flagColor = ratioVisual.flagColor;
     next.differencePct = roundPrice(((next.observedPrice - next.expectedPrice) / next.expectedPrice) * 100);
   }
 
@@ -802,13 +1022,22 @@ function createAlertRecord(payload: Record<string, unknown>, rows: AlertRecord[]
     return null;
   }
 
+  const type = toEnum(getRecordValue(payload, ['type']), ALERT_TYPES, 'system');
+  const priority = toEnum(getRecordValue(payload, ['priority']), ALERT_PRIORITIES, 'medium');
+  const status = toEnum(getRecordValue(payload, ['status']), ALERT_STATUSES, 'open');
+  const display = getAlertDisplayMetadata(type, priority, status);
+
   return {
     id: createId('ALT', rows),
     title,
     message,
-    type: toEnum(getRecordValue(payload, ['type']), ALERT_TYPES, 'system'),
-    priority: toEnum(getRecordValue(payload, ['priority']), ALERT_PRIORITIES, 'medium'),
-    status: toEnum(getRecordValue(payload, ['status']), ALERT_STATUSES, 'open'),
+    type,
+    priority,
+    status,
+    issueLabel: display.issueLabel,
+    displayColor: display.displayColor,
+    displayIcon: display.displayIcon,
+    displayBackground: display.displayBackground,
     relatedEntityId: toStringValue(getRecordValue(payload, ['relatedEntityId', 'relatedId'])) ?? undefined,
     createdAt: nowIso,
     updatedAt: nowIso
@@ -844,6 +1073,12 @@ function updateAlertRecord(current: AlertRecord, payload: Record<string, unknown
   if (relatedEntityId) {
     next.relatedEntityId = relatedEntityId;
   }
+
+  const display = getAlertDisplayMetadata(next.type, next.priority, next.status);
+  next.issueLabel = display.issueLabel;
+  next.displayColor = display.displayColor;
+  next.displayIcon = display.displayIcon;
+  next.displayBackground = display.displayBackground;
 
   return next;
 }
@@ -975,27 +1210,38 @@ function maybeCreateOrUpdatePriceAlert(
     monitoring.expectedPrice === undefined
       ? `${monitoring.item} has no baseline for comparison.`
       : `${monitoring.item} observed at PHP ${monitoring.observedPrice.toFixed(2)} vs baseline PHP ${monitoring.expectedPrice.toFixed(2)}.`;
+  const priority: AlertPriority = monitoring.flag === 'high-risk' ? 'high' : 'medium';
 
   if (existingIndex >= 0) {
     const existing = alerts[existingIndex];
+    const display = getAlertDisplayMetadata('price', priority, existing.status);
     const updated: AlertRecord = {
       ...existing,
       title,
       message,
-      priority: monitoring.flag === 'high-risk' ? 'high' : 'medium',
+      priority,
+      issueLabel: display.issueLabel,
+      displayColor: display.displayColor,
+      displayIcon: display.displayIcon,
+      displayBackground: display.displayBackground,
       updatedAt: nowIso
     };
     alerts[existingIndex] = updated;
     return updated;
   }
 
+  const display = getAlertDisplayMetadata('price', priority, 'open');
   const created: AlertRecord = {
     id: createId('ALT', alerts),
     title,
     message,
     type: 'price',
-    priority: monitoring.flag === 'high-risk' ? 'high' : 'medium',
+    priority,
     status: 'open',
+    issueLabel: display.issueLabel,
+    displayColor: display.displayColor,
+    displayIcon: display.displayIcon,
+    displayBackground: display.displayBackground,
     relatedEntityId: monitoring.id,
     createdAt: nowIso,
     updatedAt: nowIso

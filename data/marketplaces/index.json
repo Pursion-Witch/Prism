@@ -1,0 +1,44 @@
+[
+  {
+    "id": "lazada",
+    "name": "Lazada Philippines",
+    "region": "National",
+    "channel": "online",
+    "priceFactor": 1.06
+  },
+  {
+    "id": "shopee",
+    "name": "Shopee Philippines",
+    "region": "National",
+    "channel": "online",
+    "priceFactor": 1.03
+  },
+  {
+    "id": "puregold",
+    "name": "Puregold",
+    "region": "NCR + Luzon",
+    "channel": "retail",
+    "priceFactor": 0.98
+  },
+  {
+    "id": "sm-supermarket",
+    "name": "SM Supermarket",
+    "region": "National",
+    "channel": "retail",
+    "priceFactor": 1
+  },
+  {
+    "id": "robinsons-supermarket",
+    "name": "Robinsons Supermarket",
+    "region": "National",
+    "channel": "retail",
+    "priceFactor": 1.01
+  },
+  {
+    "id": "waltermart",
+    "name": "Waltermart",
+    "region": "Luzon",
+    "channel": "retail",
+    "priceFactor": 0.99
+  }
+]

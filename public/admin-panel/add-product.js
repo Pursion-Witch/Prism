@@ -6,6 +6,7 @@
     const preview = document.getElementById('imagePreview');
     const imageTextInput = document.getElementById('imageText');
     const productNameInput = document.getElementById('productName');
+    const productCategoryInput = document.getElementById('productCategory');
     const extractTextBtn = document.getElementById('extractTextBtn');
     const useTextAsNameBtn = document.getElementById('useTextAsNameBtn');
     const saveAndReturnBtn = document.getElementById('saveAndReturnBtn');
@@ -14,6 +15,7 @@
     let selectedImageData = '';
     let selectedImageName = '';
     let returnAfterSave = false;
+    let latestImageAnalysis = null;
 
     function createStars() {
         const stars = document.getElementById('stars');
@@ -115,6 +117,7 @@
         if (!file) {
             selectedImageData = '';
             selectedImageName = '';
+            latestImageAnalysis = null;
             setPreview('');
             return;
         }
@@ -133,25 +136,64 @@
         const guessedText = deriveTextFromFilename(file.name);
         if (imageTextInput && !imageTextInput.value.trim() && guessedText) {
             imageTextInput.value = guessedText;
-            showNotification('Picture text extracted from filename. Edit as needed.');
+            showNotification('Image metadata loaded. Click Extract Text for AI analysis.');
         }
     }
 
-    function extractPictureText() {
-        if (!selectedImageName) {
-            showNotification('Select an image first.');
-            return;
+    async function runImageAnalysis(silent) {
+        const textHint = imageTextInput ? imageTextInput.value.trim() : '';
+        if (!selectedImageData && !selectedImageName && !textHint) {
+            if (!silent) {
+                showNotification('Select an image first.');
+            }
+            return null;
         }
 
-        const guessedText = deriveTextFromFilename(selectedImageName);
-        if (!guessedText) {
-            showNotification('No text could be inferred from this filename.');
-            return;
+        const response = await fetch('/api/ai/image-analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                imageData: selectedImageData || undefined,
+                imageName: selectedImageName || undefined,
+                imageTextHint: textHint || undefined
+            })
+        });
+
+        const data = await response.json().catch(function () { return {}; });
+        const analysis = data && typeof data === 'object' ? data.analysis : null;
+        if (!response.ok || !analysis) {
+            const message = typeof data.message === 'string' ? data.message : 'Image analysis failed.';
+            throw new Error(message);
         }
 
+        latestImageAnalysis = analysis;
         if (imageTextInput) {
-            imageTextInput.value = guessedText;
-            showNotification('Picture text extracted.');
+            imageTextInput.value = analysis.extractedText || textHint;
+        }
+        if (productNameInput && !productNameInput.value.trim() && analysis.suggestedName) {
+            productNameInput.value = analysis.suggestedName;
+        }
+        if (productCategoryInput && !productCategoryInput.value.trim() && analysis.suggestedCategory) {
+            productCategoryInput.value = analysis.suggestedCategory;
+        }
+
+        if (!silent) {
+            const criticalLabel =
+                analysis.critical && typeof analysis.critical.criticalLabel === 'string'
+                    ? analysis.critical.criticalLabel
+                    : 'Stable';
+            showNotification(`AI analysis complete (${criticalLabel}).`);
+        }
+
+        return analysis;
+    }
+
+    async function extractPictureText() {
+        try {
+            await runImageAnalysis(false);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Image analysis failed.';
+            showNotification(message);
         }
     }
 
@@ -190,6 +232,20 @@
         if (saveProductBtn) saveProductBtn.disabled = true;
         if (saveAndReturnBtn) saveAndReturnBtn.disabled = true;
 
+        if ((selectedImageData || selectedImageName || imageText) && !latestImageAnalysis) {
+            try {
+                await runImageAnalysis(true);
+            } catch (_error) {
+                // keep form submission available even if AI analysis fails
+            }
+        }
+
+        const finalImageText =
+            imageText ||
+            (latestImageAnalysis && typeof latestImageAnalysis.extractedText === 'string'
+                ? latestImageAnalysis.extractedText
+                : undefined);
+
         const payload = {
             name: name,
             category: category,
@@ -198,7 +254,33 @@
             status: status,
             imageName: selectedImageName || undefined,
             imageData: selectedImageData || undefined,
-            imageText: imageText || undefined
+            imageText: finalImageText || undefined,
+            analysisProvider: latestImageAnalysis ? latestImageAnalysis.provider : undefined,
+            analysisSummary: latestImageAnalysis ? latestImageAnalysis.summary : undefined,
+            criticalLevel:
+                latestImageAnalysis &&
+                latestImageAnalysis.critical &&
+                Number.isFinite(Number(latestImageAnalysis.critical.criticalLevel))
+                    ? Number(latestImageAnalysis.critical.criticalLevel)
+                    : undefined,
+            criticalLabel:
+                latestImageAnalysis &&
+                latestImageAnalysis.critical &&
+                typeof latestImageAnalysis.critical.criticalLabel === 'string'
+                    ? latestImageAnalysis.critical.criticalLabel
+                    : undefined,
+            criticalColor:
+                latestImageAnalysis &&
+                latestImageAnalysis.critical &&
+                typeof latestImageAnalysis.critical.criticalColor === 'string'
+                    ? latestImageAnalysis.critical.criticalColor
+                    : undefined,
+            criticalMessage:
+                latestImageAnalysis &&
+                latestImageAnalysis.critical &&
+                typeof latestImageAnalysis.critical.criticalMessage === 'string'
+                    ? latestImageAnalysis.critical.criticalMessage
+                    : undefined
         };
 
         try {
@@ -225,6 +307,7 @@
             form.reset();
             selectedImageData = '';
             selectedImageName = '';
+            latestImageAnalysis = null;
             setPreview('');
             if (imageTextInput) {
                 imageTextInput.value = '';
@@ -246,7 +329,9 @@
     }
 
     if (extractTextBtn) {
-        extractTextBtn.addEventListener('click', extractPictureText);
+        extractTextBtn.addEventListener('click', function () {
+            void extractPictureText();
+        });
     }
 
     if (useTextAsNameBtn) {

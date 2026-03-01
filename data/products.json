@@ -1,5 +1,15 @@
 [
   {
+    "id": "PRD-mm6oblv3-e8wdo1",
+    "name": "Live Test Product",
+    "category": "Essentials",
+    "supplier": "Tick Supply",
+    "basePrice": 99.55,
+    "status": "active",
+    "createdAt": "2026-02-28T18:47:50.895Z",
+    "updatedAt": "2026-02-28T18:47:50.895Z"
+  },
+  {
     "id": "PRD-101",
     "name": "Sinandomeng Rice",
     "category": "Rice",

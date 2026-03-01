@@ -13,7 +13,7 @@ Track: SDG 8 - Decent Work and Sustainable Growth
 
 **Prerequisite:** [Docker Desktop](https://www.docker.com)
 
-1. Open VSCode Terminal (or Command Prompt)
+1. Open VSCode Terminal (or Command Prompt) and Docker Desktop application
    - If using cmd, make sure to change directory to repo folder first: `cd <PRISM FILEPATH HERE>`
 
 2. Run `docker compose up --build`

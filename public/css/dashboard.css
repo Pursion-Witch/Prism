@@ -621,6 +621,17 @@
             text-decoration: underline;
         }
 
+/*  Footer: mobile  */
+
+        @media (max-width: 768px) {
+            .footer-right{
+                font-size: 14px;
+                text-align: center;
+                overflow-wrap: break-word;
+                word-wrap: break-word;
+            }
+        }
+
 /* Notification */
 
         .notification {
@@ -636,6 +647,20 @@
             box-shadow: 0 10px 30px black;
             animation: slideIn 0.2s;
         }
+
+        /*Notification: Mobile View*/
+
+        @media (max-width: 768px) {
+            .notification{
+                position: fixed;
+                text-align: center;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 70%;
+                z-index: 1000;
+            }
+        }
+
         @keyframes slideIn { from { opacity:0; transform:translateX(40px); } }
         @keyframes slideOut { to { opacity:0; transform:translateX(40px); } }
         .back-to-top {

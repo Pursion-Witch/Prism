@@ -648,26 +648,52 @@
             margin: 0 auto; 
         }
 
-        .footer { 
-            background: #15b34e; 
-        }
+/* Footer */
 
+        .prism-section {
+            background: #1ED760;
+            color: #000;
+            padding: 2rem 5%;
+            margin-top: 4rem;
+        }
+        .prism-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+        
+        .footer {
+            background: #15b34e;
+        }
         .footer-left, .footer-right pre{
-             display: flex; 
-             flex-wrap: wrap; 
-             gap: 0.5rem 1rem; 
-             align-items: center; 
-             font-family: 'Plus Jakarta', sans-serif; 
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            align-items: center;
+            font-family: 'Plus Jakarta', sans-serif;
+        }
+        .footer-left a {
+            color: #000;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .footer-left a:hover {
+            text-decoration: underline;
         }
 
-        .footer-left a { 
-            color: #000; 
-            text-decoration: none; 
-            font-weight: 500; 
-        }
+/*  Footer Mobile  */
 
-        .footer-left a:hover { 
-            text-decoration: underline; 
+        @media (max-width: 768px) {
+            .footer-right{
+                font-size: 14px;
+                text-align: center;
+                overflow-wrap: break-word;
+                word-wrap: break-word;
+            }
         }
 
         .notification {
@@ -684,6 +710,18 @@
             animation: slideIn 0.2s;
         }
 
+/*  Notification: mobile  */
+
+        @media (max-width: 768px) {
+            .notification{
+                position: fixed;
+                text-align: center;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 70%;
+                z-index: 1000;
+            }
+        }
         @keyframes slideIn { from { opacity:0; transform:translateX(40px); } }
         @keyframes slideOut { to { opacity:0; transform:translateX(40px); } }
 

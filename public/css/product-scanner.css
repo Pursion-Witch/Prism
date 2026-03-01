@@ -242,6 +242,16 @@
             transition: 0.3s;
         }
 
+/*----Scanner Card: Mobile view*/
+
+        @media (max-width: 768px) {
+            .scanner-card{
+                margin: 2rem 5%;
+                padding: 1.8rem;
+                border-radius: 30px;
+            }
+         }
+
 /* Mode Badge */
 
         .mode-badge {
@@ -793,6 +803,17 @@
         .footer-left a:hover {
             text-decoration: underline;
         }
+        
+/*----Footer: Mobile view----*/
+
+        @media (max-width: 768px) {
+            .footer-right{
+                font-size: 14px;
+                text-align: center;
+                overflow-wrap: break-word;
+                word-wrap: break-word;
+            }
+        }
 
 /* Notification & Back to Top */
 
@@ -809,6 +830,20 @@
             box-shadow: 0 10px 30px black;
             animation: slideIn 0.2s;
         }
+
+/*----Notification: mobile view----*/
+
+        @media (max-width: 768px) {
+            .notification{
+                position: fixed;
+                text-align: center;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 70%;
+                z-index: 1000;
+            }
+        }
+
         @keyframes slideIn { from { opacity:0; transform:translateX(40px); } }
         @keyframes slideOut { to { opacity:0; transform:translateX(40px); } }
 

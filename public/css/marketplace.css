@@ -73,13 +73,14 @@
 /* ----- Navbar ----- */
 
         .navbar {
-            position: relative; 
-            display: flex; 
-            justify-content: space-between; 
+            position: sticky;
+            top: 0;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            padding: 1.5rem 5%; 
-            background-color: #000; 
-            z-index: 100; 
+            padding: 1.5rem 5%;
+            background-color: #000000;
+            z-index: 100;
             backdrop-filter: blur(10px);
             border-bottom: 1px solid #1a1a1a;
         }
@@ -222,6 +223,14 @@
             padding: 0.8rem 2rem;
             border-radius: 40px; 
             cursor: pointer;
+        }
+
+        /*  search btn mobile  */
+        @media (max-width: 768px) {
+            .search-wrapper button{
+                padding: 0.8rem 1rem;
+                cursor: pointer;
+            }
         }
 
         .category-section { 

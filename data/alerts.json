@@ -45,7 +45,7 @@
   {
     "id": "ALT-mm6o5r1c-604dot",
     "title": "High-risk price detected",
-    "message": "pork liempo observed at PHP 456.50 vs baseline PHP 340.00.",
+    "message": "pork liempo observed at PHP 458.51 vs baseline PHP 340.00.",
     "type": "price",
     "priority": "high",
     "status": "open",
@@ -55,12 +55,12 @@
     "displayBackground": "rgba(255,90,90,0.16)",
     "relatedEntityId": "PM-1002",
     "createdAt": "2026-02-28T18:43:17.660Z",
-    "updatedAt": "2026-03-01T01:53:59.883Z"
+    "updatedAt": "2026-03-01T01:54:59.898Z"
   },
   {
     "id": "ALT-9001",
     "title": "High-risk price detected",
-    "message": "red onions observed at PHP 189.57 vs baseline PHP 140.00.",
+    "message": "red onions observed at PHP 190.24 vs baseline PHP 140.00.",
     "type": "price",
     "priority": "high",
     "status": "open",
@@ -70,7 +70,7 @@
     "displayBackground": "rgba(255,90,90,0.16)",
     "relatedEntityId": "PM-1001",
     "createdAt": "2026-03-01T08:25:00.000Z",
-    "updatedAt": "2026-03-01T01:53:59.883Z"
+    "updatedAt": "2026-03-01T01:54:59.898Z"
   },
   {
     "id": "ALT-mm73gz3w-gg6vlh",

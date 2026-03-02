@@ -21,6 +21,7 @@ RUN npm ci --omit=dev
 
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/public ./public
+COPY data ./data
 
 EXPOSE 3000
 CMD ["npm", "start"]

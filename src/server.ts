@@ -5,6 +5,7 @@ import path from 'node:path';
 import adminRoutes from './routes/admin';
 import analyzeRoutes from './routes/analyze';
 import imageAnalyzeRoute from './routes/imageAnalyze';
+import documentRoutes from './routes/documents';
 
 const app = express();
 const port = Number(process.env.PORT ?? 3000);
@@ -21,6 +22,7 @@ app.use(express.static(publicDir));
 app.use('/api/analyze', analyzeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', imageAnalyzeRoute);
+app.use('/api/documents', documentRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

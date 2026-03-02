@@ -128,11 +128,11 @@ const knowledgeBasePath = path.join(dataDir, 'ai-knowledge-base.json');
 const liveFeedbackPath = path.join(dataDir, 'live-feedback.ndjson');
 const liveMetricsPath = path.join(dataDir, 'live-metrics.json');
 const maxBodyLimit = process.env.MAX_BODY_LIMIT ?? '1024mb';
-const aiMinuteEnabled = process.env.AI_MINUTE_ENABLED?.trim().toLowerCase() !== 'false';
+const aiMinuteEnabled = process.env.AI_MINUTE_ENABLED?.trim().toLowerCase() === 'true';
 const aiMinuteIntervalMs = Number.isFinite(Number(process.env.AI_MINUTE_INTERVAL_MS))
   ? Math.max(15000, Number(process.env.AI_MINUTE_INTERVAL_MS))
   : 60 * 1000;
-const aiHourlyEnabled = process.env.AI_HOURLY_ENABLED?.trim().toLowerCase() !== 'false';
+const aiHourlyEnabled = process.env.AI_HOURLY_ENABLED?.trim().toLowerCase() === 'true';
 const aiHourlyIntervalMs = Number.isFinite(Number(process.env.AI_HOURLY_INTERVAL_MS))
   ? Math.max(60000, Number(process.env.AI_HOURLY_INTERVAL_MS))
   : 60 * 60 * 1000;

@@ -31,6 +31,48 @@ export interface LiveMetricRow {
   created_at: Date;
 }
 
+export interface PriceProductRow {
+  id: string;
+  name: string;
+  category: string;
+  avg_market_price: string;
+  last_updated: Date;
+  created_at: Date;
+}
+
+export interface PriceTransactionRow {
+  id: string;
+  product_id: string;
+  price: string;
+  region: string;
+  anomaly_score: number;
+  source: string;
+  raw_text: string | null;
+  created_at: Date;
+}
+
+export interface PriceAnalysisHistoryRow {
+  id: string;
+  product_id: string;
+  product_name: string;
+  category: string;
+  price: string;
+  fair_value: string;
+  region: string;
+  anomaly_score: number;
+  source: string;
+  raw_text: string | null;
+  created_at: Date;
+}
+
+export interface MarketIndexRow {
+  category: string;
+  sample_count: number;
+  avg_observed_price: string;
+  avg_fair_value: string;
+  last_updated: Date | null;
+}
+
 export interface CreateUserInput {
   id?: string;
   email: string;

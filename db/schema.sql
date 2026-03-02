@@ -33,11 +33,34 @@ CREATE TABLE IF NOT EXISTS live_metrics (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS price_products (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL UNIQUE,
+  category TEXT NOT NULL,
+  avg_market_price NUMERIC(12, 2) NOT NULL CHECK (avg_market_price >= 0),
+  last_updated TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS price_transactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id UUID NOT NULL REFERENCES price_products(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  price NUMERIC(12, 2) NOT NULL CHECK (price >= 0),
+  region TEXT NOT NULL DEFAULT 'National',
+  anomaly_score DOUBLE PRECISION NOT NULL DEFAULT 0,
+  source TEXT NOT NULL DEFAULT 'heuristic',
+  raw_text TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE INDEX IF NOT EXISTS idx_products_seller_id ON products (seller_id);
 CREATE INDEX IF NOT EXISTS idx_products_created_at ON products (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_alerts_user_id_occurred_at ON alerts (user_id, occurred_at DESC);
 CREATE INDEX IF NOT EXISTS idx_alerts_occurred_at ON alerts (occurred_at DESC);
 CREATE INDEX IF NOT EXISTS idx_live_metrics_metric_recorded_at ON live_metrics (metric, recorded_at DESC);
+CREATE INDEX IF NOT EXISTS idx_price_products_category_updated_at ON price_products (category, last_updated DESC);
+CREATE INDEX IF NOT EXISTS idx_price_transactions_product_created_at ON price_transactions (product_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_price_transactions_created_at ON price_transactions (created_at DESC);
 
 CREATE OR REPLACE FUNCTION set_products_updated_at()
 RETURNS TRIGGER AS $$

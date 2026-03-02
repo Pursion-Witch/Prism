@@ -1,0 +1,4 @@
+-- Canonical schema lives at ../db/schema.sql.
+-- This file exists to match the server/ layout requested by integration docs.
+-- Apply with:
+--   psql "$DATABASE_URL" -f db/schema.sql

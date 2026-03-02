@@ -79,6 +79,14 @@
         showNotification(`Showing data for: ${range}`);
     };
 
+    async function readJsonSafe(response) {
+        try {
+            return await response.json();
+        } catch (_error) {
+            return {};
+        }
+    }
+
     function normalizePoints(series, size, fallback) {
         if (!Array.isArray(series) || series.length === 0) {
             return fallback.slice(0, size);
@@ -264,6 +272,23 @@
         renderCategoryChart();
     }
 
+    function applyMarketIndexStates(records) {
+        if (!Array.isArray(records) || records.length === 0) {
+            return false;
+        }
+
+        const trendRows = records.slice(0, 7).map(function (row) {
+            return { value: Number(row.avgObservedPrice) };
+        });
+        const categoryRows = records.slice(0, 5).map(function (row) {
+            return { value: Number(row.variancePct) };
+        });
+
+        trendState = normalizePoints(trendRows, 7, trendState);
+        categoryState = normalizePoints(categoryRows, 5, categoryState);
+        return true;
+    }
+
     function setupInteractiveElements() {
         const selectors = ['.overpriced-item', '.alert-item', '.supplier-item', '.heatmap-cell'];
         selectors.forEach(function (selector) {
@@ -280,7 +305,8 @@
 
     async function refreshLiveData(showToast) {
         try {
-            const [metricsRes, snapshotRes] = await Promise.all([
+            const [marketRes, metricsRes, snapshotRes] = await Promise.all([
+                fetch('/api/market-index?limit=12'),
                 fetch('/api/live/metrics'),
                 fetch('/api/admin/snapshot')
             ]);
@@ -288,8 +314,9 @@
                 throw new Error('Unable to load dashboard snapshot.');
             }
 
-            const snapshot = await snapshotRes.json();
-            const liveMetrics = metricsRes.ok ? await metricsRes.json() : null;
+            const snapshot = await readJsonSafe(snapshotRes);
+            const marketIndexPayload = marketRes.ok ? await readJsonSafe(marketRes) : null;
+            const liveMetrics = metricsRes.ok ? await readJsonSafe(metricsRes) : null;
 
             const kpis = document.querySelectorAll('.kpi-value');
             if (kpis.length >= 4) {
@@ -307,7 +334,9 @@
             renderSuppliers(snapshot);
             renderAlerts(snapshot);
 
-            if (liveMetrics && liveMetrics.chart) {
+            if (marketIndexPayload && Array.isArray(marketIndexPayload.records) && applyMarketIndexStates(marketIndexPayload.records)) {
+                // preferred source for market pulse
+            } else if (liveMetrics && liveMetrics.chart) {
                 trendState = normalizePoints(liveMetrics.chart.fairnessTrend, 7, trendState);
                 categoryState = normalizePoints(liveMetrics.chart.varianceTrend, 5, categoryState);
             } else {

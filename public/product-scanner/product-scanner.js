@@ -174,6 +174,164 @@
         return `PHP ${numeric.toFixed(2)}`;
     }
 
+    function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+    }
+
+    function toCriticalFromVerdict(verdict, anomalyScore) {
+        if (verdict === 'high-risk') {
+            return {
+                criticalLevel: 5,
+                criticalLabel: 'Critical',
+                criticalColor: '#ff1f1f',
+                criticalMessage: 'Immediate intervention required.'
+            };
+        }
+        if (verdict === 'overpriced') {
+            return {
+                criticalLevel: 4,
+                criticalLabel: 'High Risk',
+                criticalColor: '#ff5a5a',
+                criticalMessage: 'Escalate quickly and monitor continuously.'
+            };
+        }
+        if (verdict === 'fair') {
+            return {
+                criticalLevel: 1,
+                criticalLabel: 'Stable',
+                criticalColor: '#1ed760',
+                criticalMessage: 'Price is near the expected market value.'
+            };
+        }
+        return {
+            criticalLevel: anomalyScore >= 0.4 ? 3 : 2,
+            criticalLabel: anomalyScore >= 0.4 ? 'Moderate' : 'Low Watch',
+            criticalColor: anomalyScore >= 0.4 ? '#ffaa33' : '#ffd166',
+            criticalMessage: 'Needs monitoring based on market movement.'
+        };
+    }
+
+    async function readJsonSafe(response) {
+        try {
+            return await response.json();
+        } catch (_error) {
+            return {};
+        }
+    }
+
+    async function analyzeProductPrice(payload) {
+        const response = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await readJsonSafe(response);
+        if (!response.ok) {
+            const message = typeof data.message === 'string' ? data.message : 'Price analysis failed.';
+            throw new Error(message);
+        }
+        return data;
+    }
+
+    async function analyzeRawProductText(text, options) {
+        const response = await fetch('/api/analyze/raw-text', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                text: text,
+                region: options.region,
+                category: options.category
+            })
+        });
+        const data = await readJsonSafe(response);
+        if (response.ok) {
+            return data;
+        }
+
+        // Compatibility fallback for the JSON-mode backend.
+        const legacyResponse = await fetch('/api/ai/product-scanner', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                query: text,
+                mode: currentMode,
+                options: options
+            })
+        });
+        const legacyData = await readJsonSafe(legacyResponse);
+        if (!legacyResponse.ok) {
+            const message =
+                typeof data.message === 'string'
+                    ? data.message
+                    : typeof legacyData.message === 'string'
+                        ? legacyData.message
+                        : 'Scanner request failed.';
+            throw new Error(message);
+        }
+        return legacyData && legacyData.result ? legacyData.result : legacyData;
+    }
+
+    function mapAnalysisToScannerResult(input, payload) {
+        if (payload && typeof payload === 'object' && typeof payload.product === 'string' && 'dtiPrice' in payload) {
+            return payload;
+        }
+
+        const observedPrice = Number(payload && payload.observedPrice);
+        const fairValue = Number(payload && payload.fairValue);
+        const safeObserved = Number.isFinite(observedPrice) && observedPrice > 0 ? observedPrice : 0;
+        const safeFair = Number.isFinite(fairValue) && fairValue > 0 ? fairValue : safeObserved || 1;
+        const diffPct = Number((((safeObserved - safeFair) / safeFair) * 100).toFixed(2));
+        const fairnessScore = clamp(Math.round(100 - Math.abs(diffPct) * 1.25), 1, 99);
+        const verdict = payload && typeof payload.verdict === 'string' ? payload.verdict : 'fair';
+        const anomalyScore = Number(payload && payload.anomalyScore);
+        const critical = toCriticalFromVerdict(verdict, Number.isFinite(anomalyScore) ? anomalyScore : 0.1);
+
+        return {
+            product: (payload && payload.productName) || input,
+            category: (payload && payload.category) || 'Essentials',
+            fairnessScore: fairnessScore,
+            dtiPrice: safeFair,
+            marketPrice: safeObserved,
+            onlinePrice:
+                payload && Number.isFinite(Number(payload.historicalAverage)) ? Number(payload.historicalAverage) : safeObserved,
+            diffPct: diffPct,
+            critical: critical,
+            insights: (payload && payload.message) || 'AI analysis completed.',
+            narrative: (payload && payload.summary) || 'Backend analysis connected via Express API.',
+            alternatives: [
+                {
+                    marketplace: (payload && payload.region) || 'National',
+                    product: (payload && payload.productName) || input,
+                    price: safeObserved,
+                    location: (payload && payload.region) || 'National'
+                }
+            ]
+        };
+    }
+
+    async function refreshAnalysisHistory() {
+        const historyHost = document.getElementById('historySidebarList');
+        if (!historyHost) return;
+
+        try {
+            const response = await fetch('/api/analysis-history?limit=8');
+            if (!response.ok) return;
+            const payload = await readJsonSafe(response);
+            const records = Array.isArray(payload.records) ? payload.records : [];
+
+            historyHost.innerHTML =
+                records.length === 0
+                    ? '<div>No analysis history yet.</div>'
+                    : records
+                          .map(function (row) {
+                              return `<div>${row.productName} - ${formatPeso(row.observedPrice)} (${row.region})</div>`;
+                          })
+                          .join('');
+        } catch (_error) {
+            // history rendering is optional in current markup
+        }
+    }
+
     function renderResults(input, scannerResult, advancedOptions) {
         const resultsSection = document.getElementById('resultsSection');
         const resultProduct = document.getElementById('resultProduct');
@@ -292,25 +450,15 @@
         if (checkPriceBtn) checkPriceBtn.disabled = true;
 
         try {
-            const response = await fetch('/api/ai/product-scanner', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    query: input,
-                    mode: currentMode,
-                    options: advancedOptions
-                })
+            const apiPayload = await analyzeRawProductText(input, {
+                region: advancedOptions.region,
+                category: advancedOptions.dataSources
             });
-
-            const data = await response.json().catch(function () { return {}; });
-            const scannerResult = data && typeof data === 'object' && data.result ? data.result : data;
-            if (!response.ok || !scannerResult || typeof scannerResult !== 'object') {
-                const message = typeof data.message === 'string' ? data.message : 'Scanner request failed.';
-                throw new Error(message);
-            }
+            const scannerResult = mapAnalysisToScannerResult(input, apiPayload);
 
             updateAutoDetect(input, scannerResult);
             renderResults(input, scannerResult, advancedOptions);
+            void refreshAnalysisHistory();
             showNotification(`AI scan complete for: ${input.substring(0, 40)}`);
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Scanner request failed.';
@@ -421,39 +569,85 @@
         generateTrendGraph();
     }
 
-    async function refreshChartFromLiveMetrics() {
+    async function refreshChartFromLegacyMetrics() {
+        const response = await fetch('/api/live/metrics');
+        if (!response.ok) {
+            return false;
+        }
+        const payload = await readJsonSafe(response);
+        const varianceTrend = Array.isArray(payload && payload.chart && payload.chart.varianceTrend)
+            ? payload.chart.varianceTrend.slice(-7).map(function (row) { return row.value; })
+            : null;
+        const fairnessTrend = Array.isArray(payload && payload.chart && payload.chart.fairnessTrend)
+            ? payload.chart.fairnessTrend.slice(-7).map(function (row) { return row.value; })
+            : null;
+        const savingsTrend = Array.isArray(payload && payload.chart && payload.chart.savingsTrend)
+            ? payload.chart.savingsTrend.slice(-7).map(function (row) { return row.value; })
+            : null;
+
+        chartState.rice = normalizeSeries(varianceTrend, chartState.rice).map(function (value) {
+            return 100 + value * 0.6;
+        });
+        chartState.fuel = normalizeSeries(fairnessTrend, chartState.fuel).map(function (value) {
+            return 100 + value * 0.65;
+        });
+        chartState.meat = normalizeSeries(savingsTrend, chartState.meat).map(function (value) {
+            return 95 + Math.min(70, Number(value) / 50);
+        });
+        chartState.veggies = chartState.meat.map(function (value, index) {
+            return value - 6 + (index % 2 === 0 ? 1.5 : -1.2);
+        });
+        generateTrendGraph();
+        return true;
+    }
+
+    async function refreshChartFromMarketIndex() {
         try {
-            const response = await fetch('/api/live/metrics');
+            const response = await fetch('/api/market-index?limit=12');
             if (!response.ok) {
-                applyChartDrift();
+                const legacyApplied = await refreshChartFromLegacyMetrics();
+                if (!legacyApplied) applyChartDrift();
                 return;
             }
-            const payload = await response.json();
-            const varianceTrend = Array.isArray(payload && payload.chart && payload.chart.varianceTrend)
-                ? payload.chart.varianceTrend.slice(-7).map(function (row) { return row.value; })
-                : null;
-            const fairnessTrend = Array.isArray(payload && payload.chart && payload.chart.fairnessTrend)
-                ? payload.chart.fairnessTrend.slice(-7).map(function (row) { return row.value; })
-                : null;
-            const savingsTrend = Array.isArray(payload && payload.chart && payload.chart.savingsTrend)
-                ? payload.chart.savingsTrend.slice(-7).map(function (row) { return row.value; })
-                : null;
 
-            chartState.rice = normalizeSeries(varianceTrend, chartState.rice).map(function (value) {
-                return 100 + value * 0.6;
+            const payload = await readJsonSafe(response);
+            const rows = Array.isArray(payload.records) ? payload.records : [];
+            if (rows.length === 0) {
+                const legacyApplied = await refreshChartFromLegacyMetrics();
+                if (!legacyApplied) applyChartDrift();
+                return;
+            }
+
+            const observed = rows.slice(0, 7).map(function (row) { return Number(row.avgObservedPrice); });
+            const fair = rows.slice(0, 7).map(function (row) { return Number(row.avgFairValue); });
+            const variance = rows.slice(0, 7).map(function (row) { return Number(row.variancePct); });
+
+            chartState.rice = normalizeSeries(observed, chartState.rice).map(function (value) {
+                return 95 + Math.min(75, Number(value) / 8);
             });
-            chartState.fuel = normalizeSeries(fairnessTrend, chartState.fuel).map(function (value) {
-                return 100 + value * 0.65;
+            chartState.fuel = normalizeSeries(fair, chartState.fuel).map(function (value) {
+                return 92 + Math.min(78, Number(value) / 8);
             });
-            chartState.meat = normalizeSeries(savingsTrend, chartState.meat).map(function (value) {
-                return 95 + Math.min(70, Number(value) / 50);
+            chartState.meat = normalizeSeries(variance, chartState.meat).map(function (value) {
+                return 102 + clamp(Number(value), -20, 25) * 1.8;
             });
             chartState.veggies = chartState.meat.map(function (value, index) {
-                return value - 6 + (index % 2 === 0 ? 1.5 : -1.2);
+                return value - 5 + (index % 2 === 0 ? 2 : -1.5);
             });
+
+            const updateNote = document.querySelector('.update-note');
+            if (updateNote) {
+                const latestTimestamp = rows[0] && rows[0].lastUpdated ? new Date(rows[0].lastUpdated) : null;
+                updateNote.textContent =
+                    latestTimestamp && !Number.isNaN(latestTimestamp.getTime())
+                        ? `Last synced: ${latestTimestamp.toLocaleString()}`
+                        : 'Updating from market index API...';
+            }
+
             generateTrendGraph();
         } catch (_error) {
-            applyChartDrift();
+            const legacyApplied = await refreshChartFromLegacyMetrics().catch(function () { return false; });
+            if (!legacyApplied) applyChartDrift();
         }
     }
 
@@ -461,7 +655,7 @@
         if (chartRefreshTimer) clearInterval(chartRefreshTimer);
         if (chartDriftTimer) clearInterval(chartDriftTimer);
         chartRefreshTimer = setInterval(function () {
-            void refreshChartFromLiveMetrics();
+            void refreshChartFromMarketIndex();
         }, CHART_REFRESH_MS);
         chartDriftTimer = setInterval(function () {
             applyChartDrift();
@@ -469,7 +663,8 @@
     }
 
     generateTrendGraph();
-    void refreshChartFromLiveMetrics();
+    void refreshChartFromMarketIndex();
+    void refreshAnalysisHistory();
     startChartLoops();
 
     let resizeTimeout;

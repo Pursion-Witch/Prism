@@ -60,4 +60,13 @@
                     showNotification(`${value} — core to our mission`);
                 });
             });
+
+            const partnerButton = document.querySelector('.cta-section .btn-outline');
+            if (partnerButton) {
+                partnerButton.addEventListener('click', () => {
+                    const subject = encodeURIComponent('PRISM Partnership Inquiry');
+                    const body = encodeURIComponent('Hello PRISM team,%0D%0A%0D%0AWe are interested in partnering with PRISM.%0D%0A');
+                    window.location.href = `mailto:prism@gmail.com?subject=${subject}&body=${body}`;
+                });
+            }
         })();

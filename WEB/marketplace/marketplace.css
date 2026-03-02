@@ -506,10 +506,11 @@
         .chat-preview { 
             color: #888; 
             font-size: 0.8rem; 
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            max-width: 150px; 
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            overflow-wrap: anywhere;
+            max-width: 100%;
         }
 
         .unread-badge { 

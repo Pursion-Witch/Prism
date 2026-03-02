@@ -1,292 +1,300 @@
-       (function() {
+(function() {
+    'use strict';
 
 // Stars background
 
-            function createStars() {
-                const stars = document.getElementById('stars');
-                if (!stars) return;
-                for (let i = 0; i < 180; i++) {
-                    let s = document.createElement('div');
-                    s.className = 'star';
-                    s.style.cssText = `left:${Math.random()*100}%; top:${Math.random()*100}%; width:${Math.random()*3+1}px; height:${Math.random()*3+1}px; animation-delay:${Math.random()*3}s`;
-                    stars.appendChild(s);
-                }
-            }
-            createStars();
+    function createStars() {
+        const stars = document.getElementById('stars');
+        if (!stars) return;
+
+        stars.innerHTML = '';
+        for (let i = 0; i < 180; i += 1) {
+            const s = document.createElement('div');
+            s.className = 'star';
+            s.style.cssText = `left:${Math.random() * 100}%; top:${Math.random() * 100}%; width:${Math.random() * 3 + 1}px; height:${Math.random() * 3 + 1}px; animation-delay:${Math.random() * 3}s`;
+            stars.appendChild(s);
+        }
+    }
+    createStars();
 
 // Hamburger menu
 
-            const hamburger = document.getElementById('hamburgerBtn');
-            const nav = document.getElementById('navLinks');
-            if (hamburger && nav) {
-                hamburger.addEventListener('click', (e) => { e.stopPropagation(); nav.classList.toggle('active'); });
-                document.querySelectorAll('.nav-links a').forEach(l => l.addEventListener('click', () => nav.classList.remove('active')));
-                document.addEventListener('click', (e) => { if (!hamburger.contains(e.target) && !nav.contains(e.target)) nav.classList.remove('active'); });
+    const hamburger = document.getElementById('hamburgerBtn');
+    const nav = document.getElementById('navLinks');
+    if (hamburger && nav) {
+        hamburger.addEventListener('click', (event) => {
+            event.stopPropagation();
+            nav.classList.toggle('active');
+        });
+        document.querySelectorAll('.nav-links a').forEach((link) => {
+            link.addEventListener('click', () => nav.classList.remove('active'));
+        });
+        document.addEventListener('click', (event) => {
+            if (!hamburger.contains(event.target) && !nav.contains(event.target)) {
+                nav.classList.remove('active');
             }
+        });
+    }
 
 // Notification system
 
-            window.showNotification = function(msg) {
-                let n = document.getElementById('notification');
-                if (!n) {
-                    n = document.createElement('div');
-                    n.id = 'notification';
-                    n.className = 'notification';
-                    document.body.appendChild(n);
-                }
-                n.textContent = msg;
-                n.style.display = 'block';
-                n.style.animation = 'slideIn 0.2s';
-                setTimeout(() => {
-                    n.style.animation = 'slideOut 0.25s';
-                    setTimeout(() => { n.style.display = 'none'; n.style.animation = ''; }, 250);
-                }, 2000);
-            };
+    window.showNotification = function(message) {
+        let notification = document.getElementById('notification');
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.id = 'notification';
+            notification.className = 'notification';
+            document.body.appendChild(notification);
+        }
+
+        notification.textContent = message;
+        notification.style.display = 'block';
+        notification.style.animation = 'slideIn 0.2s';
+
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.25s';
+            setTimeout(() => {
+                notification.style.display = 'none';
+                notification.style.animation = '';
+            }, 250);
+        }, 2000);
+    };
 
 // FAQ Data
 
-            const faqData = {
-                general: [
-                    {
-                        question: "What is PRISM?",
-                        answer: "PRISM (Price Intelligence & Smart Monitoring) is an AI-powered platform that analyzes real transaction data to detect unfair pricing, monitor market health, and protect consumers and businesses in the Philippines."
-                    },
-                    {
-                        question: "Is PRISM free to use?",
-                        answer: "Yes! PRISM offers a free Basic plan with limited price searches and basic trend data. We also have Premium (₱199/month) and Enterprise (₱999/month) plans with advanced features."
-                    },
-                    {
-                        question: "Where does PRISM get its price data?",
-                        answer: "We aggregate data from multiple sources: DTI SRP, PSA inflation statistics, partner suppliers, Lazada, Shopee, and community-contributed palengke prices. All data is anonymized and validated."
-                    }
-                ],
-                account: [
-                    {
-                        question: "How do I create an account?",
-                        answer: "Click 'CREATE ACCOUNT' on the homepage. You can sign up with email or Google. Basic plan is free, no credit card required."
-                    },
-                    {
-                        question: "I forgot my password. What should I do?",
-                        answer: "Click 'Forgot Password' on the login page. We'll send a reset link to your email. If you don't receive it within 5 minutes, check your spam folder."
-                    },
-                    {
-                        question: "Can I delete my account?",
-                        answer: "Yes, go to Account Settings → Delete Account. Your data will be permanently removed within 30 days. Some anonymized price data may be retained for analytics."
-                    }
-                ],
-                prices: [
-                    {
-                        question: "How does the fairness score work?",
-                        answer: "Our AI compares market prices against DTI SRP, historical trends, and regional averages. Scores range from 0-100: 80+ is 'Presyong Sakto' (Fair), 60-79 is 'Medyo Mahal' (Slightly High), below 60 is 'Overpriced'."
-                    },
-                    {
-                        question: "What are price alerts?",
-                        answer: "You can set alerts for specific products. We'll notify you via app or email when prices drop, rise, or when an item becomes fairly priced based on your preferences."
-                    },
-                    {
-                        question: "How accurate is the price data?",
-                        answer: "We strive for high accuracy but prices can change rapidly. Always verify with the seller. Our AI flags potential inaccuracies for review. Report any incorrect prices through the product page."
-                    }
-                ],
-                marketplace: [
-                    {
-                        question: "How do I buy from suppliers?",
-                        answer: "Browse products in Marketplace, click 'Chat with Supplier' to discuss details, pricing, and arrange payment/delivery directly. PRISM facilitates communication but doesn't handle transactions."
-                    },
-                    {
-                        question: "Is it safe to transact with suppliers?",
-                        answer: "We verify supplier accounts and display their transaction history and ratings. However, always exercise caution: agree on terms before payment, and report suspicious behavior immediately."
-                    },
-                    {
-                        question: "Can I become a supplier?",
-                        answer: "Yes! Contact us through the Admin Panel or email suppliers@prism.ph. We'll guide you through verification and listing setup. Enterprise plan includes priority supplier support."
-                    }
-                ],
-                subscription: [
-                    {
-                        question: "What's included in Premium?",
-                        answer: "Premium (₱199/month) includes unlimited searches, advanced analytics, AI price predictions, priority alerts, and ad-free experience."
-                    },
-                    {
-                        question: "What's included in Enterprise?",
-                        answer: "Enterprise (₱999/month) adds real-time monitoring, API access, team dashboard, supplier verification, dedicated account manager, and custom integrations."
-                    },
-                    {
-                        question: "How do I cancel my subscription?",
-                        answer: "Go to Account → Subscription → Cancel. You'll still have access until the end of your billing period. No partial refunds for unused time."
-                    }
-                ],
-                technical: [
-                    {
-                        question: "Is PRISM available on mobile?",
-                        answer: "Yes! Our web app is fully responsive. Native iOS and Android apps are coming soon. You can also add PRISM to your home screen for app-like experience."
-                    },
-                    {
-                        question: "Do you have an API?",
-                        answer: "Yes, Enterprise plan includes API access. You can integrate real-time price data into your own applications. Documentation available at docs.prism.ph"
-                    },
-                    {
-                        question: "How does the AI detection work?",
-                        answer: "We use supervised and unsupervised machine learning to detect price anomalies. Our models analyze historical patterns, regional variations, and external factors."
-                    }
-                ]
-            };
+    const faqData = {
+        general: [
+            {
+                question: 'What is PRISM?',
+                answer: 'PRISM (Price Intelligence & Smart Monitoring) is an AI-powered platform that analyzes real transaction data to detect unfair pricing, monitor market health, and protect consumers and businesses in the Philippines.'
+            },
+            {
+                question: 'Is PRISM free to use?',
+                answer: 'Yes. PRISM offers a free Basic plan with limited price searches and basic trend data. Premium and Enterprise plans include advanced features.'
+            },
+            {
+                question: 'Where does PRISM get its price data?',
+                answer: 'We aggregate data from DTI SRP, PSA statistics, partner suppliers, major e-commerce sources, and community-contributed market prices.'
+            }
+        ],
+        account: [
+            {
+                question: 'How do I create an account?',
+                answer: 'Click CREATE ACCOUNT on the homepage. You can sign up with email or social providers.'
+            },
+            {
+                question: 'I forgot my password. What should I do?',
+                answer: 'Use the forgot password option in login (or contact support) and we will help you reset access.'
+            },
+            {
+                question: 'Can I delete my account?',
+                answer: 'Yes. Contact support to request account deletion and data cleanup.'
+            }
+        ],
+        prices: [
+            {
+                question: 'How does the fairness score work?',
+                answer: 'Our engine compares market prices against SRP baselines, historical trends, and regional factors to estimate fairness.'
+            },
+            {
+                question: 'What are price alerts?',
+                answer: 'Price alerts notify you when watched products move above, below, or near target fair values.'
+            },
+            {
+                question: 'How accurate is the price data?',
+                answer: 'We continuously validate sources, but prices may change quickly. Always verify directly with the supplier before purchasing.'
+            }
+        ],
+        marketplace: [
+            {
+                question: 'How do I buy from suppliers?',
+                answer: 'Browse products in Marketplace and use built-in chat to negotiate terms directly with suppliers.'
+            },
+            {
+                question: 'Is it safe to transact with suppliers?',
+                answer: 'Use verified suppliers and standard due diligence. Report suspicious activity using the alert/report flow.'
+            },
+            {
+                question: 'Can I become a supplier?',
+                answer: 'Yes. Contact the PRISM team and complete supplier verification to list your catalog.'
+            }
+        ],
+        subscription: [
+            {
+                question: 'What is included in Premium?',
+                answer: 'Premium includes higher limits, deeper analytics, and faster alert updates.'
+            },
+            {
+                question: 'What is included in Enterprise?',
+                answer: 'Enterprise adds API access, team-level controls, and operational reporting.'
+            },
+            {
+                question: 'How do I cancel my subscription?',
+                answer: 'Go to account billing settings and cancel before your next billing cycle.'
+            }
+        ],
+        technical: [
+            {
+                question: 'Is PRISM available on mobile?',
+                answer: 'Yes. The web app supports mobile browsers and responsive layouts.'
+            },
+            {
+                question: 'Do you have an API?',
+                answer: 'Yes, API access is available for enterprise use cases.'
+            },
+            {
+                question: 'How does AI detection work?',
+                answer: 'AI combines baseline pricing, anomaly logic, and source confidence scoring to classify market conditions.'
+            }
+        ]
+    };
 
-// Render FAQ
+    function getCategoryName(category) {
+        const names = {
+            general: 'General Questions',
+            account: 'Account Management',
+            prices: 'Prices & Alerts',
+            marketplace: 'Marketplace',
+            subscription: 'Subscriptions & Billing',
+            technical: 'Technical Support'
+        };
+        return names[category] || category;
+    }
 
-            function renderFAQ(category = 'all', searchTerm = '') {
-                const container = document.getElementById('faqContent');
-                const noResults = document.getElementById('noResults');
-                let html = '';
-                let hasResults = false;
+    function getCategoryIcon(category) {
+        const icons = {
+            general: 'help',
+            account: 'person',
+            prices: 'monitoring',
+            marketplace: 'storefront',
+            subscription: 'paid',
+            technical: 'build'
+        };
+        return `<span class="material-symbols-outlined">${icons[category] || 'help'}</span>`;
+    }
 
-                if (category === 'all') {
-                    for (const [cat, questions] of Object.entries(faqData)) {
-                        const filteredQuestions = questions.filter(q => 
-                            searchTerm === '' || 
-                            q.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            q.answer.toLowerCase().includes(searchTerm.toLowerCase())
-                        );
-                        
-                        if (filteredQuestions.length > 0) {
-                            hasResults = true;
-                            html += `<div class="faq-category"><h2><span>${getCategoryIcon(cat)}</span> ${getCategoryName(cat)}</h2>`;
-                            
-                            filteredQuestions.forEach((item, index) => {
-                                html += `
-                                    <div class="faq-item" data-category="${cat}">
-                                        <div class="faq-question" onclick="toggleFAQ(this)">
-                                            <h3>${item.question}</h3>
-                                            <span class="material-symbols-outlined">add</span>
-                                        </div>
-                                        <div class="faq-answer">
-                                            <p>${item.answer}</p>
-                                        </div>
-                                    </div>
-                                `;
-                            });
-                            
-                            html += `</div>`;
-                        }
-                    }
-                } else {
+    let currentCategory = 'all';
+    let currentSearchTerm = '';
 
-// Show single category
-                    if (faqData[category]) {
-                        const filteredQuestions = faqData[category].filter(q => 
-                            searchTerm === '' || 
-                            q.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            q.answer.toLowerCase().includes(searchTerm.toLowerCase())
-                        );
-                        
-                        if (filteredQuestions.length > 0) {
-                            hasResults = true;
-                            html += `<div class="faq-category"><h2><span>${getCategoryIcon(category)}</span> ${getCategoryName(category)}</h2>`;
-                            
-                            filteredQuestions.forEach((item, index) => {
-                                html += `
-                                    <div class="faq-item" data-category="${category}">
-                                        <div class="faq-question" onclick="toggleFAQ(this)">
-                                            <h3>${item.question}</h3>
-                                            <span class="material-symbols-outlined">add</span>
-                                        </div>
-                                        <div class="faq-answer">
-                                            <p>${item.answer}</p>
-                                        </div>
-                                    </div>
-                                `;
-                            });
-                            
-                            html += `</div>`;
-                        }
-                    }
-                }
+    function questionMatches(item, searchTerm) {
+        if (!searchTerm) return true;
 
-                if (hasResults) {
-                    container.innerHTML = html;
-                    noResults.style.display = 'none';
-                } else {
-                    container.innerHTML = '';
-                    noResults.style.display = 'block';
-                }
+        const q = searchTerm.toLowerCase();
+        return item.question.toLowerCase().includes(q) || item.answer.toLowerCase().includes(q);
+    }
+
+    function renderFAQ(category = 'all', searchTerm = '') {
+        const container = document.getElementById('faqContent');
+        const noResults = document.getElementById('noResults');
+        if (!container || !noResults) return;
+
+        let html = '';
+        let hasResults = false;
+
+        const categoriesToRender = category === 'all' ? Object.keys(faqData) : [category];
+
+        categoriesToRender.forEach((cat) => {
+            const questions = faqData[cat] || [];
+            const filteredQuestions = questions.filter((item) => questionMatches(item, searchTerm));
+
+            if (filteredQuestions.length === 0) {
+                return;
             }
 
-            function getCategoryIcon(category) {
-                const icons = {
-                    general: '',
-                    account: '',
-                    prices: '',
-                    marketplace: '',
-                    subscription: '',
-                    technical: ''
-                };
-                return icons[category] || '';
-            }
+            hasResults = true;
+            html += `<div class="faq-category"><h2>${getCategoryIcon(cat)} ${getCategoryName(cat)}</h2>`;
 
-            function getCategoryName(category) {
-                const names = {
-                    general: 'General Questions',
-                    account: 'Account Management',
-                    prices: 'Prices & Alerts',
-                    marketplace: 'Marketplace',
-                    subscription: 'Subscriptions & Billing',
-                    technical: 'Technical Support'
-                };
-                return names[category] || category;
-            }
-
-// Toggle FAQ answer
-
-            window.toggleFAQ = function(element) {
-                const question = element;
-                const answer = question.nextElementSibling;
-                const icon = question.querySelector('.faq-icon');
-                
-                question.classList.toggle('active');
-                
-// Toggle answer visibility
-
-                if (answer.classList.contains('show')) {
-                    answer.classList.remove('show');
-                    icon.textContent = '<span class="material-symbols-outlined">add</span>';
-                } else {
-                    answer.classList.add('show');
-                    icon.textContent = '<span class="material-symbols-outlined">close</span>';
-                }
-            };
-
-            let currentCategory = 'all';
-            let currentSearch = '';
-
-            window.filterCategory = function(category) {
-                currentCategory = category;
-                currentSearch = document.getElementById('faqSearch').value;
-                
-                document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-                document.querySelector(`[data-category="${category}"]`).classList.add('active');
-                
-                renderFAQ(category, currentSearch);
-                showNotification(`Showing ${category === 'all' ? 'all questions' : category} category`);
-            };
-
-// Search FAQ
-
-            window.searchFAQ = function() {
-                const searchTerm = document.getElementById('faqSearch').value;
-                currentSearch = searchTerm;
-                renderFAQ(currentCategory, searchTerm);
-                if (searchTerm) {
-                    showNotification(`Searching for: "${searchTerm}"`);
-                }
-            };
-
-// Enter key search
-
-            document.getElementById('faqSearch').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    searchFAQ();
-                }
+            filteredQuestions.forEach((item) => {
+                html += `
+                    <div class="faq-item" data-category="${cat}">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            <h3>${item.question}</h3>
+                            <span class="material-symbols-outlined">add</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>${item.answer}</p>
+                        </div>
+                    </div>
+                `;
             });
 
-            renderFAQ('all', '');
-        })();
+            html += '</div>';
+        });
+
+        if (!hasResults) {
+            container.innerHTML = '';
+            noResults.style.display = 'block';
+            return;
+        }
+
+        container.innerHTML = html;
+        noResults.style.display = 'none';
+    }
+
+    window.toggleFAQ = function(questionElement) {
+        if (!questionElement) return;
+
+        const answer = questionElement.nextElementSibling;
+        const icon = questionElement.querySelector('.material-symbols-outlined');
+        if (!answer || !icon) return;
+
+        const isOpening = !answer.classList.contains('show');
+
+        if (isOpening) {
+            document.querySelectorAll('.faq-answer.show').forEach((openAnswer) => {
+                openAnswer.classList.remove('show');
+            });
+            document.querySelectorAll('.faq-question.active').forEach((openQuestion) => {
+                openQuestion.classList.remove('active');
+                const openIcon = openQuestion.querySelector('.material-symbols-outlined');
+                if (openIcon) openIcon.textContent = 'add';
+            });
+        }
+
+        questionElement.classList.toggle('active', isOpening);
+        answer.classList.toggle('show', isOpening);
+        icon.textContent = isOpening ? 'close' : 'add';
+    };
+
+    window.filterCategory = function(category) {
+        currentCategory = category || 'all';
+
+        document.querySelectorAll('.pill[data-category]').forEach((pill) => {
+            pill.classList.toggle('active', pill.getAttribute('data-category') === currentCategory);
+        });
+
+        renderFAQ(currentCategory, currentSearchTerm);
+        showNotification(`Showing ${currentCategory === 'all' ? 'all questions' : currentCategory}`);
+    };
+
+    window.searchFAQ = function() {
+        const searchInput = document.getElementById('faqSearch');
+        currentSearchTerm = searchInput ? searchInput.value.trim() : '';
+        renderFAQ(currentCategory, currentSearchTerm);
+
+        if (currentSearchTerm) {
+            showNotification(`Searching for: "${currentSearchTerm}"`);
+        }
+    };
+
+    const searchInput = document.getElementById('faqSearch');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                window.searchFAQ();
+            }
+        });
+    }
+
+    const supportButton = document.querySelector('.btn-support');
+    if (supportButton) {
+        supportButton.addEventListener('click', () => {
+            const subject = encodeURIComponent('PRISM Support Request');
+            const body = encodeURIComponent('Hi PRISM team,%0D%0A%0D%0AI need help with:%0D%0A');
+            window.location.href = `mailto:prism@gmail.com?subject=${subject}&body=${body}`;
+        });
+    }
+
+    renderFAQ('all', '');
+})();

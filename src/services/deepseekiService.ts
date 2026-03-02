@@ -1,4 +1,5 @@
 ﻿import axios, { isAxiosError } from 'axios';
+import { parseJsonResponse, requireEnv, sanitizeText } from './serviceUtils';
 
 export type DeepseekVerdict = 'OVERPRICED' | 'FAIR' | 'GREAT DEAL' | 'STEAL';
 
@@ -16,14 +17,6 @@ export interface DeepseekAnalysis {
 }
 
 const ALLOWED_VERDICTS: DeepseekVerdict[] = ['OVERPRICED', 'FAIR', 'GREAT DEAL', 'STEAL'];
-
-function parseJsonPayload(raw: string): unknown {
-  return JSON.parse(raw);
-}
-
-function sanitizeText(value: string): string {
-  return value.replace(/\s+/g, ' ').trim();
-}
 
 function validateDeepseekOutput(payload: unknown): DeepseekAnalysis {
   if (!payload || typeof payload !== 'object') {
@@ -52,15 +45,6 @@ function validateDeepseekOutput(payload: unknown): DeepseekAnalysis {
   };
 }
 
-function getDeepseekApiKey(): string {
-  const key = process.env.DEEPSEEK_API_KEY ?? process.env.GEMINI_API_KEY;
-  if (!key) {
-    throw new Error('AI API key is not configured.');
-  }
-
-  return key;
-}
-
 function buildSystemPrompt(): string {
   return [
     'You are a strict price intelligence engine.',
@@ -76,7 +60,7 @@ function buildSystemPrompt(): string {
 }
 
 export async function analyzeWithDeepseek(input: DeepseekRequestInput): Promise<DeepseekAnalysis> {
-  const apiKey = getDeepseekApiKey();
+  const apiKey = requireEnv('DEEPSEEK_API_KEY');
 
   try {
     const response = await axios.post(
@@ -115,7 +99,7 @@ export async function analyzeWithDeepseek(input: DeepseekRequestInput): Promise<
       throw new Error('AI response content is empty.');
     }
 
-    const parsed = parseJsonPayload(rawContent);
+    const parsed = parseJsonResponse(rawContent);
     return validateDeepseekOutput(parsed);
   } catch (error) {
     if (isAxiosError(error)) {

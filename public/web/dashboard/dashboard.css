@@ -380,7 +380,10 @@
             padding: 0.2rem 0.5rem;
             border-radius: 12px;
             font-size: 0.7rem;
-            white-space: nowrap;
+            white-space: normal;
+            text-align: center;
+            max-width: 140px;
+            overflow-wrap: anywhere;
         }
 
         .dashboard-two-col {

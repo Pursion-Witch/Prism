@@ -178,9 +178,17 @@
     window.switchMode = function(mode, event) {
         currentMode = mode;
 
-        document.querySelectorAll('.mode-option').forEach((option) => option.classList.remove('active'));
+        const modeOptions = Array.from(document.querySelectorAll('.mode-option'));
+        modeOptions.forEach((option) => option.classList.remove('active'));
         if (event && event.target) {
             event.target.classList.add('active');
+        } else {
+            const targetOption = modeOptions.find((option) =>
+                option.textContent.trim().toLowerCase() === mode.toLowerCase()
+            );
+            if (targetOption) {
+                targetOption.classList.add('active');
+            }
         }
 
         const badge = document.getElementById('modeBadge');

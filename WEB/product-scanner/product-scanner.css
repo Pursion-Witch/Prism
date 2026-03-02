@@ -621,7 +621,10 @@
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 600;
-            white-space: nowrap;
+            white-space: normal;
+            text-align: center;
+            max-width: 140px;
+            overflow-wrap: anywhere;
             z-index: 10;
         }
         .graph-label {
@@ -630,7 +633,9 @@
             color: #888;
             transform: rotate(-45deg);
             transform-origin: top left;
-            white-space: nowrap;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            max-width: 90px;
         }
 
 /* Multi-line Graph */
@@ -693,7 +698,10 @@
             padding: 0.2rem 0.5rem;
             border-radius: 12px;
             font-size: 0.7rem;
-            white-space: nowrap;
+            white-space: normal;
+            text-align: center;
+            max-width: 140px;
+            overflow-wrap: anywhere;
         }
         .point-rice { background: #1ED760; }
         .point-fuel { background: #ff6b6b; }

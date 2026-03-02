@@ -133,8 +133,6 @@ export async function analyzePrice(input: AnalyzePriceInput): Promise<AnalyzePri
   };
 }
 
-export const analyze = analyzePrice;
-
 export async function getAdminStats(): Promise<AdminStatsResponse> {
   const [totalScansResult, overpricedCategoryResult, regionalAverageResult] = await Promise.all([
     query<{ count: string }>('SELECT COUNT(*)::text AS count FROM price_logs'),

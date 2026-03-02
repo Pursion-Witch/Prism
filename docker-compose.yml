@@ -29,7 +29,6 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://prism:prism@postgres:5432/prism}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       PORT: ${PORT:-3000}
       NODE_ENV: production

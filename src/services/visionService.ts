@@ -1,4 +1,5 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import axios, { isAxiosError } from 'axios';
+import { parseJsonResponse, requireEnv, sanitizeText } from './serviceUtils';
 
 export interface VisionDetection {
   detected_name: string;
@@ -7,8 +8,8 @@ export interface VisionDetection {
   confidence: number;
 }
 
-const DEFAULT_MODEL = process.env.GEMINI_VISION_MODEL ?? 'gemini-1.5-flash';
-const DEFAULT_TIMEOUT_MS = Number(process.env.GEMINI_VISION_TIMEOUT_MS ?? 20000);
+const DEFAULT_MODEL = process.env.DEEPSEEK_VISION_MODEL ?? 'deepseek-vl2';
+const DEFAULT_TIMEOUT_MS = Number(process.env.DEEPSEEK_VISION_TIMEOUT_MS ?? 20000);
 const PROMPT = [
   'You are a strict product and price extractor from a single image.',
   'Return JSON only. Do not return markdown.',
@@ -25,25 +26,6 @@ const PROMPT = [
   '- Confidence must be between 0 and 1.',
   '- Keep detected_name concise and specific.'
 ].join('\n');
-
-function getGeminiApiKey(): string {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) {
-    throw new Error('GEMINI_API_KEY is not configured.');
-  }
-
-  return key;
-}
-
-function sanitizeText(value: string): string {
-  return value.replace(/\s+/g, ' ').trim();
-}
-
-function parseJsonSafely(raw: string): unknown {
-  const trimmed = raw.trim();
-  const withoutCodeFence = trimmed.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '');
-  return JSON.parse(withoutCodeFence);
-}
 
 function validateVisionPayload(payload: unknown): VisionDetection {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
@@ -104,36 +86,54 @@ export async function detectFromImage(base64Image: string, mimeType: string): Pr
     throw new Error('Image MIME type is required.');
   }
 
+  const imageDataUrl = `data:${mimeType};base64,${base64Image}`;
+
   try {
-    const genAI = new GoogleGenerativeAI(getGeminiApiKey());
-    const model = genAI.getGenerativeModel({
-      model: DEFAULT_MODEL,
-      generationConfig: {
-        temperature: 0,
-        responseMimeType: 'application/json'
-      }
-    });
-
-    const generationPromise = model.generateContent([
-      { text: PROMPT },
+    const requestPromise = axios.post(
+      'https://api.deepseek.com/v1/chat/completions',
       {
-        inlineData: {
-          mimeType,
-          data: base64Image
-        }
+        model: DEFAULT_MODEL,
+        temperature: 0,
+        response_format: { type: 'json_object' },
+        messages: [
+          {
+            role: 'system',
+            content: PROMPT
+          },
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Analyze this image and return strict JSON.' },
+              { type: 'image_url', image_url: { url: imageDataUrl } }
+            ]
+          }
+        ]
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${requireEnv('DEEPSEEK_API_KEY')}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: DEFAULT_TIMEOUT_MS
       }
-    ]);
+    );
 
-    const result = await withTimeout(generationPromise, DEFAULT_TIMEOUT_MS);
-    const rawText = result.response.text();
+    const response = await withTimeout(requestPromise, DEFAULT_TIMEOUT_MS);
+    const rawText = response.data?.choices?.[0]?.message?.content;
 
-    if (!rawText || !sanitizeText(rawText)) {
+    if (typeof rawText !== 'string' || !sanitizeText(rawText)) {
       throw new Error('Vision response is empty.');
     }
 
-    const parsed = parseJsonSafely(rawText);
+    const parsed = parseJsonResponse(rawText);
     return validateVisionPayload(parsed);
   } catch (error) {
+    if (isAxiosError(error)) {
+      const status = error.response?.status;
+      const details = status ? `status ${status}` : 'network failure';
+      throw new Error(`Vision service unavailable (${details}).`);
+    }
+
     if (error instanceof SyntaxError) {
       throw new Error('Vision AI returned malformed JSON.');
     }

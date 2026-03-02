@@ -53,27 +53,27 @@
         <div class="kpi-grid">
             <div class="kpi-card">
                 <div class="kpi-label">UNFAIR PRICES</div>
-                <div class="kpi-value">48</div>
-                <div class="kpi-trend"><span class="trend-up">UP 12%</span> vs yesterday</div>
-                <div class="kpi-sublabel">Found in Metro Manila</div>
+                <div class="kpi-value" id="kpiOverpricedCount">0</div>
+                <div class="kpi-trend" id="kpiOverpricedTrend"><span class="trend-up">UP 0%</span> from baseline</div>
+                <div class="kpi-sublabel" id="kpiOverpricedSub">Loaded from product catalog</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-label">FAIRNESS SCORE</div>
-                <div class="kpi-value">82<small style="font-size:1.5rem; color:#888;">/100</small></div>
-                <div class="kpi-trend"><span class="trend-down">UP 5%</span> from last week</div>
-                <div class="kpi-sublabel">Presyong "Sakto" (Fair)</div>
+                <div class="kpi-value" id="kpiFairnessScore">0<small style="font-size:1.5rem; color:#888;">/100</small></div>
+                <div class="kpi-trend" id="kpiFairnessTrend"><span class="trend-down">UP 0%</span> from recent scans</div>
+                <div class="kpi-sublabel" id="kpiFairnessSub">Presyong Sakto indicator</div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-label">SHOPS MONITORED</div>
-                <div class="kpi-value">1,240</div>
-                <div class="kpi-trend"><span class="trend-down">+24 new</span> this month</div>
-                <div class="kpi-sublabel">Supermarkets & Palengkes</div>
+                <div class="kpi-label">PRODUCTS TRACKED</div>
+                <div class="kpi-value" id="kpiProductsTracked">0</div>
+                <div class="kpi-trend" id="kpiProductsTrend"><span class="trend-down">+0</span> catalog entries</div>
+                <div class="kpi-sublabel" id="kpiProductsSub">Markets and stalls linked</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-label">PRICES CHECKED</div>
-                <div class="kpi-value">2.1M</div>
-                <div class="kpi-trend"><span class="trend-up">UP 8.3%</span> vs yesterday</div>
-                <div class="kpi-sublabel">Daily across PH</div>
+                <div class="kpi-value" id="kpiScansLogged">0</div>
+                <div class="kpi-trend" id="kpiScansTrend"><span class="trend-up">UP 0%</span> from history</div>
+                <div class="kpi-sublabel" id="kpiScansSub">User and AI checks</div>
             </div>
         </div>
 
@@ -105,60 +105,17 @@
             <div>
                 <div class="card">
                     <div class="card-title"><span></span> Most Overpriced (Mahal) <span style="font-size:0.9rem; color:#888; margin-left:auto;">Updated hourly</span></div>
-                    <p style="color:#aaa; margin-bottom:1rem;">Items significantly above DTI SRP today</p>
-                    
-                    <div class="overpriced-item">
-                        <div class="item-info">
-                            <h4>Red Onions <span style="color:#ff6b6b; font-size:0.8rem;">35%</span></h4>
-                            <div class="srp">SRP: PHP 140 | Market: PHP 199</div>
-                        </div>
-                        <div class="item-change">
-                            <div class="change-badge">+PHP 59</div>
-                            <div class="market-price">PHP 199</div>
-                        </div>
-                    </div>
-                    <div class="overpriced-item">
-                        <div class="item-info">
-                            <h4>Pork Liempo <span style="color:#ff6b6b; font-size:0.8rem;">22%</span></h4>
-                            <div class="srp">SRP: PHP 340 | Market: PHP 415</div>
-                        </div>
-                        <div class="item-change">
-                            <div class="change-badge">+PHP 75</div>
-                            <div class="market-price">PHP 415</div>
-                        </div>
-                    </div>
-                    <div class="overpriced-item">
-                        <div class="item-info">
-                            <h4>Refined Sugar <span style="color:#ffaa33; font-size:0.8rem;">18%</span></h4>
-                            <div class="srp">SRP: PHP 95 | Market: PHP 112</div>
-                        </div>
-                        <div class="item-change">
-                            <div class="change-badge">+PHP 17</div>
-                            <div class="market-price">PHP 112</div>
-                        </div>
-                    </div>
-                    <div class="overpriced-item">
-                        <div class="item-info">
-                            <h4>Garlic <span style="color:#ffaa33; font-size:0.8rem;"> 12%</span></h4>
-                            <div class="srp">SRP: PHP 100 | Market: PHP 112</div>
-                        </div>
-                        <div class="item-change">
-                            <div class="change-badge">+PHP 12</div>
-                            <div class="market-price">PHP 112</div>
-                        </div>
-                    </div>
-                    <div class="overpriced-item">
-                        <div class="item-info">
-                            <h4>Cooking Oil <span style="color:#1ED760; font-size:0.8rem;">2%</span></h4>
-                            <div class="srp">SRP: PHP 55 | Market: PHP 54</div>
-                        </div>
-                        <div class="item-change">
-                            <div class="change-badge good">-PHP 1</div>
-                            <div class="market-price">PHP 54</div>
+                    <p style="color:#aaa; margin-bottom:1rem;" id="overpricedContextText">Items significantly above DTI SRP today</p>
+                    <div id="overpricedListContainer">
+                        <div class="overpriced-item">
+                            <div class="item-info">
+                                <h4>Loading...</h4>
+                                <div class="srp">Pulling current market records</div>
+                            </div>
                         </div>
                     </div>
 
-                    <a href="#" class="view-all">View All 48 DTI Price Alerts -></a>
+                    <a href="#" class="view-all" id="overpricedViewAll">View All Alerts -></a>
                 </div>
 
 <!-- Regional Heatmap -->
@@ -197,35 +154,15 @@
 <!-- Recent Price Alerts -->
 
                 <div class="card">
-                    <div class="card-title"><span></span> Recent Price Alerts <span style="font-size:0.9rem; color:#888; margin-left:auto;">12 new</span></div>
-                    
-                    <div class="alert-item">
-                        <div class="alert-details">
-                            <div class="alert-title">Sinandomeng Rice - PHP 58/kg</div>
-                            <div class="alert-meta">@ Quezon City | 2 hours ago | 15 people watching</div>
+                    <div class="card-title"><span></span> Recent Price Alerts <span style="font-size:0.9rem; color:#888; margin-left:auto;" id="dashboardRecentAlertsBadge">0 new</span></div>
+                    <div id="dashboardRecentAlerts">
+                        <div class="alert-item">
+                            <div class="alert-details">
+                                <div class="alert-title">Loading alerts...</div>
+                                <div class="alert-meta">Fetching latest records</div>
+                            </div>
+                            <div class="alert-action wait">Loading</div>
                         </div>
-                        <div class="alert-action wait">Wait 2 days</div>
-                    </div>
-                    <div class="alert-item">
-                        <div class="alert-details">
-                            <div class="alert-title">Whole Chicken - PHP 180/kg</div>
-                            <div class="alert-meta">@ Pading Palengke | 3 hours ago | Best price in area</div>
-                        </div>
-                        <div class="alert-action">Buy Now</div>
-                    </div>
-                    <div class="alert-item">
-                        <div class="alert-details">
-                            <div class="alert-title">Cooking Oil - PHP 45/L</div>
-                            <div class="alert-meta">@ Manila | 5 hours ago | Predicted to drop further</div>
-                        </div>
-                        <div class="alert-action wait">Check tomorrow</div>
-                    </div>
-                    <div class="alert-item">
-                        <div class="alert-details">
-                            <div class="alert-title">Eggs (30pcs) - PHP 210</div>
-                            <div class="alert-meta">@ Bulacan | 6 hours ago | 5% below market</div>
-                        </div>
-                        <div class="alert-action">Buy Now</div>
                     </div>
                 </div>
             </div>
@@ -235,41 +172,18 @@
             <div>
                 <!-- Supplier Performance -->
                 <div class="card">
-                    <div class="card-title"><span></span> Top Suppliers by Fairness</div>
-                    
-                    <div class="supplier-item">
-                        <div class="supplier-avatar">MM</div>
-                        <div class="supplier-info">
-                            <div class="supplier-name">Mega Mart</div>
-                            <div class="supplier-meta">245 products | 98% fair pricing</div>
+                    <div class="card-title"><span></span> Top Categories by Fair Pricing</div>
+                    <div id="dashboardCategoryLeaders">
+                        <div class="supplier-item">
+                            <div class="supplier-avatar">--</div>
+                            <div class="supplier-info">
+                                <div class="supplier-name">Loading...</div>
+                                <div class="supplier-meta">Preparing category insights</div>
+                            </div>
+                            <div class="supplier-score">--</div>
                         </div>
-                        <div class="supplier-score">96%</div>
                     </div>
-                    <div class="supplier-item">
-                        <div class="supplier-avatar">PD</div>
-                        <div class="supplier-info">
-                            <div class="supplier-name">Palengke Direct</div>
-                            <div class="supplier-meta">189 products | 94% fair pricing</div>
-                        </div>
-                        <div class="supplier-score">94%</div>
-                    </div>
-                    <div class="supplier-item">
-                        <div class="supplier-avatar">FF</div>
-                        <div class="supplier-info">
-                            <div class="supplier-name">FarmFresh</div>
-                            <div class="supplier-meta">156 products | 91% fair pricing</div>
-                        </div>
-                        <div class="supplier-score">91%</div>
-                    </div>
-                    <div class="supplier-item">
-                        <div class="supplier-avatar">TP</div>
-                        <div class="supplier-info">
-                            <div class="supplier-name">Tindahan PH</div>
-                            <div class="supplier-meta">312 products | 88% fair pricing</div>
-                        </div>
-                        <div class="supplier-score">88%</div>
-                    </div>
-                    <a href="#" class="view-all">View All Suppliers -></a>
+                    <a href="#" class="view-all">View Category Insights -></a>
                 </div>
 
 <!-- Price Trend Today -->
@@ -287,13 +201,8 @@
                             <span style="color:#888;">6PM</span>
                             <span style="color:#888;">9PM</span>
                         </div>
-                        <div style="display: flex; gap: 2px; height: 100px; align-items: flex-end;">
-                            <div style="flex:1; background:#1ED760; height:60px; border-radius: 8px 8px 0 0;"></div>
-                            <div style="flex:1; background:#1ED760; height:75px; border-radius: 8px 8px 0 0;"></div>
-                            <div style="flex:1; background:#1ED760; height:90px; border-radius: 8px 8px 0 0;"></div>
-                            <div style="flex:1; background:#1ED760; height:82px; border-radius: 8px 8px 0 0;"></div>
-                            <div style="flex:1; background:#1ED760; height:70px; border-radius: 8px 8px 0 0;"></div>
-                            <div style="flex:1; background:#1ED760; height:55px; border-radius: 8px 8px 0 0;"></div>
+                        <div style="display: flex; gap: 2px; height: 100px; align-items: flex-end;" id="dashboardTrendBars">
+                            <div style="flex:1; background:#1ED760; height:30px; border-radius: 8px 8px 0 0;"></div>
                         </div>
                     </div>
 
@@ -314,32 +223,11 @@
                 <div class="card">
                     <div class="card-title"><span></span> Sulit Finds Today <span style="font-size:0.9rem; color:#888; margin-left:auto;">8 deals</span></div>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;" id="dashboardGoodDeals">
                         <div style="background: #0a0a0a; border-radius: 24px; padding: 1.2rem;">
-                            <div style="color:#1ED760; font-weight:600;">Puregold</div>
-                            <div style="font-size: 2rem; font-weight:700; margin:0.5rem 0;">PHP 9.50</div>
-                            <div style="font-weight:600;">Lucky Me Beef</div>
-                            <div style="color:#ffaa33; font-size:0.9rem;">Save PHP 1.50</div>
-                            <div style="color:#888; font-size:0.8rem; margin-top:0.5rem;">Until 8PM</div>
-                        </div>
-                        <div style="background: #0a0a0a; border-radius: 24px; padding: 1.2rem;">
-                            <div style="color:#1ED760; font-weight:600;">Watsons</div>
-                            <div style="font-size: 2rem; font-weight:700; margin:0.5rem 0;">PHP 12.00</div>
-                            <div style="font-weight:600;">Head & Shoulders</div>
-                            <div style="color:#ffaa33; font-size:0.9rem;">Buy 1 Take 1</div>
-                            <div style="color:#888; font-size:0.8rem; margin-top:0.5rem;">Limited stock</div>
-                        </div>
-                        <div style="background: #0a0a0a; border-radius: 24px; padding: 1.2rem;">
-                            <div style="color:#1ED760; font-weight:600;">SM Supermarket</div>
-                            <div style="font-size: 2rem; font-weight:700; margin:0.5rem 0;">PHP 65</div>
-                            <div style="font-weight:600;">Cooking Oil 1L</div>
-                            <div style="color:#ffaa33; font-size:0.9rem;">Save PHP 8</div>
-                        </div>
-                        <div style="background: #0a0a0a; border-radius: 24px; padding: 1.2rem;">
-                            <div style="color:#1ED760; font-weight:600;">Palengke</div>
-                            <div style="font-size: 2rem; font-weight:700; margin:0.5rem 0;">PHP 180</div>
-                            <div style="font-weight:600;">Whole Chicken</div>
-                            <div style="color:#ffaa33; font-size:0.9rem;">Fresh catch</div>
+                            <div style="color:#1ED760; font-weight:600;">Loading</div>
+                            <div style="font-size: 2rem; font-weight:700; margin:0.5rem 0;">--</div>
+                            <div style="font-weight:600;">Preparing good deals</div>
                         </div>
                     </div>
                 </div>
@@ -348,15 +236,12 @@
  
                 <div class="card">
                     <div class="card-title"><span></span> AI Market Insights</div>
-                    <div style="background: #0a0a0a; border-radius: 16px; padding: 1rem; margin-bottom: 1rem;">
-                        <div style="color:#1ED760; font-weight:600;">Price Drop Predicted</div>
-                        <p style="color:#ccc; margin:0.5rem 0;">Vegetable prices expected to decrease by 5-8% in Metro Manila next week due to improved supply.</p>
-                        <div style="color:#888; font-size:0.8rem;">Confidence: 87% | Based on weather & import data</div>
-                    </div>
-                    <div style="background: #0a0a0a; border-radius: 16px; padding: 1rem;">
-                        <div style="color:#ffaa33; font-weight:600;">Supply Alert</div>
-                        <p style="color:#ccc; margin:0.5rem 0;">Rice inventory in Luzon below average. Prices may increase 3-5% in 2 weeks.</p>
-                        <div style="color:#888; font-size:0.8rem;">Source: DA & PSA data</div>
+                    <div id="dashboardInsights">
+                        <div style="background: #0a0a0a; border-radius: 16px; padding: 1rem; margin-bottom: 1rem;">
+                            <div style="color:#1ED760; font-weight:600;">Loading insights</div>
+                            <p style="color:#ccc; margin:0.5rem 0;">Generating market summary from latest scans and catalog data.</p>
+                            <div style="color:#888; font-size:0.8rem;">Please wait...</div>
+                        </div>
                     </div>
                 </div>
             </div>

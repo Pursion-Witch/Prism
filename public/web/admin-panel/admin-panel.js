@@ -1,36 +1,47 @@
 (function() {
     'use strict';
 
-    const SETTINGS_STORAGE_KEY = 'prism_admin_settings_v1';
+    const SETTINGS_STORAGE_KEY = 'prism_admin_settings_v2';
+    const TAB_ORDER = ['dashboard', 'users', 'products', 'prices', 'alerts', 'reports', 'settings'];
 
-// Stars background
+    const state = {
+        products: [],
+        analytics: null,
+        stats: null,
+        resolvedAlerts: new Set()
+    };
+
+    function byId(id) {
+        return document.getElementById(id);
+    }
 
     function createStars() {
-        const stars = document.getElementById('stars');
+        const stars = byId('stars');
         if (!stars) return;
 
         stars.innerHTML = '';
         for (let i = 0; i < 180; i += 1) {
-            const s = document.createElement('div');
-            s.className = 'star';
-            s.style.cssText = `left:${Math.random() * 100}%; top:${Math.random() * 100}%; width:${Math.random() * 3 + 1}px; height:${Math.random() * 3 + 1}px; animation-delay:${Math.random() * 3}s`;
-            stars.appendChild(s);
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.cssText = `left:${Math.random() * 100}%; top:${Math.random() * 100}%; width:${Math.random() * 3 + 1}px; height:${Math.random() * 3 + 1}px; animation-delay:${Math.random() * 3}s`;
+            stars.appendChild(star);
         }
     }
-    createStars();
 
-// Hamburger menu
+    function initHamburger() {
+        const hamburger = byId('hamburgerBtn');
+        const nav = byId('navLinks');
+        if (!hamburger || !nav) return;
 
-    const hamburger = document.getElementById('hamburgerBtn');
-    const nav = document.getElementById('navLinks');
-    if (hamburger && nav) {
         hamburger.addEventListener('click', (event) => {
             event.stopPropagation();
             nav.classList.toggle('active');
         });
+
         document.querySelectorAll('.nav-links a').forEach((link) => {
             link.addEventListener('click', () => nav.classList.remove('active'));
         });
+
         document.addEventListener('click', (event) => {
             if (!hamburger.contains(event.target) && !nav.contains(event.target)) {
                 nav.classList.remove('active');
@@ -38,10 +49,8 @@
         });
     }
 
-// Notification
-
     window.showNotification = function(message) {
-        let notification = document.getElementById('notification');
+        let notification = byId('notification');
         if (!notification) {
             notification = document.createElement('div');
             notification.id = 'notification';
@@ -53,237 +62,462 @@
         notification.style.display = 'block';
         notification.style.animation = 'slideIn 0.2s';
 
-        setTimeout(() => {
-            notification.style.animation = 'slideOut 0.25s';
-            setTimeout(() => {
+        window.setTimeout(() => {
+            notification.style.animation = 'slideOut 0.2s';
+            window.setTimeout(() => {
                 notification.style.display = 'none';
                 notification.style.animation = '';
-            }, 250);
+            }, 220);
         }, 2000);
     };
 
-// Tab switching
-
-    const TAB_ORDER = ['dashboard', 'users', 'products', 'prices', 'alerts', 'reports', 'settings'];
-
-    window.switchAdminTab = function(tab) {
-        const normalizedTab = TAB_ORDER.includes(tab) ? tab : 'dashboard';
-
-        document.querySelectorAll('.admin-nav li').forEach((li, index) => {
-            li.classList.toggle('active', TAB_ORDER[index] === normalizedTab);
-        });
-
-        document.querySelectorAll('.admin-section').forEach((section) => {
-            section.classList.remove('active');
-        });
-
-        const activeSection = document.getElementById(`section-${normalizedTab}`);
-        if (activeSection) {
-            activeSection.classList.add('active');
-        }
-
-        showNotification(`Switched to ${normalizedTab} section`);
-    };
-
-    function normalizeStatusBadge(badge, statusText) {
-        if (!badge) return;
-
-        const value = statusText.trim().toLowerCase();
-        badge.textContent = statusText;
-
-        if (value.includes('warning') || value.includes('pending') || value.includes('suspend') || value.includes('review')) {
-            badge.classList.add('warning');
-        } else {
-            badge.classList.remove('warning');
+    function parseJsonSafe(text) {
+        try {
+            return text ? JSON.parse(text) : {};
+        } catch {
+            return { message: text || 'Unexpected response' };
         }
     }
 
-    function appendUserRow() {
-        const name = window.prompt('Enter user name:');
-        if (!name) return;
-
-        const email = window.prompt('Enter user email:');
-        if (!email) return;
-
-        const role = window.prompt('Enter role (Consumer, Supplier, Agency):', 'Consumer') || 'Consumer';
-
-        const usersTable = document.querySelector('#section-users tbody');
-        if (!usersTable) return;
-
-        const nextId = usersTable.querySelectorAll('tr').length + 1;
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>#${String(nextId).padStart(3, '0')}</td>
-            <td>${name}</td>
-            <td>${email}</td>
-            <td>${role}</td>
-            <td><span class="status-badge">Active</span></td>
-            <td><button class="action-btn">Edit</button><button class="action-btn">Suspend</button></td>
-        `;
-
-        usersTable.prepend(row);
-        showNotification(`User ${name} added.`);
+    async function fetchJson(url) {
+        const response = await fetch(url);
+        const body = parseJsonSafe(await response.text());
+        if (!response.ok) {
+            throw new Error(body.message || `Failed request: ${url}`);
+        }
+        return body;
     }
 
-    function appendProductRow() {
-        const product = window.prompt('Enter product name:');
-        if (!product) return;
+    function formatMoney(value) {
+        const amount = Number(value);
+        if (!Number.isFinite(amount) || amount <= 0) return 'Not available';
+        return new Intl.NumberFormat('en-PH', {
+            style: 'currency',
+            currency: 'PHP',
+            maximumFractionDigits: 2
+        }).format(amount);
+    }
 
-        const category = window.prompt('Enter category:', 'GENERAL') || 'GENERAL';
-        const supplier = window.prompt('Enter market and stall:', 'Carbon Public Market / Stall A-01') || 'Carbon Public Market / Stall A-01';
-        const price = Number(window.prompt('Enter base price:', '0'));
+    function formatRelativeTime(timestamp) {
+        const parsed = new Date(timestamp);
+        if (Number.isNaN(parsed.getTime())) return 'Unknown time';
 
-        if (!Number.isFinite(price) || price <= 0) {
-            showNotification('Invalid product price.');
+        const diffMs = Date.now() - parsed.getTime();
+        const diffMinutes = Math.max(1, Math.floor(diffMs / 60000));
+        if (diffMinutes < 60) return `${diffMinutes} min ago`;
+
+        const diffHours = Math.floor(diffMinutes / 60);
+        if (diffHours < 24) return `${diffHours} hr ago`;
+
+        const diffDays = Math.floor(diffHours / 24);
+        return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    }
+
+    function alertKey(alert) {
+        return `${alert.type}|${alert.product_name}|${alert.market_name}|${alert.created_at}`;
+    }
+
+    function getActiveAlerts() {
+        const alerts = Array.isArray(state.analytics?.alerts) ? state.analytics.alerts : [];
+        return alerts.filter((alert) => !state.resolvedAlerts.has(alertKey(alert)));
+    }
+
+    function safeText(value, fallback) {
+        const text = String(value ?? '').trim();
+        return text || fallback;
+    }
+
+    function toPercent(value) {
+        const amount = Number(value);
+        if (!Number.isFinite(amount)) return '0.00%';
+        return `${amount.toFixed(2)}%`;
+    }
+
+    function updateStat(id, value) {
+        const el = byId(id);
+        if (!el) return;
+        el.textContent = value;
+    }
+
+    function renderDashboard() {
+        const totals = state.analytics?.totals || {};
+
+        updateStat('dashboardTotalProducts', Number(totals.total_products || state.products.length || 0).toLocaleString());
+        updateStat('dashboardTotalScans', Number(totals.total_scans || state.stats?.total_scans || 0).toLocaleString());
+        updateStat('dashboardOverpricedReports', Number(totals.overpriced_reports || 0).toLocaleString());
+        updateStat('dashboardAverageGap', toPercent(totals.avg_diff_percent || 0));
+
+        const activityBody = byId('dashboardActivityBody');
+        if (!activityBody) return;
+
+        const alerts = getActiveAlerts().slice(0, 6);
+        if (!alerts.length) {
+            activityBody.innerHTML = '<tr><td colspan="4">No active alerts right now.</td></tr>';
             return;
         }
 
-        const productsTable = document.querySelector('#section-products tbody');
-        if (!productsTable) return;
-
-        const nextId = productsTable.querySelectorAll('tr').length + 101;
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>#P${nextId}</td>
-            <td>${product}</td>
-            <td>${category}</td>
-            <td>${supplier}</td>
-            <td>PHP ${price.toFixed(2)}</td>
-            <td><span class="status-badge">Active</span></td>
-            <td><button class="action-btn">Edit</button><button class="action-btn">Hide</button></td>
-        `;
-
-        productsTable.prepend(row);
-        showNotification(`Product ${product} added.`);
-    }
-
-    function refreshDashboardStats() {
-        const cards = document.querySelectorAll('#section-dashboard .stat-card .stat-value');
-        cards.forEach((valueEl) => {
-            const current = valueEl.textContent || '';
-            if (current.includes(',')) {
-                const parsed = Number(current.replace(/,/g, ''));
-                if (Number.isFinite(parsed)) {
-                    const drift = Math.floor(Math.random() * 25) - 12;
-                    valueEl.textContent = (parsed + drift).toLocaleString();
-                }
-                return;
-            }
-
-            if (current.includes('%')) {
-                const parsed = Number(current.replace('%', ''));
-                if (Number.isFinite(parsed)) {
-                    const drift = (Math.random() * 3 - 1.5).toFixed(1);
-                    valueEl.textContent = `${Math.max(0, parsed + Number(drift)).toFixed(1)}%`;
-                }
-                return;
-            }
-
-            const parsed = Number(current);
-            if (Number.isFinite(parsed)) {
-                const drift = Math.floor(Math.random() * 8) - 4;
-                valueEl.textContent = String(Math.max(0, parsed + drift));
-            }
-        });
-
-        showNotification('Dashboard data refreshed.');
-    }
-
-    function runPriceAnalysis() {
-        const anomalyRows = document.querySelectorAll('#section-prices tbody tr');
-        anomalyRows.forEach((row) => {
-            const diffCell = row.children[3];
-            if (!diffCell) return;
-
-            const nextDiff = Math.max(1, Math.floor(Math.random() * 45));
-            diffCell.textContent = `+${nextDiff}%`;
-            diffCell.classList.add('trend-up');
-        });
-
-        const summaryValues = document.querySelectorAll('#section-prices .stat-card .stat-value');
-        if (summaryValues[0]) summaryValues[0].textContent = `${70 + Math.floor(Math.random() * 25)}%`;
-        if (summaryValues[1]) summaryValues[1].textContent = String(30 + Math.floor(Math.random() * 40));
-        if (summaryValues[2]) summaryValues[2].textContent = String(8 + Math.floor(Math.random() * 10));
-
-        showNotification('Price analysis completed.');
-    }
-
-    function clearResolvedAlerts() {
-        const alertRows = document.querySelectorAll('#section-alerts .alert-item');
-        let removedCount = 0;
-
-        alertRows.forEach((row) => {
-            if (row.getAttribute('data-status') === 'resolved') {
-                row.remove();
-                removedCount += 1;
-            }
-        });
-
-        if (removedCount === 0) {
-            showNotification('No resolved alerts to clear.');
-            return;
-        }
-
-        showNotification(`Cleared ${removedCount} resolved alerts.`);
-    }
-
-    function markAlertResolved(button, label) {
-        const alertRow = button.closest('.alert-item');
-        if (!alertRow) return;
-
-        alertRow.setAttribute('data-status', 'resolved');
-        button.disabled = true;
-        button.textContent = 'Resolved';
-        showNotification(`${label} marked as resolved.`);
-    }
-
-    function downloadReport() {
-        const reportContent = [
-            'PRISM Admin Report',
-            `Generated: ${new Date().toISOString()}`,
-            '',
-            'Dashboard Snapshot',
-            ...Array.from(document.querySelectorAll('#section-dashboard .stat-card')).map((card) => {
-                const label = card.querySelector('.stat-label')?.textContent?.trim() || 'Metric';
-                const value = card.querySelector('.stat-value')?.textContent?.trim() || '-';
-                return `${label}: ${value}`;
+        activityBody.innerHTML = alerts
+            .map((alert) => {
+                const actor = safeText(alert.market_name, 'Market Feed');
+                const action = `${safeText(alert.type, 'Alert')}: ${safeText(alert.product_name, 'Unknown Item')}`;
+                const severityClass = alert.severity === 'critical' || alert.severity === 'high' ? 'danger' : alert.severity === 'warning' ? 'warning' : 'good';
+                const severityText = alert.severity.toUpperCase();
+                return `
+                    <tr>
+                        <td>${actor}</td>
+                        <td>${action}</td>
+                        <td>${formatRelativeTime(alert.created_at)}</td>
+                        <td><span class="status-badge ${severityClass}">${severityText}</span></td>
+                    </tr>
+                `;
             })
-        ].join('\n');
+            .join('');
+    }
 
-        const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+    function populateCategoryFilter() {
+        const filter = byId('productCategoryFilter');
+        if (!filter) return;
+
+        const currentValue = filter.value || 'ALL';
+        const categories = [...new Set(state.products.map((item) => safeText(item.category, 'GENERAL')))].sort((a, b) => a.localeCompare(b));
+
+        filter.innerHTML = ['<option value="ALL">All Categories</option>']
+            .concat(categories.map((category) => `<option value="${category}">${category}</option>`))
+            .join('');
+
+        if (categories.includes(currentValue)) {
+            filter.value = currentValue;
+        }
+    }
+
+    function renderProducts() {
+        const tableBody = byId('productsTableBody');
+        if (!tableBody) return;
+
+        const searchInput = byId('productSearchInput');
+        const categoryFilter = byId('productCategoryFilter');
+        const search = String(searchInput?.value || '').toLowerCase().trim();
+        const selectedCategory = String(categoryFilter?.value || 'ALL');
+
+        const rows = state.products
+            .filter((product) => {
+                const category = safeText(product.category, 'GENERAL');
+                if (selectedCategory !== 'ALL' && category !== selectedCategory) {
+                    return false;
+                }
+
+                if (!search) {
+                    return true;
+                }
+
+                const haystack = [
+                    safeText(product.catalog_code, ''),
+                    safeText(product.name, ''),
+                    category,
+                    safeText(product.market_name, ''),
+                    safeText(product.stall_name, ''),
+                    safeText(product.region, '')
+                ]
+                    .join(' ')
+                    .toLowerCase();
+
+                return haystack.includes(search);
+            })
+            .sort((a, b) => {
+                const categoryA = safeText(a.category, 'GENERAL');
+                const categoryB = safeText(b.category, 'GENERAL');
+                const byCategory = categoryA.localeCompare(categoryB);
+                if (byCategory !== 0) return byCategory;
+                return safeText(a.name, '').localeCompare(safeText(b.name, ''));
+            });
+
+        if (!rows.length) {
+            tableBody.innerHTML = '<tr><td colspan="6">No products matched your filter.</td></tr>';
+            return;
+        }
+
+        tableBody.innerHTML = rows
+            .map((product) => {
+                const srpPrice = Number(product.srp_price);
+                const statusClass = Number.isFinite(srpPrice) && srpPrice > 0 ? 'good' : 'warning';
+                const statusText = Number.isFinite(srpPrice) && srpPrice > 0 ? 'Priced' : 'Missing Price';
+
+                return `
+                    <tr>
+                        <td>${safeText(product.catalog_code, safeText(product.id, 'N/A'))}</td>
+                        <td>${safeText(product.name, 'Unknown')}</td>
+                        <td>${safeText(product.category, 'GENERAL')}</td>
+                        <td>${safeText(product.market_name, 'Unknown Market')} / ${safeText(product.stall_name, 'Unknown Stall')}</td>
+                        <td>${formatMoney(product.srp_price)}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    </tr>
+                `;
+            })
+            .join('');
+    }
+
+    function renderTrendChart() {
+        const trendContainer = byId('adminTrendChart');
+        if (!trendContainer) return;
+
+        const monthly = Array.isArray(state.analytics?.monthly_report) ? state.analytics.monthly_report.slice(0, 8).reverse() : [];
+        if (!monthly.length) {
+            trendContainer.innerHTML = '<div class="trend-bar"><div class="trend-bar-label">No trend data</div></div>';
+            return;
+        }
+
+        const maxDiff = Math.max(...monthly.map((row) => Math.abs(Number(row.avg_diff_percent || 0))), 1);
+        trendContainer.innerHTML = monthly
+            .map((row) => {
+                const diff = Number(row.avg_diff_percent || 0);
+                const height = Math.max(8, Math.round((Math.abs(diff) / maxDiff) * 82));
+                const status = safeText(row.status, 'watch');
+                return `
+                    <div class="trend-bar ${status}">
+                        <div class="trend-bar-value">${toPercent(diff)}</div>
+                        <div class="trend-bar-fill" style="height:${height}px;"></div>
+                        <div class="trend-bar-label">${safeText(row.month, '--').slice(2)}</div>
+                    </div>
+                `;
+            })
+            .join('');
+    }
+
+    function renderPriceMonitoring() {
+        const totals = state.analytics?.totals || {};
+        updateStat('monitorAverageDiff', toPercent(totals.avg_diff_percent || 0));
+        updateStat('monitorOverpricedCount', Number(totals.overpriced_reports || 0).toLocaleString());
+        updateStat('monitorDealCount', Number(totals.deal_reports || 0).toLocaleString());
+
+        renderTrendChart();
+
+        const anomaliesTableBody = byId('anomaliesTableBody');
+        if (!anomaliesTableBody) return;
+
+        const prioritized = getActiveAlerts().filter((alert) => alert.severity !== 'good').slice(0, 12);
+        if (!prioritized.length) {
+            anomaliesTableBody.innerHTML = '<tr><td colspan="6">No active anomalies found.</td></tr>';
+            return;
+        }
+
+        anomaliesTableBody.innerHTML = prioritized
+            .map((alert) => {
+                const sign = Number(alert.difference_percent) >= 0 ? '+' : '-';
+                return `
+                    <tr>
+                        <td>${safeText(alert.product_name, 'Unknown')}</td>
+                        <td>${formatMoney(alert.scanned_price)}</td>
+                        <td>${formatMoney(alert.srp_price)}</td>
+                        <td class="trend-up">${sign}${Math.abs(Number(alert.difference_percent || 0)).toFixed(2)}%</td>
+                        <td>${safeText(alert.market_name, 'Unknown Market')} / ${safeText(alert.stall_name, 'Unknown Stall')}</td>
+                        <td><button class="action-btn" data-alert-key="${alertKey(alert)}">Acknowledge</button></td>
+                    </tr>
+                `;
+            })
+            .join('');
+    }
+
+    function renderAlerts() {
+        const list = byId('alertsList');
+        if (!list) return;
+
+        const alerts = getActiveAlerts();
+        if (!alerts.length) {
+            list.innerHTML = '<div class="alert-item"><div style="flex:1">No active alerts.</div></div>';
+            return;
+        }
+
+        list.innerHTML = alerts
+            .map((alert) => {
+                const typeLabel = safeText(alert.type, 'ALERT').replace(/_/g, ' ');
+                const diff = Number(alert.difference_percent || 0);
+                const sign = diff >= 0 ? '+' : '-';
+                return `
+                    <div class="alert-item ${safeText(alert.severity, 'warning')}">
+                        <div style="flex:1">
+                            <strong>${typeLabel}</strong> - ${safeText(alert.product_name, 'Unknown')}
+                            <div style="color:#9a9a9a; margin-top:0.2rem; font-size:0.88rem;">
+                                ${safeText(alert.market_name, 'Unknown Market')} / ${safeText(alert.stall_name, 'Unknown Stall')} | Difference: ${sign}${Math.abs(diff).toFixed(2)}% | ${formatRelativeTime(alert.created_at)}
+                            </div>
+                        </div>
+                        <button class="action-btn" data-alert-key="${alertKey(alert)}">Acknowledge</button>
+                    </div>
+                `;
+            })
+            .join('');
+    }
+
+    function renderReports() {
+        const tableBody = byId('monthlyReportBody');
+        if (!tableBody) return;
+
+        const rows = Array.isArray(state.analytics?.monthly_report) ? state.analytics.monthly_report : [];
+        if (!rows.length) {
+            tableBody.innerHTML = '<tr><td colspan="9">No monthly report data yet.</td></tr>';
+            return;
+        }
+
+        tableBody.innerHTML = rows
+            .map((row) => {
+                const statusClass = row.status === 'bad' ? 'danger' : row.status === 'watch' ? 'warning' : 'good';
+                const statusText = row.status === 'bad' ? 'Bad' : row.status === 'watch' ? 'Watch' : 'Good';
+                return `
+                    <tr>
+                        <td>${safeText(row.month, '--')}</td>
+                        <td>${Number(row.scan_count || 0).toLocaleString()}</td>
+                        <td>${formatMoney(row.avg_scanned_price)}</td>
+                        <td>${formatMoney(row.avg_srp_price)}</td>
+                        <td>${toPercent(row.avg_diff_percent || 0)}</td>
+                        <td>${Number(row.overpriced_count || 0).toLocaleString()}</td>
+                        <td>${Number(row.deal_count || 0).toLocaleString()}</td>
+                        <td>${Number(row.suspicious_count || 0).toLocaleString()}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    </tr>
+                `;
+            })
+            .join('');
+    }
+
+    function renderAll() {
+        populateCategoryFilter();
+        renderDashboard();
+        renderProducts();
+        renderPriceMonitoring();
+        renderAlerts();
+        renderReports();
+    }
+
+    async function refreshAdminData() {
+        const refreshButton = byId('refreshAdminDataBtn');
+        if (refreshButton) {
+            refreshButton.disabled = true;
+            refreshButton.textContent = 'Refreshing...';
+        }
+
+        try {
+            const [products, analytics, stats] = await Promise.all([
+                fetchJson('/api/admin/products'),
+                fetchJson('/api/admin/analytics'),
+                fetchJson('/api/admin/stats')
+            ]);
+
+            state.products = Array.isArray(products) ? products : [];
+            state.analytics = analytics || null;
+            state.stats = stats || null;
+
+            renderAll();
+            showNotification('Admin data refreshed.');
+        } catch (error) {
+            showNotification(error instanceof Error ? error.message : 'Failed to refresh admin data.');
+        } finally {
+            if (refreshButton) {
+                refreshButton.disabled = false;
+                refreshButton.textContent = 'Refresh Data';
+            }
+        }
+    }
+
+    function exportMonthlyReport() {
+        const rows = Array.isArray(state.analytics?.monthly_report) ? state.analytics.monthly_report : [];
+        if (!rows.length) {
+            showNotification('No report rows available to export.');
+            return;
+        }
+
+        const headers = [
+            'month',
+            'scan_count',
+            'avg_scanned_price',
+            'avg_srp_price',
+            'avg_diff_percent',
+            'overpriced_count',
+            'deal_count',
+            'suspicious_count',
+            'status'
+        ];
+
+        const csvLines = [headers.join(',')];
+        rows.forEach((row) => {
+            const values = headers.map((header) => {
+                const rawValue = row[header];
+                const value = rawValue === null || rawValue === undefined ? '' : String(rawValue);
+                return `"${value.replace(/"/g, '""')}"`;
+            });
+            csvLines.push(values.join(','));
+        });
+
+        const blob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `prism-report-${new Date().toISOString().slice(0, 10)}.txt`;
+        link.download = `prism-monthly-report-${new Date().toISOString().slice(0, 10)}.csv`;
         document.body.appendChild(link);
         link.click();
         link.remove();
         URL.revokeObjectURL(url);
-
-        showNotification('Report downloaded.');
+        showNotification('Monthly report exported.');
     }
 
-    function setReportWindow(windowLabel) {
-        const container = document.querySelector('#section-reports .section-header + div');
-        const subtitle = container?.querySelector('p');
-        if (subtitle) {
-            subtitle.textContent = `${windowLabel} report generated on ${new Date().toLocaleDateString()}`;
+    function bindEvents() {
+        const refreshButton = byId('refreshAdminDataBtn');
+        const runMonitoringButton = byId('runMonitoringBtn');
+        const clearResolvedButton = byId('clearResolvedAlertsBtn');
+        const downloadReportButton = byId('downloadReportBtn');
+        const productSearch = byId('productSearchInput');
+        const productCategoryFilter = byId('productCategoryFilter');
+
+        if (refreshButton) {
+            refreshButton.addEventListener('click', () => {
+                refreshAdminData();
+            });
         }
-        showNotification(`${windowLabel} report selected.`);
-    }
 
-    function saveSettings() {
-        const form = document.querySelector('#section-settings form');
-        if (!form) return;
+        if (runMonitoringButton) {
+            runMonitoringButton.addEventListener('click', () => {
+                refreshAdminData();
+            });
+        }
 
-        const payload = {};
-        form.querySelectorAll('.form-control').forEach((field, index) => {
-            const key = field.previousElementSibling?.textContent?.trim() || `field_${index}`;
-            payload[key] = field.value;
+        if (clearResolvedButton) {
+            clearResolvedButton.addEventListener('click', () => {
+                const beforeCount = state.resolvedAlerts.size;
+                getActiveAlerts().forEach((alert) => state.resolvedAlerts.add(alertKey(alert)));
+                renderDashboard();
+                renderPriceMonitoring();
+                renderAlerts();
+                const cleared = state.resolvedAlerts.size - beforeCount;
+                showNotification(cleared > 0 ? `Cleared ${cleared} alerts.` : 'No active alerts to clear.');
+            });
+        }
+
+        if (downloadReportButton) {
+            downloadReportButton.addEventListener('click', exportMonthlyReport);
+        }
+
+        if (productSearch) {
+            productSearch.addEventListener('input', renderProducts);
+        }
+
+        if (productCategoryFilter) {
+            productCategoryFilter.addEventListener('change', renderProducts);
+        }
+
+        document.addEventListener('click', (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) return;
+
+            const button = target.closest('button[data-alert-key]');
+            if (!(button instanceof HTMLButtonElement)) return;
+
+            const key = button.dataset.alertKey;
+            if (!key) return;
+
+            state.resolvedAlerts.add(key);
+            renderDashboard();
+            renderPriceMonitoring();
+            renderAlerts();
+            showNotification('Alert acknowledged.');
         });
-
-        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(payload));
-        showNotification('Settings saved.');
     }
 
     function loadSettings() {
@@ -292,178 +526,72 @@
 
         try {
             const payload = JSON.parse(raw);
+            if (!payload || typeof payload !== 'object') return;
+
             const form = document.querySelector('#section-settings form');
-            if (!form || typeof payload !== 'object' || payload === null) return;
+            if (!form) return;
 
             form.querySelectorAll('.form-control').forEach((field) => {
-                const key = field.previousElementSibling?.textContent?.trim();
+                const label = field.previousElementSibling;
+                const key = label ? label.textContent.trim() : '';
                 if (key && payload[key] !== undefined) {
                     field.value = payload[key];
                 }
             });
         } catch {
-            // Ignore invalid persisted data.
+            // Ignore stale settings.
         }
     }
 
-    function regenerateApiKey() {
-        const codeBlock = document.querySelector('#section-settings code');
-        if (!codeBlock) return;
+    function saveSettings() {
+        const form = document.querySelector('#section-settings form');
+        if (!form) return;
 
-        const randomPart = Math.random().toString(36).slice(2, 18);
-        codeBlock.textContent = `sk_live_prism_${randomPart}`;
-        showNotification('API key regenerated.');
-    }
-
-    function handleActionButtonClick(button) {
-        const label = button.textContent.trim().toLowerCase();
-        const row = button.closest('tr');
-
-        if (label === 'edit' && row) {
-            const targetCell = row.children[1];
-            if (!targetCell) return;
-            const nextValue = window.prompt('Update value:', targetCell.textContent.trim());
-            if (nextValue) {
-                targetCell.textContent = nextValue.trim();
-                showNotification('Row updated.');
-            }
-            return;
-        }
-
-        if (label === 'suspend' && row) {
-            const badge = row.querySelector('.status-badge');
-            normalizeStatusBadge(badge, 'Suspended');
-            button.textContent = 'Activate';
-            showNotification('User suspended.');
-            return;
-        }
-
-        if (label === 'activate' && row) {
-            const badge = row.querySelector('.status-badge');
-            normalizeStatusBadge(badge, 'Active');
-            button.textContent = 'Suspend';
-            showNotification('User reactivated.');
-            return;
-        }
-
-        if (label === 'approve' && row) {
-            const badge = row.querySelector('.status-badge');
-            normalizeStatusBadge(badge, 'Active');
-            showNotification('Entry approved.');
-            return;
-        }
-
-        if (label === 'reject' && row) {
-            row.remove();
-            showNotification('Entry rejected and removed.');
-            return;
-        }
-
-        if (label === 'hide' && row) {
-            row.style.display = 'none';
-            showNotification('Product hidden from list.');
-            return;
-        }
-
-        if (label === 'investigate' && row) {
-            const badgeCell = row.children[3];
-            if (badgeCell) {
-                badgeCell.textContent = `${badgeCell.textContent.trim()} (under review)`;
-            }
-            button.textContent = 'Reviewing';
-            button.disabled = true;
-            showNotification('Investigation started.');
-            return;
-        }
-
-        if (label === 'ignore' && row) {
-            row.remove();
-            showNotification('Anomaly ignored and removed.');
-            return;
-        }
-
-        if (label === 'acknowledge') {
-            markAlertResolved(button, 'Alert');
-            return;
-        }
-
-        if (label === 'review') {
-            markAlertResolved(button, 'Report');
-            return;
-        }
-
-        if (label === 'sync') {
-            markAlertResolved(button, 'Sync task');
-            return;
-        }
-
-        if (label === 'regenerate') {
-            regenerateApiKey();
-        }
-    }
-
-    function wireButtons() {
-        document.querySelectorAll('.btn-primary, .btn-secondary').forEach((button) => {
-            button.addEventListener('click', (event) => {
-                event.stopPropagation();
-
-                if (button instanceof HTMLAnchorElement && button.dataset.navigate) {
-                    return;
-                }
-
-                const label = button.textContent.trim().toLowerCase();
-
-                if (label.includes('refresh data')) {
-                    refreshDashboardStats();
-                    return;
-                }
-
-                if (label.includes('add user')) {
-                    appendUserRow();
-                    return;
-                }
-
-                if (label.includes('add product')) {
-                    appendProductRow();
-                    return;
-                }
-
-                if (label.includes('run analysis')) {
-                    runPriceAnalysis();
-                    return;
-                }
-
-                if (label.includes('clear resolved')) {
-                    clearResolvedAlerts();
-                    return;
-                }
-
-                if (label.includes('download pdf')) {
-                    downloadReport();
-                    return;
-                }
-
-                if (label === 'weekly' || label === 'monthly' || label === 'quarterly') {
-                    setReportWindow(label.charAt(0).toUpperCase() + label.slice(1));
-                    return;
-                }
-
-                if (label.includes('save changes')) {
-                    saveSettings();
-                    return;
-                }
-            });
+        const payload = {};
+        form.querySelectorAll('.form-control').forEach((field, index) => {
+            const label = field.previousElementSibling;
+            const key = label ? label.textContent.trim() : `field_${index}`;
+            payload[key] = field.value;
         });
 
-        document.querySelectorAll('.action-btn').forEach((button) => {
-            button.addEventListener('click', (event) => {
-                event.stopPropagation();
+        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(payload));
+        showNotification('Settings saved.');
+    }
+
+    function bindSettingsSave() {
+        const settingsSection = byId('section-settings');
+        if (!settingsSection) return;
+
+        const saveButton = settingsSection.querySelector('.btn-primary');
+        if (saveButton) {
+            saveButton.addEventListener('click', (event) => {
                 event.preventDefault();
-                handleActionButtonClick(button);
+                saveSettings();
             });
-        });
+        }
     }
 
-    wireButtons();
+    window.switchAdminTab = function(tab) {
+        const normalized = TAB_ORDER.includes(tab) ? tab : 'dashboard';
+
+        document.querySelectorAll('.admin-nav li').forEach((item, index) => {
+            item.classList.toggle('active', TAB_ORDER[index] === normalized);
+        });
+
+        document.querySelectorAll('.admin-section').forEach((section) => {
+            section.classList.remove('active');
+        });
+
+        const target = byId(`section-${normalized}`);
+        if (target) {
+            target.classList.add('active');
+        }
+    };
+
+    createStars();
+    initHamburger();
+    bindEvents();
+    bindSettingsSave();
     loadSettings();
+    refreshAdminData();
 })();

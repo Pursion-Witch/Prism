@@ -1,157 +1,124 @@
 (function() {
     'use strict';
 
-    const RANGE_DATA = {
-        today: {
-            kpis: [
-                { value: '48', trendClass: 'trend-up', trendValue: 'up 12%', trendText: 'vs yesterday', sublabel: 'Found in Metro Manila' },
-                { value: '82', scoreOutOf100: true, trendClass: 'trend-down', trendValue: 'up 5%', trendText: 'from last week', sublabel: 'Presyong "Sakto" (Fair)' },
-                { value: '1,240', trendClass: 'trend-down', trendValue: '+24 new', trendText: 'this month', sublabel: 'Supermarkets & Palengkes' },
-                { value: '2.1M', trendClass: 'trend-up', trendValue: 'up 8.3%', trendText: 'vs yesterday', sublabel: 'Daily across PH' }
-            ],
-            overpricedCount: 48,
-            overpricedContext: 'Items significantly above DTI SRP today',
-            recentAlertsLabel: '12 new',
-            trendLabel: 'Price Trend Index (24 Hours)',
-            trendPoints: [62, 74, 81, 76, 84, 79, 88],
-            trendPointPrices: [84, 86, 90, 89, 93, 91, 95],
-            categoryValues: [85, 72, 68, 45, 38]
-        },
-        week: {
-            kpis: [
-                { value: '116', trendClass: 'trend-up', trendValue: 'up 9%', trendText: 'vs last week', sublabel: 'Concentrated in urban centers' },
-                { value: '79', scoreOutOf100: true, trendClass: 'trend-up', trendValue: 'down 2%', trendText: 'from prior week', sublabel: 'Market slightly unstable' },
-                { value: '1,286', trendClass: 'trend-down', trendValue: '+46 new', trendText: 'this week', sublabel: 'Expanded provincial coverage' },
-                { value: '8.9M', trendClass: 'trend-up', trendValue: 'up 6.7%', trendText: 'week-over-week', sublabel: 'Nationwide weekly checks' }
-            ],
-            overpricedCount: 116,
-            overpricedContext: 'Items significantly above DTI SRP this week',
-            recentAlertsLabel: '31 new',
-            trendLabel: 'Price Trend Index (7 Days)',
-            trendPoints: [58, 63, 68, 72, 77, 83, 80],
-            trendPointPrices: [82, 84, 86, 88, 90, 94, 92],
-            categoryValues: [79, 76, 64, 49, 42]
-        },
-        month: {
-            kpis: [
-                { value: '402', trendClass: 'trend-up', trendValue: 'up 14%', trendText: 'vs last month', sublabel: 'High pressure in onions and meat' },
-                { value: '76', scoreOutOf100: true, trendClass: 'trend-up', trendValue: 'down 4%', trendText: 'from previous month', sublabel: 'Consumer risk elevated' },
-                { value: '1,355', trendClass: 'trend-down', trendValue: '+115 new', trendText: 'this month', sublabel: 'Added partner suppliers' },
-                { value: '36.4M', trendClass: 'trend-up', trendValue: 'up 11.2%', trendText: 'month-over-month', sublabel: 'Monthly scan volume' }
-            ],
-            overpricedCount: 402,
-            overpricedContext: 'Items significantly above DTI SRP this month',
-            recentAlertsLabel: '95 new',
-            trendLabel: 'Price Trend Index (30 Days)',
-            trendPoints: [55, 60, 66, 70, 74, 79, 85],
-            trendPointPrices: [80, 82, 84, 87, 89, 92, 96],
-            categoryValues: [88, 81, 72, 58, 50]
-        },
-        quarter: {
-            kpis: [
-                { value: '1,074', trendClass: 'trend-up', trendValue: 'up 7%', trendText: 'vs last quarter', sublabel: 'Sustained food inflation pressure' },
-                { value: '74', scoreOutOf100: true, trendClass: 'trend-up', trendValue: 'down 3%', trendText: 'from last quarter', sublabel: 'Interventions needed' },
-                { value: '1,421', trendClass: 'trend-down', trendValue: '+188 new', trendText: 'this quarter', sublabel: 'Coverage expansion in Visayas' },
-                { value: '108.2M', trendClass: 'trend-up', trendValue: 'up 9.5%', trendText: 'quarter-over-quarter', sublabel: 'Quarterly national checks' }
-            ],
-            overpricedCount: 1074,
-            overpricedContext: 'Items significantly above DTI SRP this quarter',
-            recentAlertsLabel: '214 new',
-            trendLabel: 'Price Trend Index (Quarter)',
-            trendPoints: [52, 57, 63, 68, 73, 79, 84],
-            trendPointPrices: [78, 80, 83, 86, 89, 93, 97],
-            categoryValues: [92, 85, 75, 63, 54]
-        },
-        year: {
-            kpis: [
-                { value: '4,892', trendClass: 'trend-up', trendValue: 'up 11%', trendText: 'vs last year', sublabel: 'Long-term inflation watchlist' },
-                { value: '77', scoreOutOf100: true, trendClass: 'trend-down', trendValue: 'up 2%', trendText: 'from last year', sublabel: 'Year-end recovery trend' },
-                { value: '1,580', trendClass: 'trend-down', trendValue: '+340 new', trendText: 'this year', sublabel: 'National supplier network growth' },
-                { value: '438.7M', trendClass: 'trend-up', trendValue: 'up 15.1%', trendText: 'year-over-year', sublabel: 'Annual scan volume' }
-            ],
-            overpricedCount: 4892,
-            overpricedContext: 'Items significantly above DTI SRP this year',
-            recentAlertsLabel: '782 new',
-            trendLabel: 'Price Trend Index (Year)',
-            trendPoints: [48, 54, 60, 67, 72, 78, 83],
-            trendPointPrices: [75, 78, 82, 85, 89, 93, 98],
-            categoryValues: [95, 88, 79, 66, 58]
-        }
+    const state = {
+        analytics: null,
+        products: [],
+        activeRange: 'today'
     };
 
-    const CATEGORY_LABELS = ['Rice', 'Meat', 'Veg', 'Oil', 'Canned'];
-    let activeRange = 'today';
-
-// Stars background
+    function byId(id) {
+        return document.getElementById(id);
+    }
 
     function createStars() {
-        const stars = document.getElementById('stars');
+        const stars = byId('stars');
         if (!stars) return;
 
         stars.innerHTML = '';
-
-        for (let i = 0; i < 180; i++) {
-            const s = document.createElement('div');
-            s.className = 'star';
-            s.style.cssText = `left:${Math.random()*100}%; top:${Math.random()*100}%; width:${Math.random()*3+1}px; height:${Math.random()*3+1}px; animation-delay:${Math.random()*3}s`;
-            stars.appendChild(s);
+        for (let i = 0; i < 180; i += 1) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.cssText = `left:${Math.random() * 100}%; top:${Math.random() * 100}%; width:${Math.random() * 3 + 1}px; height:${Math.random() * 3 + 1}px; animation-delay:${Math.random() * 3}s`;
+            stars.appendChild(star);
         }
     }
-    createStars();
 
-// Hamburger menu
+    function initHamburger() {
+        const hamburger = byId('hamburgerBtn');
+        const nav = byId('navLinks');
+        if (!hamburger || !nav) return;
 
-    const hamburger = document.getElementById('hamburgerBtn');
-    const nav = document.getElementById('navLinks');
-
-    if (hamburger && nav) {
-        hamburger.addEventListener('click', (e) => {
-            e.stopPropagation();
+        hamburger.addEventListener('click', (event) => {
+            event.stopPropagation();
             nav.classList.toggle('active');
         });
 
-        document.querySelectorAll('.nav-links a').forEach((l) => {
-            l.addEventListener('click', () => nav.classList.remove('active'));
+        document.querySelectorAll('.nav-links a').forEach((link) => {
+            link.addEventListener('click', () => nav.classList.remove('active'));
         });
 
-        document.addEventListener('click', (e) => {
-            if (!hamburger.contains(e.target) && !nav.contains(e.target)) {
+        document.addEventListener('click', (event) => {
+            if (!hamburger.contains(event.target) && !nav.contains(event.target)) {
                 nav.classList.remove('active');
             }
         });
     }
 
-// Notification system
-
-    window.showNotification = function(msg) {
-        let n = document.getElementById('notification');
-        if (!n) {
-            n = document.createElement('div');
-            n.id = 'notification';
-            n.className = 'notification';
-            document.body.appendChild(n);
-        }
-        n.textContent = msg;
-        n.style.display = 'block';
-        n.style.animation = 'slideIn 0.2s';
-
-        if (n._timeout) {
-            clearTimeout(n._timeout);
-            clearTimeout(n._hideTimeout);
+    window.showNotification = function(message) {
+        let notification = byId('notification');
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.id = 'notification';
+            notification.className = 'notification';
+            document.body.appendChild(notification);
         }
 
-        n._timeout = setTimeout(() => {
-            n.style.animation = 'slideOut 0.25s';
-            n._hideTimeout = setTimeout(() => {
-                n.style.display = 'none';
-                n.style.animation = '';
-                delete n._timeout;
-                delete n._hideTimeout;
+        notification.textContent = message;
+        notification.style.display = 'block';
+        notification.style.animation = 'slideIn 0.2s';
+
+        window.setTimeout(() => {
+            notification.style.animation = 'slideOut 0.25s';
+            window.setTimeout(() => {
+                notification.style.display = 'none';
+                notification.style.animation = '';
             }, 250);
         }, 2000);
     };
 
-// Date filter
+    function parseJsonSafe(raw) {
+        try {
+            return raw ? JSON.parse(raw) : {};
+        } catch {
+            return { message: raw || 'Unexpected response' };
+        }
+    }
+
+    async function fetchJson(url) {
+        const response = await fetch(url);
+        const body = parseJsonSafe(await response.text());
+        if (!response.ok) {
+            throw new Error(body.message || `Request failed: ${url}`);
+        }
+        return body;
+    }
+
+    function formatMoney(value) {
+        const amount = Number(value);
+        if (!Number.isFinite(amount) || amount <= 0) return 'Not available';
+        return new Intl.NumberFormat('en-PH', {
+            style: 'currency',
+            currency: 'PHP',
+            maximumFractionDigits: 2
+        }).format(amount);
+    }
+
+    function toPercent(value) {
+        const amount = Number(value);
+        if (!Number.isFinite(amount)) return '0.00%';
+        return `${amount.toFixed(2)}%`;
+    }
+
+    function formatCompact(value) {
+        const amount = Number(value);
+        if (!Number.isFinite(amount)) return '0';
+        return new Intl.NumberFormat('en-PH', {
+            notation: 'compact',
+            maximumFractionDigits: 1
+        }).format(amount);
+    }
+
+    function safeText(value, fallback) {
+        const text = String(value ?? '').trim();
+        return text || fallback;
+    }
+
+    function setText(id, value) {
+        const element = byId(id);
+        if (!element) return;
+        element.textContent = value;
+    }
 
     function setActiveRangeButton(range) {
         const labelByRange = {
@@ -162,189 +129,393 @@
             year: 'This Year'
         };
 
-        const targetLabel = labelByRange[range] || labelByRange.today;
-        document.querySelectorAll('.date-btn').forEach((btn) => {
-            btn.classList.toggle('active', btn.textContent.trim() === targetLabel);
+        const target = labelByRange[range] || labelByRange.today;
+        document.querySelectorAll('.date-btn').forEach((button) => {
+            button.classList.toggle('active', button.textContent.trim() === target);
         });
     }
 
-    function updateKpiCards(range) {
-        const data = RANGE_DATA[range] || RANGE_DATA.today;
-        const cards = document.querySelectorAll('.kpi-grid .kpi-card');
+    function getFairnessScore(totals) {
+        const scans = Number(totals.total_scans || 0);
+        if (!scans) return 0;
 
-        cards.forEach((card, index) => {
-            const item = data.kpis[index];
-            if (!item) return;
-
-            const valueEl = card.querySelector('.kpi-value');
-            const trendEl = card.querySelector('.kpi-trend');
-            const sublabelEl = card.querySelector('.kpi-sublabel');
-
-            if (valueEl) {
-                valueEl.innerHTML = item.scoreOutOf100
-                    ? `${item.value}<small style="font-size:1.5rem; color:#888;">/100</small>`
-                    : item.value;
-            }
-
-            if (trendEl) {
-                trendEl.innerHTML = `<span class="${item.trendClass}">${item.trendValue}</span> ${item.trendText}`;
-            }
-
-            if (sublabelEl) {
-                sublabelEl.textContent = item.sublabel;
-            }
-        });
+        const overpriced = Number(totals.overpriced_reports || 0);
+        const deals = Number(totals.deal_reports || 0);
+        const penalty = (overpriced / scans) * 120;
+        const bonus = (deals / scans) * 40;
+        const score = 100 - penalty + bonus;
+        return Math.max(0, Math.min(100, Number(score.toFixed(1))));
     }
 
-    function updateRangeLabels(range) {
-        const data = RANGE_DATA[range] || RANGE_DATA.today;
+    function getFilteredTrendPoints() {
+        const points = Array.isArray(state.analytics?.trend_points) ? state.analytics.trend_points : [];
+        if (!points.length) return [];
 
-        const overpricedCard = Array.from(document.querySelectorAll('.card')).find((card) => {
-            const title = card.querySelector('.card-title');
-            return !!title && title.textContent.includes('Most Overpriced');
-        });
-
-        if (overpricedCard) {
-            const context = overpricedCard.querySelector('p');
-            if (context) {
-                context.textContent = data.overpricedContext;
-            }
-
-            const viewAll = overpricedCard.querySelector('.view-all');
-            if (viewAll) {
-                viewAll.textContent = `View All ${data.overpricedCount.toLocaleString()} DTI Price Alerts ->`;
-            }
+        if (state.activeRange === 'today' || state.activeRange === 'week') {
+            return points.slice(-7);
+        }
+        if (state.activeRange === 'month') {
+            return points.slice(-6);
+        }
+        if (state.activeRange === 'quarter') {
+            return points.slice(-9);
         }
 
-        const alertsCard = Array.from(document.querySelectorAll('.card')).find((card) => {
-            const title = card.querySelector('.card-title');
-            return !!title && title.textContent.includes('Recent Price Alerts');
-        });
+        return points;
+    }
 
-        if (alertsCard) {
-            const badge = alertsCard.querySelector('.card-title span:last-child');
-            if (badge) {
-                badge.textContent = data.recentAlertsLabel;
-            }
+    function renderKpis() {
+        const totals = state.analytics?.totals || {};
+        const fairnessScore = getFairnessScore(totals);
+
+        setText('kpiOverpricedCount', Number(totals.overpriced_reports || 0).toLocaleString());
+        const fairnessScoreEl = byId('kpiFairnessScore');
+        if (fairnessScoreEl) {
+            fairnessScoreEl.innerHTML = `${fairnessScore}<small style=\"font-size:1.5rem; color:#888;\">/100</small>`;
+        }
+        setText('kpiProductsTracked', Number(totals.total_products || state.products.length || 0).toLocaleString());
+        setText('kpiScansLogged', formatCompact(totals.total_scans || 0));
+
+        const avgGap = Number(totals.avg_diff_percent || 0);
+        setText('kpiOverpricedSub', `${toPercent(avgGap)} average market gap`);
+        setText('kpiFairnessSub', avgGap > 10 ? 'High inflation pressure' : avgGap > 4 ? 'Monitor pricing changes' : 'Stable market behavior');
+        setText('kpiProductsSub', `${state.products.length.toLocaleString()} catalog records loaded`);
+        setText('kpiScansSub', `Deals flagged: ${Number(totals.deal_reports || 0).toLocaleString()}`);
+        setText('kpiOverpricedTrend', `${toPercent(avgGap)} average diff vs SRP`);
+        setText('kpiFairnessTrend', `${Number(totals.overpriced_reports || 0).toLocaleString()} overpriced flags`);
+        setText('kpiProductsTrend', `+${state.products.length.toLocaleString()} tracked items`);
+        setText('kpiScansTrend', `${Number(totals.total_scans || 0).toLocaleString()} submitted checks`);
+    }
+
+    function renderTrendPoints() {
+        const container = byId('trendPoints');
+        if (!container) return;
+
+        const points = getFilteredTrendPoints();
+        if (!points.length) {
+            container.innerHTML = '';
+            return;
         }
 
-        const trendTitle = document.querySelector('.charts-row .chart-card h3');
-        if (trendTitle) {
-            trendTitle.innerHTML = `<span> </span> ${data.trendLabel}`;
+        const values = points.map((point) => Number(point.value || 0));
+        const minValue = Math.min(...values, 0);
+        const maxValue = Math.max(...values, 1);
+        const range = Math.max(1, maxValue - minValue);
+
+        container.innerHTML = points
+            .map((point, index) => {
+                const left = points.length > 1 ? (index / (points.length - 1)) * 100 : 50;
+                const normalized = (Number(point.value || 0) - minValue) / range;
+                const bottom = Math.round(30 + normalized * 130);
+                return `<div class="point" style="left:${left}%; bottom:${bottom}px;" data-value="${safeText(point.label, '--')}: ${toPercent(point.value || 0)}"></div>`;
+            })
+            .join('');
+    }
+
+    function renderCategoryChart() {
+        const chart = byId('categoryChart');
+        if (!chart) return;
+
+        const categories = Array.isArray(state.analytics?.category_insights)
+            ? state.analytics.category_insights.slice(0, 6)
+            : [];
+
+        if (!categories.length) {
+            chart.innerHTML = '<div class="bar-item"><div class="bar" style="height:8px"></div><div class="bar-label">No Data</div></div>';
+            return;
+        }
+
+        const maxCount = Math.max(...categories.map((item) => Number(item.scan_count || 0)), 1);
+        chart.innerHTML = categories
+            .map((item) => {
+                const height = Math.max(8, Math.round((Number(item.scan_count || 0) / maxCount) * 165));
+                return `
+                    <div class="bar-item">
+                        <div class="bar" style="height:${height}px" title="${safeText(item.category, 'GENERAL')}: ${Number(item.scan_count || 0).toLocaleString()} scans"></div>
+                        <div class="bar-label">${safeText(item.category, 'GEN').slice(0, 8)}</div>
+                    </div>
+                `;
+            })
+            .join('');
+    }
+
+    function renderOverpricedList() {
+        const container = byId('overpricedListContainer');
+        const context = byId('overpricedContextText');
+        const viewAll = byId('overpricedViewAll');
+        if (!container) return;
+
+        const alerts = Array.isArray(state.analytics?.alerts) ? state.analytics.alerts : [];
+        const overpriced = alerts
+            .filter((alert) => alert.type === 'OVERPRICED' || alert.type === 'MALICIOUS_SPIKE')
+            .sort((a, b) => Number(b.difference_percent || 0) - Number(a.difference_percent || 0))
+            .slice(0, 5);
+
+        if (context) {
+            context.textContent = overpriced.length
+                ? 'Items significantly above listed SRP based on recent submissions.'
+                : 'No severe overpriced alerts in the latest checks.';
+        }
+
+        if (!overpriced.length) {
+            container.innerHTML = '<div class="overpriced-item"><div class="item-info"><h4>No critical overpriced entries</h4><div class="srp">Latest scans are within expected range.</div></div></div>';
+            if (viewAll) viewAll.textContent = 'View All Alerts ->';
+            return;
+        }
+
+        container.innerHTML = overpriced
+            .map((item) => {
+                const diff = Number(item.difference_percent || 0);
+                const marketPrice = Number(item.scanned_price || 0);
+                const srpPrice = Number(item.srp_price || 0);
+                return `
+                    <div class="overpriced-item">
+                        <div class="item-info">
+                            <h4>${safeText(item.product_name, 'Unknown')} <span style="color:#ff6b6b; font-size:0.8rem;">${Math.abs(diff).toFixed(2)}%</span></h4>
+                            <div class="srp">SRP: ${formatMoney(srpPrice)} | Market: ${formatMoney(marketPrice)}</div>
+                        </div>
+                        <div class="item-change">
+                            <div class="change-badge">+${formatMoney(Math.max(0, marketPrice - srpPrice))}</div>
+                            <div class="market-price">${safeText(item.market_name, 'Market')}</div>
+                        </div>
+                    </div>
+                `;
+            })
+            .join('');
+
+        if (viewAll) {
+            viewAll.textContent = `View All ${overpriced.length} Priority Alerts ->`;
+        }
+    }
+
+    function renderRecentAlerts() {
+        const container = byId('dashboardRecentAlerts');
+        const badge = byId('dashboardRecentAlertsBadge');
+        if (!container) return;
+
+        const alerts = Array.isArray(state.analytics?.alerts) ? state.analytics.alerts : [];
+        if (badge) {
+            badge.textContent = `${alerts.length} new`;
+        }
+
+        if (!alerts.length) {
+            container.innerHTML = '<div class="alert-item"><div class="alert-details"><div class="alert-title">No active alerts</div><div class="alert-meta">Market is stable for now.</div></div><div class="alert-action wait">Stable</div></div>';
+            return;
+        }
+
+        container.innerHTML = alerts
+            .slice(0, 4)
+            .map((alert) => {
+                const actionClass = alert.severity === 'good' ? 'alert-action' : 'alert-action wait';
+                const actionText = alert.severity === 'good' ? 'Good Deal' : alert.severity === 'critical' ? 'Urgent' : 'Review';
+                return `
+                    <div class="alert-item">
+                        <div class="alert-details">
+                            <div class="alert-title">${safeText(alert.product_name, 'Unknown')} - ${formatMoney(alert.scanned_price)}</div>
+                            <div class="alert-meta">@ ${safeText(alert.market_name, 'Unknown Market')} / ${safeText(alert.stall_name, 'Unknown Stall')} | ${toPercent(alert.difference_percent || 0)}</div>
+                        </div>
+                        <div class="${actionClass}">${actionText}</div>
+                    </div>
+                `;
+            })
+            .join('');
+    }
+
+    function renderCategoryLeaders() {
+        const container = byId('dashboardCategoryLeaders');
+        if (!container) return;
+
+        const categories = Array.isArray(state.analytics?.category_insights)
+            ? state.analytics.category_insights
+                .map((item) => {
+                    const scans = Math.max(1, Number(item.scan_count || 0));
+                    const fair = Number(item.fair_count || 0) + Number(item.great_deal_count || 0) + Number(item.steal_count || 0);
+                    const fairRatio = Math.max(0, Math.min(100, (fair / scans) * 100));
+                    return { ...item, fairRatio };
+                })
+                .sort((a, b) => b.fairRatio - a.fairRatio)
+                .slice(0, 4)
+            : [];
+
+        if (!categories.length) {
+            container.innerHTML = '<div class="supplier-item"><div class="supplier-avatar">--</div><div class="supplier-info"><div class="supplier-name">No category data</div><div class="supplier-meta">Run more scans to populate this panel</div></div><div class="supplier-score">--</div></div>';
+            return;
+        }
+
+        container.innerHTML = categories
+            .map((item) => {
+                const initials = safeText(item.category, 'GEN').slice(0, 2).toUpperCase();
+                return `
+                    <div class="supplier-item">
+                        <div class="supplier-avatar">${initials}</div>
+                        <div class="supplier-info">
+                            <div class="supplier-name">${safeText(item.category, 'GENERAL')}</div>
+                            <div class="supplier-meta">${Number(item.scan_count || 0).toLocaleString()} scans | ${Number(item.overpriced_count || 0).toLocaleString()} overpriced</div>
+                        </div>
+                        <div class="supplier-score">${Number(item.fairRatio).toFixed(0)}%</div>
+                    </div>
+                `;
+            })
+            .join('');
+    }
+
+    function renderTrendBars() {
+        const container = byId('dashboardTrendBars');
+        if (!container) return;
+
+        const points = getFilteredTrendPoints().slice(-6);
+        if (!points.length) {
+            container.innerHTML = '<div style="flex:1; background:#1ED760; height:8px; border-radius:8px 8px 0 0;"></div>';
+            return;
+        }
+
+        const max = Math.max(...points.map((point) => Math.abs(Number(point.value || 0))), 1);
+        container.innerHTML = points
+            .map((point) => {
+                const value = Number(point.value || 0);
+                const height = Math.max(12, Math.round((Math.abs(value) / max) * 90));
+                const color = value > 10 ? '#ff6b6b' : value > 4 ? '#ffaa33' : '#1ED760';
+                return `<div style="flex:1; background:${color}; height:${height}px; border-radius:8px 8px 0 0;"></div>`;
+            })
+            .join('');
+    }
+
+    function renderGoodDeals() {
+        const container = byId('dashboardGoodDeals');
+        if (!container) return;
+
+        const deals = Array.isArray(state.analytics?.alerts)
+            ? state.analytics.alerts
+                .filter((alert) => alert.type === 'GOOD_DEAL')
+                .sort((a, b) => Number(a.difference_percent || 0) - Number(b.difference_percent || 0))
+                .slice(0, 4)
+            : [];
+
+        if (!deals.length) {
+            container.innerHTML = '<div style="background:#0a0a0a; border-radius:24px; padding:1.2rem;"><div style="color:#1ED760; font-weight:600;">No highlighted deal yet</div><div style="font-size:1.2rem; font-weight:700; margin:0.5rem 0;">Stay tuned</div><div style="font-weight:600;">More user submissions needed</div></div>';
+            return;
+        }
+
+        container.innerHTML = deals
+            .map((deal) => {
+                const savings = Math.max(0, Number(deal.srp_price || 0) - Number(deal.scanned_price || 0));
+                return `
+                    <div style="background:#0a0a0a; border-radius:24px; padding:1.2rem;">
+                        <div style="color:#1ED760; font-weight:600;">${safeText(deal.market_name, 'Market')}</div>
+                        <div style="font-size:2rem; font-weight:700; margin:0.5rem 0;">${formatMoney(deal.scanned_price)}</div>
+                        <div style="font-weight:600;">${safeText(deal.product_name, 'Unknown')}</div>
+                        <div style="color:#ffaa33; font-size:0.9rem;">Save ${formatMoney(savings)}</div>
+                        <div style="color:#888; font-size:0.8rem; margin-top:0.5rem;">${safeText(deal.stall_name, 'Unknown Stall')}</div>
+                    </div>
+                `;
+            })
+            .join('');
+    }
+
+    function renderInsights() {
+        const container = byId('dashboardInsights');
+        if (!container) return;
+
+        const monthly = Array.isArray(state.analytics?.monthly_report) ? state.analytics.monthly_report[0] : null;
+        const categories = Array.isArray(state.analytics?.category_insights) ? state.analytics.category_insights : [];
+
+        const topRiskCategory = categories
+            .slice()
+            .sort((a, b) => Number(b.overpriced_count || 0) - Number(a.overpriced_count || 0))[0];
+
+        const topStableCategory = categories
+            .slice()
+            .sort((a, b) => {
+                const aDiff = Math.abs(Number(a.avg_diff_percent || 0));
+                const bDiff = Math.abs(Number(b.avg_diff_percent || 0));
+                return aDiff - bDiff;
+            })[0];
+
+        const avgDiff = Number(monthly?.avg_diff_percent || 0);
+        const suspicious = Number(monthly?.suspicious_count || 0);
+
+        container.innerHTML = `
+            <div style="background:#0a0a0a; border-radius:16px; padding:1rem; margin-bottom:1rem;">
+                <div style="color:#1ED760; font-weight:600;">Price Pressure Insight</div>
+                <p style="color:#ccc; margin:0.5rem 0;">Current monthly gap is ${toPercent(avgDiff)}. Highest risk category: ${safeText(topRiskCategory?.category, 'N/A')}.</p>
+                <div style="color:#888; font-size:0.8rem;">Source: catalog + submitted scan logs</div>
+            </div>
+            <div style="background:#0a0a0a; border-radius:16px; padding:1rem;">
+                <div style="color:#ffaa33; font-weight:600;">Quality Signal</div>
+                <p style="color:#ccc; margin:0.5rem 0;">Suspicious submissions this month: ${suspicious.toLocaleString()}. Most stable category: ${safeText(topStableCategory?.category, 'N/A')}.</p>
+                <div style="color:#888; font-size:0.8rem;">Lower suspicious values indicate cleaner user reports.</div>
+            </div>
+        `;
+    }
+
+    function renderAll() {
+        renderKpis();
+        renderTrendPoints();
+        renderCategoryChart();
+        renderOverpricedList();
+        renderRecentAlerts();
+        renderCategoryLeaders();
+        renderTrendBars();
+        renderGoodDeals();
+        renderInsights();
+    }
+
+    async function loadData(showToast) {
+        try {
+            const [analytics, products] = await Promise.all([
+                fetchJson('/api/admin/analytics'),
+                fetchJson('/api/admin/products')
+            ]);
+
+            state.analytics = analytics || null;
+            state.products = Array.isArray(products) ? products : [];
+            renderAll();
+            if (showToast) {
+                showNotification('Dashboard refreshed with live catalog data.');
+            }
+        } catch (error) {
+            showNotification(error instanceof Error ? error.message : 'Failed to load dashboard data.');
         }
     }
 
     window.filterDate = function(range) {
-        activeRange = RANGE_DATA[range] ? range : 'today';
-        setActiveRangeButton(activeRange);
-        updateKpiCards(activeRange);
-        updateRangeLabels(activeRange);
-        generateTrendPoints(activeRange);
-        generateCategoryChart(activeRange);
-        showNotification(`Showing data for: ${activeRange}`);
+        const allowed = new Set(['today', 'week', 'month', 'quarter', 'year']);
+        state.activeRange = allowed.has(range) ? range : 'today';
+        setActiveRangeButton(state.activeRange);
+        renderAll();
+        showNotification(`Showing ${state.activeRange} view`);
     };
 
-// Generate trend graph points
-
-    function generateTrendPoints(range) {
-        const container = document.getElementById('trendPoints');
-        if (!container) return;
-
-        const data = RANGE_DATA[range] || RANGE_DATA.today;
-        const points = data.trendPoints;
-        const pointPrices = data.trendPointPrices;
-        let html = '';
-
-        for (let i = 0; i < points.length; i++) {
-            const left = (i / (points.length - 1)) * 100;
-            const bottom = points[i];
-            const pointPrice = pointPrices[i];
-            html += `<div class="point" style="left: ${left}%; bottom: ${bottom}px;" data-value="PHP ${pointPrice}" onclick="showNotification('Price: PHP ${pointPrice}')"></div>`;
-        }
-        container.innerHTML = html;
-    }
-
-// Generate category chart
-
-    function generateCategoryChart(range) {
-        const container = document.getElementById('categoryChart');
-        if (!container) return;
-
-        const data = RANGE_DATA[range] || RANGE_DATA.today;
-        const values = data.categoryValues;
-
-        let html = '';
-        for (let i = 0; i < CATEGORY_LABELS.length; i++) {
-            html += `
-                <div class="bar-item">
-                    <div class="bar" style="height: ${values[i]}px;" onclick="showNotification('${CATEGORY_LABELS[i]}: ${values[i]}k items')"></div>
-                    <div class="bar-label">${CATEGORY_LABELS[i]}</div>
-                </div>
-            `;
-        }
-        container.innerHTML = html;
-    }
-
-    if (document.getElementById('trendPoints')) {
-        generateTrendPoints(activeRange);
-    }
-
-    if (document.getElementById('categoryChart')) {
-        generateCategoryChart(activeRange);
-    }
-
-    function setupInteractiveElements() {
-        const interactiveSelectors = [
-            '.overpriced-item',
-            '.alert-item',
-            '.supplier-item',
-            '.heatmap-cell'
-        ];
-
+    function bindInteractions() {
+        const interactiveSelectors = ['.overpriced-item', '.alert-item', '.supplier-item', '.heatmap-cell', '.bar', '.point'];
         interactiveSelectors.forEach((selector) => {
-            document.querySelectorAll(selector).forEach((el) => {
-                el.removeEventListener('click', handleInteractiveClick);
-                el.addEventListener('click', handleInteractiveClick);
+            document.querySelectorAll(selector).forEach((element) => {
+                element.addEventListener('click', () => {
+                    const text = safeText(element.textContent, 'item').slice(0, 55);
+                    showNotification(text);
+                });
             });
         });
     }
 
-    function handleInteractiveClick() {
-        const text = this.innerText.slice(0, 40);
-        showNotification(text + '...');
-    }
+    createStars();
+    initHamburger();
+    setActiveRangeButton(state.activeRange);
+    loadData(false);
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', setupInteractiveElements);
-    } else {
-        setupInteractiveElements();
-    }
-
-// Refresh data simulation
-
-    const refreshInterval = setInterval(() => {
-        updateKpiCards(activeRange);
-        updateRangeLabels(activeRange);
-        generateTrendPoints(activeRange);
-        generateCategoryChart(activeRange);
-    }, 30000);
+    const refreshTimer = window.setInterval(() => {
+        loadData(false);
+    }, 45000);
 
     window.addEventListener('beforeunload', () => {
-        clearInterval(refreshInterval);
+        window.clearInterval(refreshTimer);
     });
 
-    let resizeTimeout;
     window.addEventListener('resize', () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-            if (document.getElementById('trendPoints')) {
-                generateTrendPoints(activeRange);
-            }
-            if (document.getElementById('categoryChart')) {
-                generateCategoryChart(activeRange);
-            }
-        }, 250);
+        renderTrendPoints();
+        renderCategoryChart();
+        renderTrendBars();
     });
 
-    window.filterDate('today');
+    setTimeout(bindInteractions, 500);
 })();

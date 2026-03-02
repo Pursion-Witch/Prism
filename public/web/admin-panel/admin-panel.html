@@ -68,43 +68,40 @@
                 <div id="section-dashboard" class="admin-section active">
                     <div class="section-header">
                         <h2><span></span> Admin Dashboard</h2>
-                        <button class="btn-primary" onclick="showNotification('Refreshing data...')">Refresh Data</button>
+                        <button class="btn-primary" id="refreshAdminDataBtn">Refresh Data</button>
                     </div>
                     
                     <div class="stats-grid">
                         <div class="stat-card">
-                            <div class="stat-label">Total Users</div>
-                            <div class="stat-value">8,432</div>
-                            <div class="stat-change">+12% this month</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Active Suppliers</div>
-                            <div class="stat-value">243</div>
-                            <div class="stat-change">+5 new</div>
-                        </div>
-                        <div class="stat-card">
                             <div class="stat-label">Products Tracked</div>
-                            <div class="stat-value">1,892</div>
-                            <div class="stat-change">+124 this week</div>
+                            <div class="stat-value" id="dashboardTotalProducts">0</div>
+                            <div class="stat-change" id="dashboardTotalProductsMeta">Catalog rows</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-label">Price Alerts</div>
-                            <div class="stat-value">48</div>
-                            <div class="stat-change">12 high priority</div>
+                            <div class="stat-label">Price Checks Logged</div>
+                            <div class="stat-value" id="dashboardTotalScans">0</div>
+                            <div class="stat-change" id="dashboardTotalScansMeta">User and AI scans</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Overpriced Reports</div>
+                            <div class="stat-value" id="dashboardOverpricedReports">0</div>
+                            <div class="stat-change" id="dashboardOverpricedMeta">Needs intervention</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Average Market Gap</div>
+                            <div class="stat-value" id="dashboardAverageGap">0%</div>
+                            <div class="stat-change" id="dashboardAverageGapMeta">Compared to listed SRP</div>
                         </div>
                     </div>
 
-                    <h3 style="margin: 2rem 0 1rem;">Recent Activity</h3>
+                    <h3 style="margin: 2rem 0 1rem;">Recent Alert Activity</h3>
                     <div class="table-container">
                         <table>
                             <thead>
                                 <tr><th>User</th><th>Action</th><th>Time</th><th>Status</th></tr>
                             </thead>
-                            <tbody>
-                                <tr><td>Alona Cuenco</td><td>Added product: Danggit Cebu</td><td>2 min ago</td><td><span class="status-badge">Completed</span></td></tr>
-                                <tr><td>Ramil Tumulak</td><td>Reported price anomaly</td><td>15 min ago</td><td><span class="status-badge warning">Reviewing</span></td></tr>
-                                <tr><td>Carbon Stall Keeper</td><td>Updated stall inventory</td><td>1 hour ago</td><td><span class="status-badge">Completed</span></td></tr>
-                                <tr><td>Cebu Trade Officer</td><td>Approved market price update</td><td>3 hours ago</td><td><span class="status-badge">Completed</span></td></tr>
+                            <tbody id="dashboardActivityBody">
+                                <tr><td colspan="4">Loading recent activity...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -139,24 +136,19 @@
                         <h2><span></span> Product Catalog</h2>
                         <a class="btn-primary" href="/web/admin-panel/product-intake.html" data-navigate="product-intake">+ Add Product</a>
                     </div>
+                    <div class="table-tools">
+                        <input type="text" id="productSearchInput" class="form-control search-control" placeholder="Search product, catalog ID, market, or stall">
+                        <select id="productCategoryFilter" class="form-control filter-control">
+                            <option value="ALL">All Categories</option>
+                        </select>
+                    </div>
                     <div class="table-container">
                         <table>
                             <thead>
-                                <tr><th>ID</th><th>Product</th><th>Category</th><th>Market / Stall</th><th>Base Price</th><th>Status</th><th>Actions</th></tr>
+                                <tr><th>Catalog ID</th><th>Product</th><th>Category</th><th>Market / Stall</th><th>Base Price</th><th>Status</th></tr>
                             </thead>
-                            <tbody>
-                                <tr><td>#P101</td><td>Sinandomeng Rice</td><td>Rice</td><td>Carbon Public Market / Stall R-01</td><td>PHP 52.00</td><td>
-                                    <span class="status-badge">Active</span></td><td><button class="action-btn">Edit</button>
-                                        <button class="action-btn">Hide</button></td></tr>
-                                <tr><td>#P102</td><td>Native Chicken Bisaya</td><td>Meat</td><td>Carbon Public Market / Stall P-04</td><td>PHP 320.00</td><td>
-                                    <span class="status-badge">Active</span></td><td><button class="action-btn">Edit</button>
-                                        <button class="action-btn">Hide</button></td></tr>
-                                <tr><td>#P103</td><td>Danggit Cebu</td><td>Dried Fish</td><td>Taboan Public Market / Stall D-01</td><td>PHP 780.00</td><td>
-                                    <span class="status-badge warning">Low Stock</span></td><td><button class="action-btn">Edit</button>
-                                        <button class="action-btn">Hide</button></td></tr>
-                                <tr><td>#P104</td><td>Galunggong Round Scad</td><td>Fish</td><td>Pasil Fish Market / Stall F-01</td><td>PHP 215.00</td><td>
-                                    <span class="status-badge">Active</span></td><td><button class="action-btn">Edit</button>
-                                        <button class="action-btn">Hide</button></td></tr>
+                            <tbody id="productsTableBody">
+                                <tr><td colspan="6">Loading catalog...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -167,22 +159,26 @@
                 <div id="section-prices" class="admin-section">
                     <div class="section-header">
                         <h2><span></span> Price Monitoring</h2>
-                        <button class="btn-primary" onclick="showNotification('Running price analysis...')">Run Analysis</button>
+                        <button class="btn-primary" id="runMonitoringBtn">Run Analysis</button>
                     </div>
                     
                     <div class="stats-grid">
                         <div class="stat-card">
-                            <div class="stat-label">Avg. Fairness Score</div>
-                            <div class="stat-value">82%</div>
+                            <div class="stat-label">Average Difference</div>
+                            <div class="stat-value" id="monitorAverageDiff">0%</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-label">Overpriced Items</div>
-                            <div class="stat-value">48</div>
+                            <div class="stat-value" id="monitorOverpricedCount">0</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-label">Underpriced</div>
-                            <div class="stat-value">12</div>
+                            <div class="stat-label">Good Deals</div>
+                            <div class="stat-value" id="monitorDealCount">0</div>
                         </div>
+                    </div>
+                    <div class="trend-panel">
+                        <h3>Monthly Difference Trend</h3>
+                        <div class="trend-mini-chart" id="adminTrendChart"></div>
                     </div>
 
                     <h3 style="margin: 2rem 0 1rem;">Price Anomalies</h3>
@@ -191,10 +187,8 @@
                             <thead>
                                 <tr><th>Product</th><th>Market Price</th><th>SRP</th><th>Difference</th><th>Market / Stall</th><th>Action</th></tr>
                             </thead>
-                            <tbody>
-                                <tr><td>Red Onion Local</td><td>PHP 199</td><td>PHP 175</td><td class="trend-up">+14%</td><td>Carbon Public Market / Stall V-01</td><td><button class="action-btn">Investigate</button></td></tr>
-                                <tr><td>Pork Liempo</td><td>PHP 415</td><td>PHP 370</td><td class="trend-up">+12%</td><td>Carbon Public Market / Stall M-01</td><td><button class="action-btn">Investigate</button></td></tr>
-                                <tr><td>Danggit Cebu</td><td>PHP 890</td><td>PHP 780</td><td class="trend-up">+14%</td><td>Taboan Public Market / Stall D-01</td><td><button class="action-btn">Ignore</button></td></tr>
+                            <tbody id="anomaliesTableBody">
+                                <tr><td colspan="6">Loading anomalies...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -205,24 +199,11 @@
                 <div id="section-alerts" class="admin-section">
                     <div class="section-header">
                         <h2><span></span> Alert Management</h2>
-                        <button class="btn-primary" onclick="showNotification('Clearing resolved alerts')">Clear Resolved</button>
+                        <button class="btn-primary" id="clearResolvedAlertsBtn">Clear Resolved</button>
                     </div>
                     
-                    <div class="alert-item">
-                        <div style="flex:1"><strong>Price surge detected</strong> - Red Onion Local up 14% at Carbon Public Market Stall V-01</div>
-                        <button class="action-btn" onclick="showNotification('Alert acknowledged')">Acknowledge</button>
-                    </div>
-                    <div class="alert-item">
-                        <div style="flex:1"><strong>New stall pending approval</strong> - Pasil Fish Market Stall F-21</div>
-                        <button class="action-btn" onclick="showNotification('Supplier approved')">Approve</button>
-                    </div>
-                    <div class="alert-item">
-                        <div style="flex:1"><strong>User report</strong> - 5 users flagged same price anomaly</div>
-                        <button class="action-btn" onclick="showNotification('Report reviewed')">Review</button>
-                    </div>
-                    <div class="alert-item">
-                        <div style="flex:1"><strong>System update</strong> - New Cebu market price feed available</div>
-                        <button class="action-btn" onclick="showNotification('Syncing data...')">Sync</button>
+                    <div id="alertsList">
+                        <div class="alert-item"><div style="flex:1">Loading alerts...</div></div>
                     </div>
                 </div>
 
@@ -231,17 +212,27 @@
                 <div id="section-reports" class="admin-section">
                     <div class="section-header">
                         <h2><span></span> Reports & Analytics</h2>
-                        <button class="btn-primary" onclick="showNotification('Generating PDF...')">Download PDF</button>
+                        <button class="btn-primary" id="downloadReportBtn">Download Report</button>
                     </div>
-                    <div style="background: #0a0a0a; border-radius: 24px; padding: 2rem; text-align: center;">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;"></div>
-                        <h3>Monthly Price Report</h3>
-                        <p style="color: #888; margin: 1rem 0;">March 2026 | 12% increase in vegetable prices</p>
-                        <div style="display: flex; gap: 1rem; justify-content: center;">
-                            <button class="btn-secondary" onclick="showNotification('Weekly report')">Weekly</button>
-                            <button class="btn-secondary" onclick="showNotification('Monthly report')">Monthly</button>
-                            <button class="btn-secondary" onclick="showNotification('Quarterly report')">Quarterly</button>
-                        </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Scans</th>
+                                    <th>Avg Scanned Price</th>
+                                    <th>Avg SRP</th>
+                                    <th>Avg Difference</th>
+                                    <th>Overpriced</th>
+                                    <th>Deals</th>
+                                    <th>Suspicious</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="monthlyReportBody">
+                                <tr><td colspan="9">Loading monthly report...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 

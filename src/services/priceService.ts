@@ -2,7 +2,7 @@ import { DEFAULT_CATEGORY, DEFAULT_MARKET_NAME, DEFAULT_STALL_NAME } from '../co
 import { query } from '../db';
 import { analyzeWithDeepseek, type DeepseekAnalysis } from './deepseekiService';
 import { lookupAveragePriceOnline } from './onlinePriceService';
-import { upsertCatalogProductWithDb } from './productCatalogService';
+import { buildCatalogCode, upsertCatalogProductWithDb } from './productCatalogService';
 import { normalizeToEnglish } from './translationService';
 
 interface ProductRow {
@@ -49,6 +49,7 @@ export interface AdminStatsResponse {
 
 export interface AdminProductRecord {
   id: string;
+  catalog_code: string;
   name: string;
   category: string | null;
   brand_name: string | null;
@@ -57,6 +58,65 @@ export interface AdminProductRecord {
   stall_name: string | null;
   srp_price: number | null;
   created_at: string;
+}
+
+export interface AdminCategoryInsight {
+  category: string;
+  scan_count: number;
+  avg_scanned_price: number | null;
+  avg_srp_price: number | null;
+  avg_diff_percent: number | null;
+  overpriced_count: number;
+  fair_count: number;
+  great_deal_count: number;
+  steal_count: number;
+}
+
+export type AdminAlertSeverity = 'critical' | 'high' | 'warning' | 'good';
+
+export interface AdminAlertInsight {
+  type: 'MALICIOUS_SPIKE' | 'POSSIBLE_FALSE_REPORT' | 'OVERPRICED' | 'GOOD_DEAL';
+  severity: AdminAlertSeverity;
+  product_name: string;
+  category: string;
+  market_name: string;
+  stall_name: string;
+  scanned_price: number;
+  srp_price: number;
+  difference_percent: number;
+  verdict: string;
+  created_at: string;
+}
+
+export interface MonthlyPriceReportRecord {
+  month: string;
+  scan_count: number;
+  avg_scanned_price: number | null;
+  avg_srp_price: number | null;
+  avg_diff_percent: number | null;
+  overpriced_count: number;
+  deal_count: number;
+  suspicious_count: number;
+  status: 'good' | 'watch' | 'bad';
+}
+
+export interface AdminTrendPoint {
+  label: string;
+  value: number;
+}
+
+export interface AdminAnalyticsResponse {
+  totals: {
+    total_products: number;
+    total_scans: number;
+    overpriced_reports: number;
+    deal_reports: number;
+    avg_diff_percent: number | null;
+  };
+  category_insights: AdminCategoryInsight[];
+  alerts: AdminAlertInsight[];
+  monthly_report: MonthlyPriceReportRecord[];
+  trend_points: AdminTrendPoint[];
 }
 
 function toNonNegativeNumber(value: unknown): number {
@@ -88,6 +148,15 @@ function normalizeText(value: string, fieldName: string): string {
   }
 
   return normalized;
+}
+
+function toOptionalNumber(value: unknown): number | null {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return null;
+  }
+
+  return Number(parsed.toFixed(2));
 }
 
 interface ProductLookupResult {
@@ -413,6 +482,7 @@ export async function getAllTrackedProducts(): Promise<AdminProductRecord[]> {
 
   return result.rows.map((row) => ({
     id: row.id,
+    catalog_code: buildCatalogCode(row.name, row.category ?? DEFAULT_CATEGORY),
     name: row.name,
     category: row.category,
     brand_name: row.brand_name ?? null,
@@ -423,4 +493,307 @@ export async function getAllTrackedProducts(): Promise<AdminProductRecord[]> {
       row.srp_price === null || row.srp_price === undefined ? null : Number(Number(row.srp_price).toFixed(2)),
     created_at: row.created_at
   }));
+}
+
+interface TopAnomalyRow {
+  name: string;
+  category: string;
+  market_name: string;
+  stall_name: string;
+  scanned_price: string;
+  srp_price: string | null;
+  verdict: string;
+  diff_percent: string | null;
+  created_at: string;
+}
+
+function deriveMonthlyStatus(avgDiffPercent: number | null): 'good' | 'watch' | 'bad' {
+  if (avgDiffPercent === null) {
+    return 'watch';
+  }
+
+  if (avgDiffPercent >= 12) {
+    return 'bad';
+  }
+
+  if (avgDiffPercent >= 4) {
+    return 'watch';
+  }
+
+  return 'good';
+}
+
+function deriveAlertFromAnomaly(row: TopAnomalyRow): AdminAlertInsight | null {
+  const scannedPrice = Number(row.scanned_price);
+  const srpPrice = Number(row.srp_price);
+  const differencePercent = Number(row.diff_percent);
+
+  if (!Number.isFinite(scannedPrice) || !Number.isFinite(srpPrice) || srpPrice <= 0 || !Number.isFinite(differencePercent)) {
+    return null;
+  }
+
+  const ratio = scannedPrice / srpPrice;
+  if (ratio >= 1.6) {
+    return {
+      type: 'MALICIOUS_SPIKE',
+      severity: 'critical',
+      product_name: row.name,
+      category: row.category,
+      market_name: row.market_name,
+      stall_name: row.stall_name,
+      scanned_price: Number(scannedPrice.toFixed(2)),
+      srp_price: Number(srpPrice.toFixed(2)),
+      difference_percent: Number(differencePercent.toFixed(2)),
+      verdict: row.verdict,
+      created_at: row.created_at
+    };
+  }
+
+  if (ratio <= 0.5) {
+    return {
+      type: 'POSSIBLE_FALSE_REPORT',
+      severity: 'warning',
+      product_name: row.name,
+      category: row.category,
+      market_name: row.market_name,
+      stall_name: row.stall_name,
+      scanned_price: Number(scannedPrice.toFixed(2)),
+      srp_price: Number(srpPrice.toFixed(2)),
+      difference_percent: Number(differencePercent.toFixed(2)),
+      verdict: row.verdict,
+      created_at: row.created_at
+    };
+  }
+
+  if (ratio >= 1.15) {
+    return {
+      type: 'OVERPRICED',
+      severity: 'high',
+      product_name: row.name,
+      category: row.category,
+      market_name: row.market_name,
+      stall_name: row.stall_name,
+      scanned_price: Number(scannedPrice.toFixed(2)),
+      srp_price: Number(srpPrice.toFixed(2)),
+      difference_percent: Number(differencePercent.toFixed(2)),
+      verdict: row.verdict,
+      created_at: row.created_at
+    };
+  }
+
+  if (ratio <= 0.85) {
+    return {
+      type: 'GOOD_DEAL',
+      severity: 'good',
+      product_name: row.name,
+      category: row.category,
+      market_name: row.market_name,
+      stall_name: row.stall_name,
+      scanned_price: Number(scannedPrice.toFixed(2)),
+      srp_price: Number(srpPrice.toFixed(2)),
+      difference_percent: Number(differencePercent.toFixed(2)),
+      verdict: row.verdict,
+      created_at: row.created_at
+    };
+  }
+
+  return null;
+}
+
+export async function getAdminAnalytics(): Promise<AdminAnalyticsResponse> {
+  const [
+    totalsResult,
+    categoryResult,
+    anomalyResult,
+    monthlyResult
+  ] = await Promise.all([
+    query<{
+      total_products: string;
+      total_scans: string;
+      overpriced_reports: string;
+      deal_reports: string;
+      avg_diff_percent: string | null;
+    }>(
+      `
+        SELECT
+          (SELECT COUNT(*)::text FROM products) AS total_products,
+          (SELECT COUNT(*)::text FROM price_logs) AS total_scans,
+          (SELECT COUNT(*)::text FROM price_logs WHERE verdict = 'OVERPRICED') AS overpriced_reports,
+          (SELECT COUNT(*)::text FROM price_logs WHERE verdict IN ('GREAT DEAL', 'STEAL')) AS deal_reports,
+          (
+            SELECT ROUND(
+              AVG(
+                CASE
+                  WHEN p.srp_price > 0 THEN ((pl.scanned_price - p.srp_price) / p.srp_price) * 100
+                  ELSE NULL
+                END
+              )::numeric,
+              2
+            )::text
+            FROM price_logs pl
+            LEFT JOIN products p ON p.id = pl.product_id
+          ) AS avg_diff_percent
+      `
+    ),
+    query<{
+      category: string;
+      scan_count: string;
+      avg_scanned_price: string | null;
+      avg_srp_price: string | null;
+      avg_diff_percent: string | null;
+      overpriced_count: string;
+      fair_count: string;
+      great_deal_count: string;
+      steal_count: string;
+    }>(
+      `
+        SELECT
+          COALESCE(p.category, 'GENERAL') AS category,
+          COUNT(*)::text AS scan_count,
+          ROUND(AVG(pl.scanned_price)::numeric, 2)::text AS avg_scanned_price,
+          ROUND(AVG(p.srp_price)::numeric, 2)::text AS avg_srp_price,
+          ROUND(
+            AVG(
+              CASE
+                WHEN p.srp_price > 0 THEN ((pl.scanned_price - p.srp_price) / p.srp_price) * 100
+                ELSE NULL
+              END
+            )::numeric,
+            2
+          )::text AS avg_diff_percent,
+          SUM(CASE WHEN pl.verdict = 'OVERPRICED' THEN 1 ELSE 0 END)::text AS overpriced_count,
+          SUM(CASE WHEN pl.verdict = 'FAIR' THEN 1 ELSE 0 END)::text AS fair_count,
+          SUM(CASE WHEN pl.verdict = 'GREAT DEAL' THEN 1 ELSE 0 END)::text AS great_deal_count,
+          SUM(CASE WHEN pl.verdict = 'STEAL' THEN 1 ELSE 0 END)::text AS steal_count
+        FROM price_logs pl
+        LEFT JOIN products p ON p.id = pl.product_id
+        GROUP BY COALESCE(p.category, 'GENERAL')
+        ORDER BY COUNT(*) DESC
+        LIMIT 12
+      `
+    ),
+    query<TopAnomalyRow>(
+      `
+        SELECT
+          COALESCE(p.name, 'Unknown Item') AS name,
+          COALESCE(p.category, 'GENERAL') AS category,
+          COALESCE(p.market_name, 'Unknown Market') AS market_name,
+          COALESCE(p.stall_name, 'Unknown Stall') AS stall_name,
+          pl.scanned_price::text AS scanned_price,
+          p.srp_price::text AS srp_price,
+          pl.verdict AS verdict,
+          ROUND(
+            CASE
+              WHEN p.srp_price > 0 THEN ((pl.scanned_price - p.srp_price) / p.srp_price) * 100
+              ELSE NULL
+            END::numeric,
+            2
+          )::text AS diff_percent,
+          pl.created_at::text AS created_at
+        FROM price_logs pl
+        LEFT JOIN products p ON p.id = pl.product_id
+        ORDER BY
+          ABS(COALESCE((pl.scanned_price - p.srp_price) / NULLIF(p.srp_price, 0), 0)) DESC,
+          pl.created_at DESC
+        LIMIT 30
+      `
+    ),
+    query<{
+      month: string;
+      scan_count: string;
+      avg_scanned_price: string | null;
+      avg_srp_price: string | null;
+      avg_diff_percent: string | null;
+      overpriced_count: string;
+      deal_count: string;
+      suspicious_count: string;
+    }>(
+      `
+        SELECT
+          TO_CHAR(DATE_TRUNC('month', pl.created_at), 'YYYY-MM') AS month,
+          COUNT(*)::text AS scan_count,
+          ROUND(AVG(pl.scanned_price)::numeric, 2)::text AS avg_scanned_price,
+          ROUND(AVG(p.srp_price)::numeric, 2)::text AS avg_srp_price,
+          ROUND(
+            AVG(
+              CASE
+                WHEN p.srp_price > 0 THEN ((pl.scanned_price - p.srp_price) / p.srp_price) * 100
+                ELSE NULL
+              END
+            )::numeric,
+            2
+          )::text AS avg_diff_percent,
+          SUM(CASE WHEN pl.verdict = 'OVERPRICED' THEN 1 ELSE 0 END)::text AS overpriced_count,
+          SUM(CASE WHEN pl.verdict IN ('GREAT DEAL', 'STEAL') THEN 1 ELSE 0 END)::text AS deal_count,
+          SUM(
+            CASE
+              WHEN p.srp_price > 0
+                AND ((pl.scanned_price / p.srp_price) >= 1.6 OR (pl.scanned_price / p.srp_price) <= 0.5)
+              THEN 1
+              ELSE 0
+            END
+          )::text AS suspicious_count
+        FROM price_logs pl
+        LEFT JOIN products p ON p.id = pl.product_id
+        GROUP BY DATE_TRUNC('month', pl.created_at)
+        ORDER BY DATE_TRUNC('month', pl.created_at) DESC
+        LIMIT 12
+      `
+    )
+  ]);
+
+  const totalsRow = totalsResult.rows[0];
+  const categoryInsights: AdminCategoryInsight[] = categoryResult.rows.map((row) => ({
+    category: row.category,
+    scan_count: Number(row.scan_count),
+    avg_scanned_price: toOptionalNumber(row.avg_scanned_price),
+    avg_srp_price: toOptionalNumber(row.avg_srp_price),
+    avg_diff_percent: toOptionalNumber(row.avg_diff_percent),
+    overpriced_count: Number(row.overpriced_count),
+    fair_count: Number(row.fair_count),
+    great_deal_count: Number(row.great_deal_count),
+    steal_count: Number(row.steal_count)
+  }));
+
+  const alerts = anomalyResult.rows
+    .map((row) => deriveAlertFromAnomaly(row))
+    .filter((row): row is AdminAlertInsight => Boolean(row))
+    .slice(0, 12);
+
+  const monthlyReport: MonthlyPriceReportRecord[] = monthlyResult.rows.map((row) => {
+    const avgDiffPercent = toOptionalNumber(row.avg_diff_percent);
+    return {
+      month: row.month,
+      scan_count: Number(row.scan_count),
+      avg_scanned_price: toOptionalNumber(row.avg_scanned_price),
+      avg_srp_price: toOptionalNumber(row.avg_srp_price),
+      avg_diff_percent: avgDiffPercent,
+      overpriced_count: Number(row.overpriced_count),
+      deal_count: Number(row.deal_count),
+      suspicious_count: Number(row.suspicious_count),
+      status: deriveMonthlyStatus(avgDiffPercent)
+    };
+  });
+
+  const trendPoints: AdminTrendPoint[] = monthlyReport
+    .slice()
+    .reverse()
+    .map((row) => ({
+      label: row.month,
+      value: row.avg_diff_percent ?? 0
+    }));
+
+  return {
+    totals: {
+      total_products: Number(totalsRow?.total_products ?? 0),
+      total_scans: Number(totalsRow?.total_scans ?? 0),
+      overpriced_reports: Number(totalsRow?.overpriced_reports ?? 0),
+      deal_reports: Number(totalsRow?.deal_reports ?? 0),
+      avg_diff_percent: toOptionalNumber(totalsRow?.avg_diff_percent ?? null)
+    },
+    category_insights: categoryInsights,
+    alerts,
+    monthly_report: monthlyReport,
+    trend_points: trendPoints
+  };
 }

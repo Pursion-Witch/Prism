@@ -548,10 +548,33 @@
             showNotification('Camera is not supported on this browser.');
             return;
         }
+        if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+            showNotification('Camera requires HTTPS or localhost.');
+            return;
+        }
 
         try {
             if (!cameraStream) {
-                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+                const constraintOptions = [
+                    { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
+                    { video: { facingMode: { ideal: 'user' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
+                    { video: true, audio: false }
+                ];
+
+                let streamError = null;
+                for (const constraints of constraintOptions) {
+                    try {
+                        cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+                        break;
+                    } catch (error) {
+                        streamError = error;
+                    }
+                }
+
+                if (!cameraStream) {
+                    throw streamError || new Error('Unable to start camera stream.');
+                }
+
                 video.srcObject = cameraStream;
             }
             await video.play();
@@ -573,6 +596,10 @@
         if (!video || !canvas || !image || !scanBtn) return;
         if (!cameraStream) {
             showNotification('Start camera first.');
+            return;
+        }
+        if (!video.videoWidth || !video.videoHeight) {
+            showNotification('Camera is initializing. Try capture again in 1-2 seconds.');
             return;
         }
 

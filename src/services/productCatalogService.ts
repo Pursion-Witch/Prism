@@ -22,6 +22,7 @@ export interface ProductCatalogInput {
 export interface NormalizedProductCatalogInput {
   name: string;
   category: string;
+  catalogCode: string;
   brandName: string | null;
   region: string;
   marketName: string;
@@ -42,6 +43,31 @@ export interface UpsertCatalogProductResult {
 interface ProductIdRow {
   id: string;
 }
+
+const CATEGORY_CODE_BY_NAME: Record<string, string> = {
+  FOOD: 'FOD',
+  VEGETABLE: 'VEG',
+  VEGETABLES: 'VEG',
+  FRUIT: 'FRT',
+  FRUITS: 'FRT',
+  GADGET: 'GDT',
+  GADGETS: 'GDT',
+  ELECTRONICS: 'GDT',
+  RICE: 'RIC',
+  GRAINS: 'GRN',
+  FISH: 'FSH',
+  SEAFOOD: 'SFD',
+  MEAT: 'MET',
+  POULTRY: 'PLT',
+  EGGS: 'EGG',
+  PANTRY: 'PNT',
+  CANNED: 'CND',
+  BEVERAGES: 'BEV',
+  COFFEE: 'COF',
+  DAIRY: 'DAR',
+  HOUSEHOLD: 'HSD',
+  GENERAL: 'GEN'
+};
 
 function normalizeRequiredText(value: string, fieldName: string): string {
   const normalized = value.trim();
@@ -75,10 +101,62 @@ function normalizeOptionalPrice(value: number | null | undefined): number | null
   return Number(parsed.toFixed(2));
 }
 
+function normalizeCategoryKey(category: string): string {
+  return category
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+function getCategoryCode(category: string): string {
+  const normalized = normalizeCategoryKey(category);
+  if (CATEGORY_CODE_BY_NAME[normalized]) {
+    return CATEGORY_CODE_BY_NAME[normalized];
+  }
+
+  const stripped = normalized.replace(/[^A-Z]/g, '');
+  if (stripped.length >= 3) {
+    return stripped.slice(0, 3);
+  }
+
+  return 'GEN';
+}
+
+function getNameCode(name: string): string {
+  const normalized = name
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, ' ')
+    .split(' ')
+    .filter(Boolean);
+
+  if (!normalized.length) {
+    return 'ITEM';
+  }
+
+  const compact = normalized.join('');
+  if (compact.length >= 10) {
+    return compact.slice(0, 10);
+  }
+
+  return compact.padEnd(4, 'X');
+}
+
+export function buildCatalogCode(name: string, category: string): string {
+  const categoryCode = getCategoryCode(category);
+  const nameCode = getNameCode(name);
+  return `${categoryCode}-${nameCode}`;
+}
+
 export function normalizeCatalogInput(input: ProductCatalogInput): NormalizedProductCatalogInput {
+  const normalizedName = normalizeRequiredText(input.name, 'Product name');
+  const normalizedCategory = normalizeOptionalText(input.category, DEFAULT_CATEGORY);
+
   return {
-    name: normalizeRequiredText(input.name, 'Product name'),
-    category: normalizeOptionalText(input.category, DEFAULT_CATEGORY),
+    name: normalizedName,
+    category: normalizedCategory,
+    catalogCode: buildCatalogCode(normalizedName, normalizedCategory),
     brandName: normalizeOptionalNullableText(input.brandName),
     region: normalizeOptionalText(input.region, DEFAULT_REGION),
     marketName: normalizeOptionalText(input.marketName, DEFAULT_MARKET_NAME),

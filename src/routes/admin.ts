@@ -7,7 +7,7 @@ import {
   DEFAULT_STALL_NAME
 } from '../constants/cebuDefaults';
 import { ingestDocument } from '../services/documentIngestionService';
-import { getAdminStats, getAllTrackedProducts } from '../services/priceService';
+import { getAdminAnalytics, getAdminStats, getAllTrackedProducts } from '../services/priceService';
 import { upsertCatalogProductWithDb } from '../services/productCatalogService';
 
 interface OverrideRequestBody {
@@ -150,6 +150,7 @@ router.post('/products/manual', async (req: Request, res: Response, next: NextFu
       message: result.action === 'inserted' ? 'Product added.' : 'Product updated.',
       action: result.action,
       product: {
+        catalog_code: result.product.catalogCode,
         name: result.product.name,
         category: result.product.category,
         brand_name: result.product.brandName,
@@ -204,6 +205,15 @@ router.get('/products', async (_req: Request, res: Response, next: NextFunction)
   try {
     const products = await getAllTrackedProducts();
     return res.json(products);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.get('/analytics', async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const analytics = await getAdminAnalytics();
+    return res.json(analytics);
   } catch (error) {
     return next(error);
   }

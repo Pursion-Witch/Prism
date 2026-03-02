@@ -1,6 +1,5 @@
 import multer, { MulterError } from 'multer';
 import { Router, type NextFunction, type Request, type Response } from 'express';
-import path from 'node:path';
 import { DEFAULT_REGION } from '../constants/cebuDefaults';
 import { extractPrimaryItemName } from '../services/itemNameService';
 import { analyzePrice } from '../services/priceService';
@@ -9,6 +8,21 @@ import { detectFromImage, type VisionDetection } from '../services/visionService
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
 const INVALID_TYPE_ERROR = 'INVALID_IMAGE_TYPE';
+const MINIMUM_CONFIDENCE = 0.2;
+const GENERIC_ITEM_TOKENS = new Set([
+  'item',
+  'product',
+  'object',
+  'food',
+  'grocery',
+  'goods',
+  'unknown',
+  'unlabeled',
+  'unclear',
+  'none',
+  'na',
+  'n/a'
+]);
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -89,21 +103,40 @@ function buildRatioAssessment(scannedPrice: number, fairPrice: number): RatioAss
   };
 }
 
-function normalizeFallbackName(value: string): string {
+function normalizeItemToken(value: string): string {
   return value
-    .replace(/\.[a-z0-9]+$/i, '')
-    .replace(/(?:php|p)\s*[0-9][0-9,]*(?:\.[0-9]+)?/gi, '')
-    .replace(/[_-]+/g, ' ')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
-function deriveFallbackName(nameHint: string, prompt: string, originalFilename: string): string | null {
-  const candidates = [nameHint, prompt, path.parse(originalFilename).name]
-    .map((candidate) => normalizeFallbackName(candidate))
-    .filter((candidate) => /[a-z]/i.test(candidate));
+function isGenericItemName(value: string): boolean {
+  const normalized = normalizeItemToken(value);
+  if (!normalized) {
+    return true;
+  }
 
-  return candidates[0] ?? null;
+  if (GENERIC_ITEM_TOKENS.has(normalized)) {
+    return true;
+  }
+
+  const tokens = normalized.split(' ').filter(Boolean);
+  if (!tokens.length) {
+    return true;
+  }
+
+  if (tokens.length <= 2 && tokens.every((token) => GENERIC_ITEM_TOKENS.has(token))) {
+    return true;
+  }
+
+  return false;
+}
+
+function imageCannotBeAnalyzedResponse(res: Response): Response {
+  return res.status(422).json({
+    message: 'Image cannot be analyzed. Keep the closest item centered, clear, and well-lit, then try again.'
+  });
 }
 
 function shouldShowPrice(prompt: string, explicitFlag: unknown): boolean {
@@ -162,35 +195,24 @@ router.post('/analyze-image', (req: Request, res: Response, next: NextFunction) 
       }
 
       const prompt = typeof req.body?.prompt === 'string' ? req.body.prompt.trim() : '';
-      const nameHint = typeof req.body?.name_hint === 'string' ? req.body.name_hint.trim() : '';
       const displayPrice = shouldShowPrice(prompt, req.body?.show_price);
-      let fallbackWarning: string | null = null;
       let vision: VisionDetection;
 
       try {
         vision = await detectFromImage(req.file.buffer.toString('base64'), mimeType);
-      } catch (visionError) {
-        const fallbackName = deriveFallbackName(nameHint, prompt, req.file.originalname || 'captured-item');
-        if (!fallbackName) {
-          throw visionError;
-        }
-
-        fallbackWarning =
-          visionError instanceof Error ? visionError.message : 'Vision service unavailable. Fallback label used.';
-        vision = {
-          detected_name: fallbackName,
-          detected_price: null,
-          region_guess: DEFAULT_REGION,
-          confidence: 0.1
-        };
+      } catch {
+        return imageCannotBeAnalyzedResponse(res);
       }
 
-      if (!vision.detected_name) {
-        return res.status(400).json({ message: 'Could not detect a product name from the image.' });
+      if (!vision.detected_name || vision.confidence < MINIMUM_CONFIDENCE || isGenericItemName(vision.detected_name)) {
+        return imageCannotBeAnalyzedResponse(res);
       }
 
       const extractedItem = await extractPrimaryItemName(vision.detected_name);
       const analysisName = extractedItem.item_name || vision.detected_name;
+      if (!analysisName || isGenericItemName(analysisName)) {
+        return imageCannotBeAnalyzedResponse(res);
+      }
 
       const region = vision.region_guess || DEFAULT_REGION;
       const scannedPrice = vision.detected_price ?? null;
@@ -219,7 +241,6 @@ router.post('/analyze-image', (req: Request, res: Response, next: NextFunction) 
         display: {
           show_price: displayPrice
         },
-        ...(fallbackWarning ? { vision_warning: fallbackWarning } : {}),
         ...(vision.confidence < 0.4 ? { low_confidence: true } : {})
       });
     } catch (error) {

@@ -1,7 +1,9 @@
 import { DEFAULT_CATEGORY, DEFAULT_MARKET_NAME, DEFAULT_STALL_NAME } from '../constants/cebuDefaults';
 import { query } from '../db';
 import { analyzeWithDeepseek, type DeepseekAnalysis } from './deepseekiService';
+import { lookupAveragePriceOnline } from './onlinePriceService';
 import { upsertCatalogProductWithDb } from './productCatalogService';
+import { normalizeToEnglish } from './translationService';
 
 interface ProductRow {
   id: string;
@@ -27,6 +29,8 @@ interface AnalyzePriceInput {
 
 export interface AnalyzePriceResponse {
   name: string;
+  normalized_name?: string;
+  translation_source?: string;
   region: string;
   scanned_price: number;
   srp_price: number | null;
@@ -89,42 +93,70 @@ interface ProductLookupResult {
   exactRegionMatch: boolean;
 }
 
-async function findProductByNameAndRegion(name: string, region: string): Promise<ProductLookupResult> {
-  const exactMatch = await query<ProductRow>(
-    `
-      SELECT id, name, category, region, srp_price, brand_name, market_name, stall_name
-      FROM products
-      WHERE LOWER(name) = LOWER($1)
-        AND LOWER(region) = LOWER($2)
-      ORDER BY created_at DESC
-      LIMIT 1
-    `,
-    [name, region]
-  );
+function dedupeNames(names: string[]): string[] {
+  const seen = new Set<string>();
+  const output: string[] = [];
 
-  if (exactMatch.rowCount && exactMatch.rows[0]) {
-    return {
-      product: exactMatch.rows[0],
-      exactRegionMatch: true
-    };
+  for (const name of names) {
+    const normalized = name.trim();
+    if (!normalized) {
+      continue;
+    }
+
+    const key = normalized.toLowerCase();
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    output.push(normalized);
   }
 
-  const fallbackMatch = await query<ProductRow>(
-    `
-      SELECT id, name, category, region, srp_price, brand_name, market_name, stall_name
-      FROM products
-      WHERE LOWER(name) = LOWER($1)
-      ORDER BY created_at DESC
-      LIMIT 1
-    `,
-    [name]
-  );
+  return output;
+}
 
-  if (fallbackMatch.rowCount && fallbackMatch.rows[0]) {
-    return {
-      product: fallbackMatch.rows[0],
-      exactRegionMatch: false
-    };
+async function findProductByNameAndRegion(names: string[], region: string): Promise<ProductLookupResult> {
+  const candidates = dedupeNames(names);
+
+  for (const name of candidates) {
+    const exactMatch = await query<ProductRow>(
+      `
+        SELECT id, name, category, region, srp_price, brand_name, market_name, stall_name
+        FROM products
+        WHERE LOWER(name) = LOWER($1)
+          AND LOWER(region) = LOWER($2)
+        ORDER BY created_at DESC
+        LIMIT 1
+      `,
+      [name, region]
+    );
+
+    if (exactMatch.rowCount && exactMatch.rows[0]) {
+      return {
+        product: exactMatch.rows[0],
+        exactRegionMatch: true
+      };
+    }
+  }
+
+  for (const name of candidates) {
+    const fallbackMatch = await query<ProductRow>(
+      `
+        SELECT id, name, category, region, srp_price, brand_name, market_name, stall_name
+        FROM products
+        WHERE LOWER(name) = LOWER($1)
+        ORDER BY created_at DESC
+        LIMIT 1
+      `,
+      [name]
+    );
+
+    if (fallbackMatch.rowCount && fallbackMatch.rows[0]) {
+      return {
+        product: fallbackMatch.rows[0],
+        exactRegionMatch: false
+      };
+    }
   }
 
   return {
@@ -143,36 +175,42 @@ async function insertPriceLog(productId: string | null, scannedPrice: number, ve
   );
 }
 
-async function findHistoricalAveragePrice(name: string, region: string): Promise<number | null> {
-  const srpByRegion = await query<{ average_price: string | null }>(
-    `
-      SELECT ROUND(AVG(p.srp_price)::numeric, 2)::text AS average_price
-      FROM products p
-      WHERE LOWER(p.name) = LOWER($1)
-        AND LOWER(COALESCE(p.region, '')) = LOWER($2)
-        AND p.srp_price IS NOT NULL
-    `,
-    [name, region]
-  );
+async function findHistoricalAveragePrice(names: string[], region: string): Promise<number | null> {
+  const candidates = dedupeNames(names);
 
-  const regionValue = Number(srpByRegion.rows[0]?.average_price ?? NaN);
-  if (Number.isFinite(regionValue) && regionValue > 0) {
-    return Number(regionValue.toFixed(2));
+  for (const name of candidates) {
+    const srpByRegion = await query<{ average_price: string | null }>(
+      `
+        SELECT ROUND(AVG(p.srp_price)::numeric, 2)::text AS average_price
+        FROM products p
+        WHERE LOWER(p.name) = LOWER($1)
+          AND LOWER(COALESCE(p.region, '')) = LOWER($2)
+          AND p.srp_price IS NOT NULL
+      `,
+      [name, region]
+    );
+
+    const regionValue = Number(srpByRegion.rows[0]?.average_price ?? NaN);
+    if (Number.isFinite(regionValue) && regionValue > 0) {
+      return Number(regionValue.toFixed(2));
+    }
   }
 
-  const srpFallback = await query<{ average_price: string | null }>(
-    `
-      SELECT ROUND(AVG(p.srp_price)::numeric, 2)::text AS average_price
-      FROM products p
-      WHERE LOWER(p.name) = LOWER($1)
-        AND p.srp_price IS NOT NULL
-    `,
-    [name]
-  );
+  for (const name of candidates) {
+    const srpFallback = await query<{ average_price: string | null }>(
+      `
+        SELECT ROUND(AVG(p.srp_price)::numeric, 2)::text AS average_price
+        FROM products p
+        WHERE LOWER(p.name) = LOWER($1)
+          AND p.srp_price IS NOT NULL
+      `,
+      [name]
+    );
 
-  const fallbackValue = Number(srpFallback.rows[0]?.average_price ?? NaN);
-  if (Number.isFinite(fallbackValue) && fallbackValue > 0) {
-    return Number(fallbackValue.toFixed(2));
+    const fallbackValue = Number(srpFallback.rows[0]?.average_price ?? NaN);
+    if (Number.isFinite(fallbackValue) && fallbackValue > 0) {
+      return Number(fallbackValue.toFixed(2));
+    }
   }
 
   return null;
@@ -202,25 +240,77 @@ async function persistSubmissionAsProduct(
   return upsertResult.id;
 }
 
+async function enrichMissingSrpFromOnline(
+  name: string,
+  region: string,
+  existingCategory: string | null | undefined,
+  existingBrandName: string | null | undefined
+): Promise<number | null> {
+  const isEnabled = String(process.env.ONLINE_PRICE_LOOKUP_ENABLED ?? 'true').toLowerCase() !== 'false';
+  if (!isEnabled) {
+    return null;
+  }
+
+  const lookup = await lookupAveragePriceOnline(name, region);
+  if (!lookup || lookup.average_price <= 0) {
+    return null;
+  }
+
+  await upsertCatalogProductWithDb(
+    {
+      name,
+      category: existingCategory ?? DEFAULT_CATEGORY,
+      brandName: existingBrandName ?? null,
+      region,
+      marketName: 'Cebu Online Listings',
+      stallName: 'Stall O-01',
+      srpPrice: lookup.average_price
+    },
+    { updateExisting: true }
+  );
+
+  return lookup.average_price;
+}
+
 export async function analyzePrice(input: AnalyzePriceInput): Promise<AnalyzePriceResponse> {
-  const name = normalizeText(input.name, 'Product name');
+  const inputName = normalizeText(input.name, 'Product name');
   const region = normalizeText(input.region, 'Region');
   const scannedPrice = toOptionalScannedPrice(input.price);
+  const translation = await normalizeToEnglish(inputName);
+  const normalizedName = translation.english_text || inputName;
+  const nameCandidates = dedupeNames([inputName, normalizedName]);
 
-  const lookup = await findProductByNameAndRegion(name, region);
+  const lookup = await findProductByNameAndRegion(nameCandidates, region);
   const product = lookup.product;
-  const srpPrice =
+  let srpPrice =
     product?.srp_price === null || product?.srp_price === undefined ? null : Number(product.srp_price);
 
+  let onlineDiscoveredPrice: number | null = null;
+  if (srpPrice === null) {
+    onlineDiscoveredPrice = await enrichMissingSrpFromOnline(
+      normalizedName,
+      region,
+      product?.category,
+      product?.brand_name
+    );
+    if (onlineDiscoveredPrice !== null) {
+      srpPrice = onlineDiscoveredPrice;
+    }
+  }
+
   if (scannedPrice === null) {
-    const inferredFairPrice = srpPrice ?? (await findHistoricalAveragePrice(name, region));
+    const inferredFairPrice = srpPrice ?? (await findHistoricalAveragePrice(nameCandidates, region));
     const fairMarketValue = inferredFairPrice ?? 0;
     const reasoning = inferredFairPrice
-      ? 'No scanned price was provided, so PRISM used existing market records for this product.'
+      ? onlineDiscoveredPrice !== null
+        ? 'No scanned price was provided. PRISM used web listings to estimate the average price and stored it in the local database.'
+        : 'No scanned price was provided, so PRISM used existing market records for this product.'
       : 'No scanned price was provided and there is no tracked price yet. Add a price to generate full anomaly analysis.';
 
     return {
-      name,
+      name: inputName,
+      normalized_name: normalizedName,
+      translation_source: translation.source,
       region,
       scanned_price: 0,
       srp_price: srpPrice === null ? null : Number(srpPrice.toFixed(2)),
@@ -231,7 +321,7 @@ export async function analyzePrice(input: AnalyzePriceInput): Promise<AnalyzePri
   }
 
   const aiResult = await analyzeWithDeepseek({
-    name,
+    name: normalizedName,
     price: scannedPrice,
     region,
     srp_price: srpPrice
@@ -242,7 +332,7 @@ export async function analyzePrice(input: AnalyzePriceInput): Promise<AnalyzePri
     productId = await persistSubmissionAsProduct(
       {
         ...input,
-        name,
+        name: normalizedName,
         region
       },
       aiResult.fair_market_value
@@ -252,13 +342,18 @@ export async function analyzePrice(input: AnalyzePriceInput): Promise<AnalyzePri
   await insertPriceLog(productId, scannedPrice, aiResult.verdict);
 
   return {
-    name,
+    name: inputName,
+    normalized_name: normalizedName,
+    translation_source: translation.source,
     region,
     scanned_price: scannedPrice,
     srp_price: srpPrice === null ? null : Number(srpPrice.toFixed(2)),
     verdict: aiResult.verdict,
     fair_market_value: aiResult.fair_market_value,
-    reasoning: aiResult.reasoning
+    reasoning:
+      onlineDiscoveredPrice !== null
+        ? `${aiResult.reasoning} Reference price was auto-added from online listing averages.`
+        : aiResult.reasoning
   };
 }
 

@@ -36,9 +36,68 @@ app.use((req, res) => {
   return res.status(404).send('Page not found.');
 });
 
+function isAggregateErrorLike(error: unknown): error is { name?: string; errors?: unknown[] } {
+  return Boolean(
+    error &&
+      typeof error === 'object' &&
+      (((error as { name?: unknown }).name === 'AggregateError') ||
+        Array.isArray((error as { errors?: unknown[] }).errors))
+  );
+}
+
+function deriveErrorMessage(error: unknown): string {
+  if (isAggregateErrorLike(error)) {
+    const nestedErrors = error.errors ?? [];
+    const nestedText = nestedErrors
+      .map((nestedError) => {
+        if (nestedError instanceof Error) {
+          const errorCode =
+            typeof (nestedError as { code?: unknown }).code === 'string'
+              ? ((nestedError as unknown as { code: string }).code ?? 'ERROR')
+              : 'ERROR';
+          return `${errorCode}: ${nestedError.message}`;
+        }
+
+        return String(nestedError);
+      })
+      .join(' | ');
+
+    if (/ECONNREFUSED|connect ECONNREFUSED|5432|postgres|database/i.test(nestedText)) {
+      return 'Database connection failed. Start PostgreSQL and verify DATABASE_URL.';
+    }
+
+    return nestedText || 'Internal server error.';
+  }
+
+  if (error && typeof error === 'object') {
+    const maybeCode = (error as { code?: unknown }).code;
+    if (typeof maybeCode === 'string' && maybeCode.toUpperCase() === 'ECONNREFUSED') {
+      return 'Database connection failed. Start PostgreSQL and verify DATABASE_URL.';
+    }
+  }
+
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+
+  return 'Internal server error.';
+}
+
+function deriveStatusCode(message: string): number {
+  if (/required|invalid|positive|non-negative|provide|must/i.test(message)) {
+    return 400;
+  }
+
+  if (/database connection failed|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|timeout/i.test(message)) {
+    return 503;
+  }
+
+  return 500;
+}
+
 app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
-  const message = error instanceof Error ? error.message : 'Internal server error.';
-  const status = /required|invalid|positive|non-negative|provide|must/i.test(message) ? 400 : 500;
+  const message = deriveErrorMessage(error);
+  const status = deriveStatusCode(message);
 
   if (status >= 500) {
     console.error(error);

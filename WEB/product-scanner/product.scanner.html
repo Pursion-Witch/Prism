@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>PRISM – Product Scanner</title>
+    <title>PRISM â€“ Product Scanner</title>
     <link rel="icon" type="image/png" href="/images/prism.favicon.png">
-    <link rel="stylesheet" href="product-scanner.css">
+    <link rel="stylesheet" href="/web/product-scanner/product-scanner.css">
 </head>
 
 <body>
@@ -22,11 +22,11 @@
                 <img src="/images/menu.png" alt="Menu">
             </button>
             <ul class="nav-links" id="navLinks">
-                <li><a href="/home-page/home-page.html"><span>HOME</span></a></li>
-                <li><a href="/product-scanner/product.scanner.html"><span>PRODUCT SCANNER</span></a></li>
-                <li><a href="/dashboard/dashboard.html"><span>DASHBOARD</span></a></li>
-                <li><a href="/marketplace/marketplace.html"><span>MARKETPLACE</span></a></li>
-                <li><a href="/admin-panel/admin-panel.html"><span>ADMIN PANEL</span></a></li>
+                <li><a href="/web/home-page/home-page.html"><span>HOME</span></a></li>
+                <li><a href="/web/product-scanner/product.scanner.html"><span>PRODUCT SCANNER</span></a></li>
+                <li><a href="/web/dashboard/dashboard.html"><span>DASHBOARD</span></a></li>
+                <li><a href="/web/marketplace/marketplace.html"><span>MARKETPLACE</span></a></li>
+                <li><a href="/web/admin-panel/admin-panel.html"><span>ADMIN PANEL</span></a></li>
             </ul>
         </nav>
 
@@ -35,7 +35,7 @@
         <div class="scanner-header">
             <h1>Bantay Presyo Platform</h1>
             <div class="subhead">
-                AI‑powered fair value analysis for the Filipino consumer. <span>Compare prices</span> against DTI SRP, Lazada, Shopee, and local Palengke trends.
+                AIâ€‘powered fair value analysis for the Filipino consumer. <span>Compare prices</span> against DTI SRP, Lazada, Shopee, and local Palengke trends.
             </div>
         </div>
 
@@ -50,19 +50,19 @@
 
         <div class="scanner-card">
             <div class="mode-badge" id="modeBadge">BASIC CHECK (AI)</div>
-            <div class="instruction" id="instruction"><span>Instant Price Check</span> — paste a product title, or type naturally. AI detects the details.</div>
+            <div class="instruction" id="instruction"><span>Instant Price Check</span> â€” paste a product title, or type naturally. AI detects the details.</div>
             
             <div class="input-group">
                 <div class="input-wrapper">
-                    <input type="text" id="productInput" placeholder="e.g., 'Samsung A14 128GB black brand new from Lazada ₱7,990' or 'Bigas NFA sa palengke ₱45/kilo'">
+                    <input type="text" id="productInput" placeholder="e.g., 'Samsung A14 128GB black brand new from Lazada â‚±7,990' or 'Bigas NFA sa palengke â‚±45/kilo'">
                     <button id="checkPriceBtn">CHECK PRICE NOW</button>
                 </div>
                 
                 <div class="examples">
-                    <span class="example-chip" onclick="fillExample('Samsung A14 128GB black brand new from Lazada ₱7,990')">Samsung A14 128GB ₱7,990</span>
-                    <span class="example-chip" onclick="fillExample('Bigas NFA sa palengke ₱45/kilo')"> Bigas NFA ₱45/kilo</span>
-                    <span class="example-chip" onclick="fillExample('Dole Pineapple juice 1L Shopee ₱89')"> Dole Pineapple 1L ₱89</span>
-                    <span class="example-chip" onclick="fillExample('Mangan Tzu crackers 50g sari-sari store ₱7')"> Mangan Tzu ₱7</span>
+                    <span class="example-chip" onclick="fillExample('Samsung A14 128GB black brand new from Lazada â‚±7,990')">Samsung A14 128GB â‚±7,990</span>
+                    <span class="example-chip" onclick="fillExample('Bigas NFA sa palengke â‚±45/kilo')"> Bigas NFA â‚±45/kilo</span>
+                    <span class="example-chip" onclick="fillExample('Dole Pineapple juice 1L Shopee â‚±89')"> Dole Pineapple 1L â‚±89</span>
+                    <span class="example-chip" onclick="fillExample('Mangan Tzu crackers 50g sari-sari store â‚±7')"> Mangan Tzu â‚±7</span>
                 </div>
             </div>
 
@@ -81,7 +81,7 @@
                         </select>
                     </div>
                     <div class="option-item">
-                        <label>Price Range (₱)</label>
+                        <label>Price Range (â‚±)</label>
                         <input type="text" placeholder="Min - Max" id="priceRange">
                     </div>
                     <div class="option-item">
@@ -122,7 +122,7 @@
                 <div class="detect-item"><span class="label">[Auto-detects</span> <span class="value" id="detectBrand">Brand</span>]</div>
                 <div class="detect-item"><span class="label">[Infor</span> <span class="value" id="detectLocation">Location</span>]</div>
                 <div class="detect-item"><span class="label">[Pin</span> <span class="value" id="detectLanguage">Tagalog Support</span>]</div>
-                <div class="pinoy-badge">ENGLISH ‑ TAGALOG</div>
+                <div class="pinoy-badge">ENGLISH â€‘ TAGALOG</div>
             </div>
 
 <!-- Results Section -->
@@ -233,7 +233,7 @@
                         </tr>
                     </tbody>
                 </table>
-                <div class="source-badge">PSA & DTI real‑time integration • Last updated: February 27, 2026</div>
+                <div class="source-badge">PSA & DTI realâ€‘time integration â€¢ Last updated: February 27, 2026</div>
             </div>
         </div>
 
@@ -242,18 +242,18 @@
         <footer class="prism-section footer">
             <div class="prism-container footer-container">
                 <div class="footer-left">
-                    <span>© PRISM 2026</span>
-                    <span>•</span>
-                    <a href="/terms/terms.html">Terms</a>
-                    <span>•</span>
-                    <a href="/privacy/privacy.html">Privacy</a>
-                    <span>•</span>
-                    <a href="/faqs/faqs.html">FAQs</a>
-                    <span>•</span>
-                    <a href="/about/about.html">About</a>
+                    <span>Â© PRISM 2026</span>
+                    <span>â€¢</span>
+                    <a href="/web/terms/terms.html">Terms</a>
+                    <span>â€¢</span>
+                    <a href="/web/privacy/privacy.html">Privacy</a>
+                    <span>â€¢</span>
+                    <a href="/web/faqs/faqs.html">FAQs</a>
+                    <span>â€¢</span>
+                    <a href="/web/about/about.html">About</a>
                 </div>
                 <div class="footer-right">
-                    <pre>Transparency   •   Protection   •   Integrity   •   Intelligence</pre>
+                    <pre>Transparency   â€¢   Protection   â€¢   Integrity   â€¢   Intelligence</pre>
                 </div>
             </div>
         </footer>
@@ -263,8 +263,11 @@
 
     <!-- JavaScript  -->
 
-    <script src="product-scanner.js"></script>
+    <script src="/web/product-scanner/product-scanner.js"></script>
 
 </body>
 
 </html>
+
+
+

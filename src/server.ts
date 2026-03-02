@@ -22,36 +22,86 @@ interface RecommendationRow {
 
 const app = express();
 const port = Number(process.env.PORT ?? 3000);
+const hasExplicitPort = process.env.PORT !== undefined;
 
 const rootDir = path.join(__dirname, '..');
 const publicDir = path.join(rootDir, 'public');
+const webDir = path.join(rootDir, 'WEB');
 const baselinePath = path.join(rootDir, 'data', 'baseline.json');
-const mainPage = 'product-scanner.html';
+const homePage = path.join(webDir, 'home-page', 'home-page.html');
+const productScannerPage = path.join(webDir, 'product-scanner', 'product.scanner.html');
+const dashboardPage = path.join(webDir, 'dashboard', 'dashboard.html');
+const marketplacePage = path.join(webDir, 'marketplace', 'marketplace.html');
+const adminPanelPage = path.join(webDir, 'admin-panel', 'admin-panel.html');
+const termsPage = path.join(webDir, 'terms', 'terms.html');
+const privacyPage = path.join(webDir, 'privacy', 'privacy.html');
+const faqsPage = path.join(webDir, 'faqs', 'faqs.html');
+const aboutPage = path.join(webDir, 'about', 'about.html');
+const loginPage = path.join(webDir, 'login', 'login.html');
+const createAccountPage = path.join(webDir, 'create-account', 'create-account.html');
 
-const pageRoutes = [
-  '/',
-  '/home',
-  '/index.html',
-  '/home-page',
-  '/home-page.html',
-  '/product-scanner',
-  '/product-scanner.html',
-  '/dashboard',
-  '/dashboard.html',
-  '/marketplace',
-  '/marketplace.html',
-  '/admin-panel',
-  '/admin-panel.html',
-  '/home-page/home-page.html',
-  '/product-scanner/product.scanner.html',
-  '/dashboard/dashboard.html',
-  '/marketplace/marketplace.html',
-  '/admin-panel/admin-panel.html'
+const pageRouteMap: Array<{ routes: string[]; filePath: string }> = [
+  {
+    routes: [
+      '/',
+      '/web',
+      '/web/',
+      '/home',
+      '/index.html',
+      '/home-page',
+      '/home-page.html',
+      '/home-page/home-page.html',
+      '/web/home-page',
+      '/web/home-page/',
+      '/web/home-page/home-page.html'
+    ],
+    filePath: homePage
+  },
+  {
+    routes: [
+      '/product-scanner',
+      '/product-scanner.html',
+      '/product-scanner/product.scanner.html',
+      '/web/product-scanner',
+      '/web/product-scanner/',
+      '/web/product-scanner/product.scanner.html'
+    ],
+    filePath: productScannerPage
+  },
+  {
+    routes: ['/dashboard', '/dashboard.html', '/dashboard/dashboard.html', '/web/dashboard', '/web/dashboard/', '/web/dashboard/dashboard.html'],
+    filePath: dashboardPage
+  },
+  {
+    routes: [
+      '/marketplace',
+      '/marketplace.html',
+      '/marketplace/marketplace.html',
+      '/web/marketplace',
+      '/web/marketplace/',
+      '/web/marketplace/marketplace.html'
+    ],
+    filePath: marketplacePage
+  },
+  {
+    routes: ['/admin-panel', '/admin-panel.html', '/admin-panel/admin-panel.html', '/web/admin-panel', '/web/admin-panel/', '/web/admin-panel/admin-panel.html'],
+    filePath: adminPanelPage
+  },
+  { routes: ['/terms/terms.html', '/web/terms/terms.html'], filePath: termsPage },
+  { routes: ['/privacy/privacy.html', '/web/privacy/privacy.html'], filePath: privacyPage },
+  { routes: ['/faqs/faqs.html', '/web/faqs/faqs.html'], filePath: faqsPage },
+  { routes: ['/about/about.html', '/web/about/about.html'], filePath: aboutPage },
+  { routes: ['/login/login.html', '/web/login/login.html'], filePath: loginPage },
+  { routes: ['/create-account/create-account.html', '/web/create-account/create-account.html'], filePath: createAccountPage }
 ];
 
 app.disable('x-powered-by');
 app.use(express.json({ limit: '512kb' }));
-app.use(express.static(publicDir));
+app.use('/web', express.static(webDir));
+app.use('/images', express.static(path.join(publicDir, 'images')));
+app.use('/fonts', express.static(path.join(publicDir, 'fonts')));
+app.use('/web/images', express.static(path.join(publicDir, 'images')));
+app.use('/web/fonts', express.static(path.join(publicDir, 'fonts')));
 
 function readBaseline(): BaselineMap {
   return readBaselineFile(baselinePath);
@@ -75,10 +125,12 @@ function parsePositivePrice(value: unknown): number | null {
   return Number(parsed.toFixed(2));
 }
 
-for (const route of pageRoutes) {
-  app.get(route, (_req, res) => {
-    res.sendFile(path.join(publicDir, mainPage));
-  });
+for (const { routes, filePath } of pageRouteMap) {
+  for (const route of routes) {
+    app.get(route, (_req, res) => {
+      res.sendFile(filePath);
+    });
+  }
 }
 
 app.get('/api/health', (_req, res) => {
@@ -225,7 +277,7 @@ app.use((req, res) => {
     return res.status(404).send('Page not found.');
   }
 
-  return res.sendFile(path.join(publicDir, mainPage));
+  return res.sendFile(homePage);
 });
 
 app.use((_error: unknown, _req: Request, res: Response, _next: NextFunction) => {
@@ -234,6 +286,31 @@ app.use((_error: unknown, _req: Request, res: Response, _next: NextFunction) => 
   });
 });
 
-app.listen(port, () => {
-  console.log(`PRISM server running on http://localhost:${port}`);
-});
+function startServer(preferredPort: number, retriesLeft = 10): void {
+  const server = app.listen(preferredPort, () => {
+    console.log(`PRISM server running on http://localhost:${preferredPort}`);
+  });
+
+  server.once('error', (error: NodeJS.ErrnoException) => {
+    if (error.code === 'EADDRINUSE' && retriesLeft > 0 && !hasExplicitPort) {
+      const nextPort = preferredPort + 1;
+      console.warn(`Port ${preferredPort} is in use. Retrying on port ${nextPort}...`);
+      startServer(nextPort, retriesLeft - 1);
+      return;
+    }
+
+    if (error.code === 'EADDRINUSE') {
+      console.error(
+        `Port ${preferredPort} is already in use. Set a different PORT (for example, PORT=${
+          preferredPort + 1
+        }).`
+      );
+    } else {
+      console.error('Failed to start server:', error);
+    }
+
+    process.exit(1);
+  });
+}
+
+startServer(port);

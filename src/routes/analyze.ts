@@ -2,6 +2,7 @@ import { Router, type NextFunction, type Request, type Response } from 'express'
 import { DEFAULT_REGION } from '../constants/cebuDefaults';
 import { extractPriceFromSentence, extractPrimaryItemName } from '../services/itemNameService';
 import { analyzePrice } from '../services/priceService';
+import { inferPriceNormalization } from '../services/unitNormalizationService';
 
 interface AnalyzeRequestBody {
   name?: unknown;
@@ -9,6 +10,7 @@ interface AnalyzeRequestBody {
   region?: unknown;
   prompt?: unknown;
   show_price?: unknown;
+  report_flag?: unknown;
 }
 
 const router = Router();
@@ -118,10 +120,16 @@ function buildRatioAssessment(scannedPrice: number, fairPrice: number): RatioAss
 
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, price, region, prompt, show_price } = req.body as AnalyzeRequestBody;
+    const { name, price, region, prompt, show_price, report_flag } = req.body as AnalyzeRequestBody;
     const normalizedName = typeof name === 'string' ? name.trim() : '';
     const normalizedRegion = typeof region === 'string' ? region.trim() : DEFAULT_REGION;
     const normalizedPrompt = typeof prompt === 'string' ? prompt.trim() : '';
+    const reportFlag =
+      typeof report_flag === 'boolean'
+        ? report_flag
+        : typeof report_flag === 'string'
+          ? report_flag.trim().toLowerCase() === 'true'
+          : true;
     const explicitPrice = parseOptionalPrice(price);
     const sentenceDetectedPrice = explicitPrice === null ? extractPriceFromSentence(normalizedName) : null;
     const parsedPrice = explicitPrice ?? sentenceDetectedPrice;
@@ -134,11 +142,17 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 
     const extractedItem = await extractPrimaryItemName(normalizedName);
     const analysisName = extractedItem.item_name || normalizedName;
+    const quantityNormalization =
+      parsedPrice !== null ? inferPriceNormalization(normalizedName, analysisName, parsedPrice) : null;
 
     const result = await analyzePrice({
       name: analysisName,
       price: parsedPrice,
-      region: normalizedRegion || DEFAULT_REGION
+      region: normalizedRegion || DEFAULT_REGION,
+      report_flag: reportFlag,
+      source: 'user',
+      raw_input: normalizedName,
+      price_normalization: quantityNormalization
     });
 
     const fairPrice = result.fair_market_value;
@@ -155,6 +169,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       input_price_source:
         explicitPrice !== null ? 'explicit' : sentenceDetectedPrice !== null ? 'sentence-detected' : 'none',
       item_extraction: extractedItem,
+      quantity_normalization: quantityNormalization,
       display: {
         show_price: displayPrice
       }

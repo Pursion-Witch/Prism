@@ -14,7 +14,8 @@
     "dotenv": "^16.6.1",
     "express": "^4.22.1",
     "multer": "^2.1.0",
-    "pg": "^8.19.0"
+    "pg": "^8.19.0",
+    "tesseract.js": "^5.1.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

@@ -24,6 +24,15 @@ CREATE TABLE IF NOT EXISTS price_logs (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
+ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS report_flag BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT 'system';
+ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS raw_input TEXT;
+ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS submitted_quantity NUMERIC NOT NULL DEFAULT 1;
+ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS submitted_unit TEXT NOT NULL DEFAULT 'item';
+ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS normalized_quantity NUMERIC NOT NULL DEFAULT 1;
+ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS normalized_unit TEXT NOT NULL DEFAULT 'item';
+ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS normalized_price NUMERIC;
+
 CREATE TABLE IF NOT EXISTS market_indices (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   category TEXT NOT NULL,
@@ -37,6 +46,9 @@ CREATE INDEX IF NOT EXISTS idx_products_region ON products (region);
 CREATE INDEX IF NOT EXISTS idx_products_category ON products (category);
 CREATE INDEX IF NOT EXISTS idx_products_market_name ON products (LOWER(market_name));
 CREATE INDEX IF NOT EXISTS idx_products_stall_name ON products (LOWER(stall_name));
+CREATE INDEX IF NOT EXISTS idx_price_logs_report_flag ON price_logs (report_flag);
+CREATE INDEX IF NOT EXISTS idx_price_logs_source ON price_logs (source);
+CREATE INDEX IF NOT EXISTS idx_price_logs_normalized_unit ON price_logs (LOWER(normalized_unit));
 
 WITH cebu_goods(name, category, brand_name, market_name, stall_name, srp_price) AS (
   VALUES

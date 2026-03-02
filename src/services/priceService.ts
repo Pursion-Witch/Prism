@@ -4,6 +4,7 @@ import { analyzeWithDeepseek, type DeepseekAnalysis } from './deepseekiService';
 import { lookupAveragePriceOnline } from './onlinePriceService';
 import { buildCatalogCode, upsertCatalogProductWithDb } from './productCatalogService';
 import { normalizeToEnglish } from './translationService';
+import type { PriceNormalizationResult } from './unitNormalizationService';
 
 interface ProductRow {
   id: string;
@@ -25,6 +26,10 @@ interface AnalyzePriceInput {
   market_name?: string | null;
   stall_name?: string | null;
   persist_submission?: boolean;
+  report_flag?: boolean;
+  source?: string;
+  raw_input?: string | null;
+  price_normalization?: PriceNormalizationResult | null;
 }
 
 export interface AnalyzePriceResponse {
@@ -105,6 +110,19 @@ export interface AdminTrendPoint {
   value: number;
 }
 
+export interface AdminItemInsight {
+  item_name: string;
+  category: string;
+  scan_count: number;
+  reported_count: number;
+  avg_scanned_price: number | null;
+  avg_normalized_price: number | null;
+  normalized_unit: string;
+  avg_diff_percent: number | null;
+  overpriced_count: number;
+  great_deal_count: number;
+}
+
 export interface AdminAnalyticsResponse {
   totals: {
     total_products: number;
@@ -112,8 +130,10 @@ export interface AdminAnalyticsResponse {
     overpriced_reports: number;
     deal_reports: number;
     avg_diff_percent: number | null;
+    reported_flags: number;
   };
   category_insights: AdminCategoryInsight[];
+  item_insights: AdminItemInsight[];
   alerts: AdminAlertInsight[];
   monthly_report: MonthlyPriceReportRecord[];
   trend_points: AdminTrendPoint[];
@@ -162,6 +182,25 @@ function toOptionalNumber(value: unknown): number | null {
 interface ProductLookupResult {
   product: ProductRow | null;
   exactRegionMatch: boolean;
+}
+
+let priceLogSchemaReadyPromise: Promise<void> | null = null;
+
+async function ensurePriceLogSchema(): Promise<void> {
+  if (!priceLogSchemaReadyPromise) {
+    priceLogSchemaReadyPromise = (async () => {
+      await query(`ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS report_flag BOOLEAN NOT NULL DEFAULT FALSE`);
+      await query(`ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT 'system'`);
+      await query(`ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS raw_input TEXT`);
+      await query(`ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS submitted_quantity NUMERIC NOT NULL DEFAULT 1`);
+      await query(`ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS submitted_unit TEXT NOT NULL DEFAULT 'item'`);
+      await query(`ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS normalized_quantity NUMERIC NOT NULL DEFAULT 1`);
+      await query(`ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS normalized_unit TEXT NOT NULL DEFAULT 'item'`);
+      await query(`ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS normalized_price NUMERIC`);
+    })();
+  }
+
+  await priceLogSchemaReadyPromise;
 }
 
 function dedupeNames(names: string[]): string[] {
@@ -236,13 +275,54 @@ async function findProductByNameAndRegion(names: string[], region: string): Prom
   };
 }
 
-async function insertPriceLog(productId: string | null, scannedPrice: number, verdict: string): Promise<void> {
+async function insertPriceLog(
+  productId: string | null,
+  scannedPrice: number,
+  verdict: string,
+  input: AnalyzePriceInput
+): Promise<void> {
+  await ensurePriceLogSchema();
+
+  const normalization = input.price_normalization;
+  const reportFlag = input.report_flag === true;
+  const source = typeof input.source === 'string' && input.source.trim() ? input.source.trim() : 'system';
+  const rawInput = typeof input.raw_input === 'string' && input.raw_input.trim() ? input.raw_input.trim() : null;
+  const submittedQuantity = normalization?.submitted_quantity ?? 1;
+  const submittedUnit = normalization?.submitted_unit ?? 'item';
+  const normalizedQuantity = normalization?.normalized_quantity ?? 1;
+  const normalizedUnit = normalization?.normalized_unit ?? 'item';
+  const normalizedPrice = normalization?.normalized_price ?? scannedPrice;
+
   await query(
     `
-      INSERT INTO price_logs (product_id, scanned_price, verdict)
-      VALUES ($1, $2, $3)
+      INSERT INTO price_logs (
+        product_id,
+        scanned_price,
+        verdict,
+        report_flag,
+        source,
+        raw_input,
+        submitted_quantity,
+        submitted_unit,
+        normalized_quantity,
+        normalized_unit,
+        normalized_price
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     `,
-    [productId, scannedPrice, verdict]
+    [
+      productId,
+      scannedPrice,
+      verdict,
+      reportFlag,
+      source,
+      rawInput,
+      submittedQuantity,
+      submittedUnit,
+      normalizedQuantity,
+      normalizedUnit,
+      normalizedPrice
+    ]
   );
 }
 
@@ -414,7 +494,7 @@ export async function analyzePrice(input: AnalyzePriceInput): Promise<AnalyzePri
     );
   }
 
-  await insertPriceLog(productId, scannedPrice, aiResult.verdict);
+  await insertPriceLog(productId, scannedPrice, aiResult.verdict, input);
 
   return {
     name: inputName,
@@ -435,6 +515,8 @@ export async function analyzePrice(input: AnalyzePriceInput): Promise<AnalyzePri
 }
 
 export async function getAdminStats(): Promise<AdminStatsResponse> {
+  await ensurePriceLogSchema();
+
   const [totalScansResult, overpricedCategoryResult, regionalAverageResult] = await Promise.all([
     query<{ count: string }>('SELECT COUNT(*)::text AS count FROM price_logs'),
     query<{ category: string | null }>(
@@ -504,6 +586,7 @@ interface TopAnomalyRow {
   srp_price: string | null;
   verdict: string;
   diff_percent: string | null;
+  report_flag: string;
   created_at: string;
 }
 
@@ -601,11 +684,14 @@ function deriveAlertFromAnomaly(row: TopAnomalyRow): AdminAlertInsight | null {
 }
 
 export async function getAdminAnalytics(): Promise<AdminAnalyticsResponse> {
+  await ensurePriceLogSchema();
+
   const [
     totalsResult,
     categoryResult,
     anomalyResult,
-    monthlyResult
+    monthlyResult,
+    itemResult
   ] = await Promise.all([
     query<{
       total_products: string;
@@ -613,6 +699,7 @@ export async function getAdminAnalytics(): Promise<AdminAnalyticsResponse> {
       overpriced_reports: string;
       deal_reports: string;
       avg_diff_percent: string | null;
+      reported_flags: string;
     }>(
       `
         SELECT
@@ -620,6 +707,7 @@ export async function getAdminAnalytics(): Promise<AdminAnalyticsResponse> {
           (SELECT COUNT(*)::text FROM price_logs) AS total_scans,
           (SELECT COUNT(*)::text FROM price_logs WHERE verdict = 'OVERPRICED') AS overpriced_reports,
           (SELECT COUNT(*)::text FROM price_logs WHERE verdict IN ('GREAT DEAL', 'STEAL')) AS deal_reports,
+          (SELECT COUNT(*)::text FROM price_logs WHERE report_flag = TRUE) AS reported_flags,
           (
             SELECT ROUND(
               AVG(
@@ -689,10 +777,12 @@ export async function getAdminAnalytics(): Promise<AdminAnalyticsResponse> {
             END::numeric,
             2
           )::text AS diff_percent,
+          COALESCE(pl.report_flag, FALSE)::text AS report_flag,
           pl.created_at::text AS created_at
         FROM price_logs pl
         LEFT JOIN products p ON p.id = pl.product_id
         ORDER BY
+          COALESCE(pl.report_flag, FALSE) DESC,
           ABS(COALESCE((pl.scanned_price - p.srp_price) / NULLIF(p.srp_price, 0), 0)) DESC,
           pl.created_at DESC
         LIMIT 30
@@ -739,6 +829,48 @@ export async function getAdminAnalytics(): Promise<AdminAnalyticsResponse> {
         ORDER BY DATE_TRUNC('month', pl.created_at) DESC
         LIMIT 12
       `
+    ),
+    query<{
+      item_name: string;
+      category: string;
+      scan_count: string;
+      reported_count: string;
+      avg_scanned_price: string | null;
+      avg_normalized_price: string | null;
+      normalized_unit: string;
+      avg_diff_percent: string | null;
+      overpriced_count: string;
+      great_deal_count: string;
+    }>(
+      `
+        SELECT
+          COALESCE(p.name, 'Unknown Item') AS item_name,
+          COALESCE(p.category, 'GENERAL') AS category,
+          COUNT(*)::text AS scan_count,
+          SUM(CASE WHEN COALESCE(pl.report_flag, FALSE) THEN 1 ELSE 0 END)::text AS reported_count,
+          ROUND(AVG(pl.scanned_price)::numeric, 2)::text AS avg_scanned_price,
+          ROUND(AVG(COALESCE(pl.normalized_price, pl.scanned_price))::numeric, 2)::text AS avg_normalized_price,
+          COALESCE(
+            NULLIF(MAX(CASE WHEN pl.normalized_unit IS NOT NULL AND pl.normalized_unit <> '' THEN pl.normalized_unit END), ''),
+            'item'
+          ) AS normalized_unit,
+          ROUND(
+            AVG(
+              CASE
+                WHEN p.srp_price > 0 THEN ((pl.scanned_price - p.srp_price) / p.srp_price) * 100
+                ELSE NULL
+              END
+            )::numeric,
+            2
+          )::text AS avg_diff_percent,
+          SUM(CASE WHEN pl.verdict = 'OVERPRICED' THEN 1 ELSE 0 END)::text AS overpriced_count,
+          SUM(CASE WHEN pl.verdict IN ('GREAT DEAL', 'STEAL') THEN 1 ELSE 0 END)::text AS great_deal_count
+        FROM price_logs pl
+        LEFT JOIN products p ON p.id = pl.product_id
+        GROUP BY COALESCE(p.name, 'Unknown Item'), COALESCE(p.category, 'GENERAL')
+        ORDER BY COUNT(*) DESC, COALESCE(p.name, 'Unknown Item') ASC
+        LIMIT 50
+      `
     )
   ]);
 
@@ -783,15 +915,30 @@ export async function getAdminAnalytics(): Promise<AdminAnalyticsResponse> {
       value: row.avg_diff_percent ?? 0
     }));
 
+  const itemInsights: AdminItemInsight[] = itemResult.rows.map((row) => ({
+    item_name: row.item_name,
+    category: row.category,
+    scan_count: Number(row.scan_count),
+    reported_count: Number(row.reported_count),
+    avg_scanned_price: toOptionalNumber(row.avg_scanned_price),
+    avg_normalized_price: toOptionalNumber(row.avg_normalized_price),
+    normalized_unit: row.normalized_unit || 'item',
+    avg_diff_percent: toOptionalNumber(row.avg_diff_percent),
+    overpriced_count: Number(row.overpriced_count),
+    great_deal_count: Number(row.great_deal_count)
+  }));
+
   return {
     totals: {
       total_products: Number(totalsRow?.total_products ?? 0),
       total_scans: Number(totalsRow?.total_scans ?? 0),
       overpriced_reports: Number(totalsRow?.overpriced_reports ?? 0),
       deal_reports: Number(totalsRow?.deal_reports ?? 0),
-      avg_diff_percent: toOptionalNumber(totalsRow?.avg_diff_percent ?? null)
+      avg_diff_percent: toOptionalNumber(totalsRow?.avg_diff_percent ?? null),
+      reported_flags: Number(totalsRow?.reported_flags ?? 0)
     },
     category_insights: categoryInsights,
+    item_insights: itemInsights,
     alerts,
     monthly_report: monthlyReport,
     trend_points: trendPoints

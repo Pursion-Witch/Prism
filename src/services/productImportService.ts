@@ -17,6 +17,26 @@ export interface ImportedProductEntry {
   srp_price: number;
 }
 
+export type ImportedProductMissingField = 'name' | 'srp_price';
+
+export interface ImportedProductDraftEntry {
+  row_index: number;
+  name: string;
+  category: string;
+  brand_name: string | null;
+  market_name: string;
+  stall_name: string;
+  region: string;
+  srp_price: number | null;
+  missing_fields: ImportedProductMissingField[];
+  raw_record: Record<string, unknown> | string;
+}
+
+interface ParsedDocumentRows {
+  entries: ImportedProductEntry[];
+  drafts: ImportedProductDraftEntry[];
+}
+
 const MAX_IMPORT_ITEMS = 200;
 
 function normalizePositivePrice(value: unknown): number | null {
@@ -32,7 +52,7 @@ function safeText(value: unknown): string {
   return typeof value === 'string' ? sanitizeText(value) : '';
 }
 
-function normalizeEntry(raw: Record<string, unknown>, fallbackIndex: number): ImportedProductEntry | null {
+function normalizeEntryDraft(raw: Record<string, unknown>, fallbackIndex: number): ImportedProductDraftEntry {
   const name = safeText(raw.name ?? raw.product_name ?? raw.item);
   const category = safeText(raw.category) || DEFAULT_CATEGORY;
   const brandName = safeText(raw.brand_name ?? raw.brand) || null;
@@ -40,23 +60,46 @@ function normalizeEntry(raw: Record<string, unknown>, fallbackIndex: number): Im
   const marketName = safeText(raw.market_name ?? raw.market) || DEFAULT_MARKET_NAME;
   const stallName = safeText(raw.stall_name ?? raw.stall) || defaultStallNameFromIndex(fallbackIndex);
   const srpPrice = normalizePositivePrice(raw.srp_price ?? raw.price ?? raw.average_price);
+  const missingFields: ImportedProductMissingField[] = [];
 
-  if (!name || !srpPrice) {
-    return null;
+  if (!name) {
+    missingFields.push('name');
+  }
+  if (!srpPrice) {
+    missingFields.push('srp_price');
   }
 
   return {
+    row_index: fallbackIndex,
     name,
     category,
     brand_name: brandName,
     market_name: marketName,
     stall_name: stallName,
     region,
-    srp_price: srpPrice
+    srp_price: srpPrice,
+    missing_fields: missingFields,
+    raw_record: raw
   };
 }
 
-function validateAiPayload(payload: unknown): ImportedProductEntry[] {
+function toImportedProductEntry(draft: ImportedProductDraftEntry): ImportedProductEntry | null {
+  if (draft.missing_fields.length > 0 || !draft.srp_price) {
+    return null;
+  }
+
+  return {
+    name: draft.name,
+    category: draft.category,
+    brand_name: draft.brand_name,
+    market_name: draft.market_name,
+    stall_name: draft.stall_name,
+    region: draft.region,
+    srp_price: draft.srp_price
+  };
+}
+
+function validateAiPayload(payload: unknown): ParsedDocumentRows {
   let rows: unknown[] = [];
 
   if (Array.isArray(payload)) {
@@ -67,20 +110,29 @@ function validateAiPayload(payload: unknown): ImportedProductEntry[] {
     throw new Error('AI import response did not contain a products array.');
   }
 
-  const entries = rows
-    .map((row, index) => (row && typeof row === 'object' && !Array.isArray(row) ? normalizeEntry(row as Record<string, unknown>, index) : null))
-    .filter((entry): entry is ImportedProductEntry => entry !== null);
+  const drafts = rows
+    .map((row, index) =>
+      row && typeof row === 'object' && !Array.isArray(row)
+        ? normalizeEntryDraft(row as Record<string, unknown>, index)
+        : null
+    )
+    .filter((entry): entry is ImportedProductDraftEntry => entry !== null);
 
-  if (!entries.length) {
-    throw new Error('AI import response returned no valid products.');
+  if (!drafts.length) {
+    throw new Error('AI import response returned no product rows.');
   }
 
-  return entries.slice(0, MAX_IMPORT_ITEMS);
+  const limitedDrafts = drafts.slice(0, MAX_IMPORT_ITEMS);
+  const entries = limitedDrafts
+    .map((draft) => toImportedProductEntry(draft))
+    .filter((entry): entry is ImportedProductEntry => entry !== null);
+
+  return { drafts: limitedDrafts, entries };
 }
 
 function buildImportPrompt(): string {
   return [
-    'You extract product rows from Cebu pricing documents.',
+    'You extract product rows from Cebu pricing documents and return every product line found.',
     'Return JSON only. No markdown. No extra text.',
     'Preferred output schema:',
     '{',
@@ -99,12 +151,13 @@ function buildImportPrompt(): string {
     'Rules:',
     '- Keep region as Cebu City when not explicitly provided.',
     '- Infer Cebu market/stall names when possible from context.',
-    '- srp_price must be a positive number.',
-    '- Ignore rows with missing product name or missing price.'
+    '- srp_price must be a positive number when provided.',
+    '- If price is missing, set srp_price to null.',
+    '- Never invent product names or prices.'
   ].join('\n');
 }
 
-function parseDelimitedLine(line: string, index: number): ImportedProductEntry | null {
+function parseDelimitedLine(line: string, index: number): ImportedProductDraftEntry | null {
   const cleaned = line.trim();
   if (!cleaned) {
     return null;
@@ -112,7 +165,7 @@ function parseDelimitedLine(line: string, index: number): ImportedProductEntry |
 
   const csvParts = cleaned.split(',').map((part) => part.trim());
   if (csvParts.length >= 2) {
-    const candidate = normalizeEntry(
+    return normalizeEntryDraft(
       {
         name: csvParts[0],
         srp_price: csvParts[1]?.replace(/php\s*/i, ''),
@@ -124,21 +177,34 @@ function parseDelimitedLine(line: string, index: number): ImportedProductEntry |
       },
       index
     );
-
-    if (candidate) {
-      return candidate;
-    }
   }
 
   const match = cleaned.match(/^(.+?)\s*[:|\-]\s*(?:php\s*)?([0-9][0-9,]*(?:\.[0-9]{1,2})?)$/i);
-  if (!match) {
+  if (match) {
+    return normalizeEntryDraft(
+      {
+        name: match[1],
+        srp_price: match[2].replace(/,/g, ''),
+        category: DEFAULT_CATEGORY,
+        market_name: DEFAULT_MARKET_NAME,
+        region: DEFAULT_REGION
+      },
+      index
+    );
+  }
+
+  const likelyProductName =
+    /^[a-zA-Z][a-zA-Z0-9()\-\/\s]{2,120}$/.test(cleaned) &&
+    !/^(name|product|item|price|srp|category|brand|market|stall|region)$/i.test(cleaned);
+
+  if (!likelyProductName) {
     return null;
   }
 
-  return normalizeEntry(
+  return normalizeEntryDraft(
     {
-      name: match[1],
-      srp_price: match[2].replace(/,/g, ''),
+      name: cleaned,
+      srp_price: null,
       category: DEFAULT_CATEGORY,
       market_name: DEFAULT_MARKET_NAME,
       region: DEFAULT_REGION
@@ -147,31 +213,33 @@ function parseDelimitedLine(line: string, index: number): ImportedProductEntry |
   );
 }
 
-function parseFallbackRows(documentText: string): ImportedProductEntry[] {
+function parseFallbackRows(documentText: string): ParsedDocumentRows {
   const normalizedText = documentText.trim();
   if (!normalizedText) {
-    return [];
+    return { entries: [], drafts: [] };
   }
 
   try {
     const jsonPayload = JSON.parse(normalizedText);
-    if (Array.isArray(jsonPayload)) {
-      return jsonPayload
-        .map((row, index) =>
-          row && typeof row === 'object' && !Array.isArray(row) ? normalizeEntry(row as Record<string, unknown>, index) : null
-        )
-        .filter((entry): entry is ImportedProductEntry => entry !== null)
-        .slice(0, MAX_IMPORT_ITEMS);
+    if (Array.isArray(jsonPayload) || (jsonPayload && typeof jsonPayload === 'object')) {
+      return validateAiPayload(jsonPayload);
     }
   } catch {
     // Not JSON, continue with line parsing.
   }
 
   const dedupe = new Map<string, ImportedProductEntry>();
+  const drafts: ImportedProductDraftEntry[] = [];
 
   const lines = normalizedText.split(/\r?\n/);
   lines.forEach((line, index) => {
-    const entry = parseDelimitedLine(line, index);
+    const draft = parseDelimitedLine(line, index);
+    if (!draft) {
+      return;
+    }
+
+    drafts.push(draft);
+    const entry = toImportedProductEntry(draft);
     if (!entry) {
       return;
     }
@@ -180,12 +248,15 @@ function parseFallbackRows(documentText: string): ImportedProductEntry[] {
     dedupe.set(key, entry);
   });
 
-  return [...dedupe.values()].slice(0, MAX_IMPORT_ITEMS);
+  return {
+    entries: [...dedupe.values()].slice(0, MAX_IMPORT_ITEMS),
+    drafts: drafts.slice(0, MAX_IMPORT_ITEMS)
+  };
 }
 
 export async function extractProductsFromDocument(
   documentText: string
-): Promise<{ entries: ImportedProductEntry[]; source: 'ai' | 'fallback' }> {
+): Promise<{ entries: ImportedProductEntry[]; drafts: ImportedProductDraftEntry[]; source: 'ai' | 'fallback' }> {
   const trimmed = documentText.trim();
   if (!trimmed) {
     throw new Error('Document content is empty.');
@@ -227,11 +298,20 @@ export async function extractProductsFromDocument(
     }
 
     const parsed = parseJsonResponse(content);
-    return { entries: validateAiPayload(parsed), source: 'ai' };
+    const validated = validateAiPayload(parsed);
+    return {
+      entries: validated.entries,
+      drafts: validated.drafts,
+      source: 'ai'
+    };
   } catch (error) {
-    const fallbackEntries = parseFallbackRows(trimmed);
-    if (fallbackEntries.length > 0) {
-      return { entries: fallbackEntries, source: 'fallback' };
+    const fallbackRows = parseFallbackRows(trimmed);
+    if (fallbackRows.entries.length > 0 || fallbackRows.drafts.length > 0) {
+      return {
+        entries: fallbackRows.entries,
+        drafts: fallbackRows.drafts,
+        source: 'fallback'
+      };
     }
 
     if (isAxiosError(error)) {

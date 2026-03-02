@@ -1,8 +1,10 @@
 import multer, { MulterError } from 'multer';
 import { Router, type NextFunction, type Request, type Response } from 'express';
 import { DEFAULT_REGION } from '../constants/cebuDefaults';
-import { extractPrimaryItemName } from '../services/itemNameService';
+import { extractPriceFromSentence, extractPrimaryItemName } from '../services/itemNameService';
+import { extractTextFromImageBuffer } from '../services/ocrService';
 import { analyzePrice } from '../services/priceService';
+import { inferPriceNormalization } from '../services/unitNormalizationService';
 import { detectFromImage, type VisionDetection } from '../services/visionService';
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -196,31 +198,64 @@ router.post('/analyze-image', (req: Request, res: Response, next: NextFunction) 
 
       const prompt = typeof req.body?.prompt === 'string' ? req.body.prompt.trim() : '';
       const displayPrice = shouldShowPrice(prompt, req.body?.show_price);
-      let vision: VisionDetection;
+      let vision: VisionDetection | null = null;
+      let ocrText = '';
+      let visionSource: 'ai-vision' | 'ocr-fallback' = 'ai-vision';
 
       try {
         vision = await detectFromImage(req.file.buffer.toString('base64'), mimeType);
       } catch {
-        return imageCannotBeAnalyzedResponse(res);
+        vision = null;
       }
 
-      if (!vision.detected_name || vision.confidence < MINIMUM_CONFIDENCE || isGenericItemName(vision.detected_name)) {
-        return imageCannotBeAnalyzedResponse(res);
+      if (!vision || !vision.detected_name || vision.confidence < MINIMUM_CONFIDENCE || isGenericItemName(vision.detected_name)) {
+        try {
+          ocrText = await extractTextFromImageBuffer(req.file.buffer);
+        } catch {
+          return imageCannotBeAnalyzedResponse(res);
+        }
+
+        if (!ocrText) {
+          return imageCannotBeAnalyzedResponse(res);
+        }
+
+        const ocrExtractedItem = await extractPrimaryItemName(ocrText);
+        const ocrName = ocrExtractedItem.item_name || '';
+        if (!ocrName || isGenericItemName(ocrName)) {
+          return imageCannotBeAnalyzedResponse(res);
+        }
+
+        vision = {
+          detected_name: ocrName,
+          detected_price: extractPriceFromSentence(ocrText),
+          region_guess: DEFAULT_REGION,
+          confidence: 0.35
+        };
+        visionSource = 'ocr-fallback';
       }
 
-      const extractedItem = await extractPrimaryItemName(vision.detected_name);
-      const analysisName = extractedItem.item_name || vision.detected_name;
+      const detectedVision = vision;
+
+      const extractedItem = await extractPrimaryItemName(detectedVision.detected_name);
+      const analysisName = extractedItem.item_name || detectedVision.detected_name;
       if (!analysisName || isGenericItemName(analysisName)) {
         return imageCannotBeAnalyzedResponse(res);
       }
 
-      const region = vision.region_guess || DEFAULT_REGION;
-      const scannedPrice = vision.detected_price ?? null;
+      const region = detectedVision.region_guess || DEFAULT_REGION;
+      const scannedPrice = detectedVision.detected_price ?? null;
+      const rawScanText = ocrText || detectedVision.detected_name;
+      const quantityNormalization =
+        scannedPrice !== null ? inferPriceNormalization(rawScanText, analysisName, scannedPrice) : null;
       const marketAnalysis = await analyzePrice({
         name: analysisName,
         price: scannedPrice,
         region,
-        persist_submission: true
+        persist_submission: true,
+        report_flag: true,
+        source: visionSource,
+        raw_input: rawScanText,
+        price_normalization: quantityNormalization
       });
       const ratioAssessment = buildRatioAssessment(
         Number(marketAnalysis.scanned_price ?? scannedPrice ?? 0),
@@ -228,20 +263,23 @@ router.post('/analyze-image', (req: Request, res: Response, next: NextFunction) 
       );
 
       return res.json({
-        vision,
+        vision: detectedVision,
+        vision_source: visionSource,
         market_analysis: marketAnalysis,
         ratio_assessment: ratioAssessment,
         text_feed: {
           label: analysisName,
-          raw_label: vision.detected_name,
+          raw_label: detectedVision.detected_name,
           prompt: prompt || null,
           region
         },
         item_extraction: extractedItem,
+        quantity_normalization: quantityNormalization,
         display: {
           show_price: displayPrice
         },
-        ...(vision.confidence < 0.4 ? { low_confidence: true } : {})
+        ...(ocrText ? { ocr_text: ocrText } : {}),
+        ...(detectedVision.confidence < 0.4 ? { low_confidence: true } : {})
       });
     } catch (error) {
       return next(error);

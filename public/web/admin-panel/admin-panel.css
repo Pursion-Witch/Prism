@@ -295,6 +295,7 @@
             color: #1ED760;
         }
         .btn-primary {
+            display: inline-block;
             background: #1ED760;
             color: #000;
             border: none;
@@ -304,6 +305,7 @@
             cursor: pointer;
             transition: 0.2s;
             font-family: 'Plus Jakarta', sans-serif;
+            text-decoration: none;
         }
         .btn-primary:hover {
             background: #15b34e;

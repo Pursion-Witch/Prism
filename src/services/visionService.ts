@@ -1,4 +1,5 @@
 import axios, { isAxiosError } from 'axios';
+import { DEFAULT_REGION } from '../constants/cebuDefaults';
 import { parseJsonResponse, requireEnv, sanitizeText } from './serviceUtils';
 
 export interface VisionDetection {
@@ -57,7 +58,7 @@ function validateVisionPayload(payload: unknown): VisionDetection {
   return {
     detected_name: detectedName,
     detected_price: detectedPrice,
-    region_guess: regionGuess || 'Metro Manila',
+    region_guess: regionGuess || DEFAULT_REGION,
     confidence: Number(confidence.toFixed(2))
   };
 }

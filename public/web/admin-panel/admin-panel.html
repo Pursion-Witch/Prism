@@ -34,7 +34,7 @@
 
         <div class="admin-header">
             <h1>Admin Panel</h1>
-            <div class="subhead"><span>System oversight & price monitoring controls</span> - manage users, products, and alerts.</div>
+            <div class="subhead"><span>Cebu market oversight & price monitoring controls</span> - manage users, products, and alerts.</div>
         </div>
 
 <!-- Admin Layout -->
@@ -101,10 +101,10 @@
                                 <tr><th>User</th><th>Action</th><th>Time</th><th>Status</th></tr>
                             </thead>
                             <tbody>
-                                <tr><td>Maria Santos</td><td>Added product: Rice</td><td>2 min ago</td><td><span class="status-badge">Completed</span></td></tr>
-                                <tr><td>Juan Dela Cruz</td><td>Reported price anomaly</td><td>15 min ago</td><td><span class="status-badge warning">Reviewing</span></td></tr>
-                                <tr><td>Market Vendor</td><td>Updated inventory</td><td>1 hour ago</td><td><span class="status-badge">Completed</span></td></tr>
-                                <tr><td>DTI Officer</td><td>Approved SRP change</td><td>3 hours ago</td><td><span class="status-badge">Completed</span></td></tr>
+                                <tr><td>Alona Cuenco</td><td>Added product: Danggit Cebu</td><td>2 min ago</td><td><span class="status-badge">Completed</span></td></tr>
+                                <tr><td>Ramil Tumulak</td><td>Reported price anomaly</td><td>15 min ago</td><td><span class="status-badge warning">Reviewing</span></td></tr>
+                                <tr><td>Carbon Stall Keeper</td><td>Updated stall inventory</td><td>1 hour ago</td><td><span class="status-badge">Completed</span></td></tr>
+                                <tr><td>Cebu Trade Officer</td><td>Approved market price update</td><td>3 hours ago</td><td><span class="status-badge">Completed</span></td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -137,24 +137,24 @@
                 <div id="section-products" class="admin-section">
                     <div class="section-header">
                         <h2><span></span> Product Catalog</h2>
-                        <button class="btn-primary" onclick="showNotification('Add product form')">+ Add Product</button>
+                        <a class="btn-primary" href="/web/admin-panel/product-intake.html" data-navigate="product-intake">+ Add Product</a>
                     </div>
                     <div class="table-container">
                         <table>
                             <thead>
-                                <tr><th>ID</th><th>Product</th><th>Category</th><th>Supplier</th><th>Base Price</th><th>Status</th><th>Actions</th></tr>
+                                <tr><th>ID</th><th>Product</th><th>Category</th><th>Market / Stall</th><th>Base Price</th><th>Status</th><th>Actions</th></tr>
                             </thead>
                             <tbody>
-                                <tr><td>#P101</td><td>Sinandomeng Rice</td><td>Rice</td><td>Mega Mart</td><td>PHP 52.00</td><td>
+                                <tr><td>#P101</td><td>Sinandomeng Rice</td><td>Rice</td><td>Carbon Public Market / Stall R-01</td><td>PHP 52.00</td><td>
                                     <span class="status-badge">Active</span></td><td><button class="action-btn">Edit</button>
                                         <button class="action-btn">Hide</button></td></tr>
-                                <tr><td>#P102</td><td>Whole Chicken</td><td>Meat</td><td>FarmFresh</td><td>PHP 180.00</td><td>
+                                <tr><td>#P102</td><td>Native Chicken Bisaya</td><td>Meat</td><td>Carbon Public Market / Stall P-04</td><td>PHP 320.00</td><td>
                                     <span class="status-badge">Active</span></td><td><button class="action-btn">Edit</button>
                                         <button class="action-btn">Hide</button></td></tr>
-                                <tr><td>#P103</td><td>Cooking Oil</td><td>Canned</td><td>Tindahan PH</td><td>PHP 45.00</td><td>
+                                <tr><td>#P103</td><td>Danggit Cebu</td><td>Dried Fish</td><td>Taboan Public Market / Stall D-01</td><td>PHP 780.00</td><td>
                                     <span class="status-badge warning">Low Stock</span></td><td><button class="action-btn">Edit</button>
                                         <button class="action-btn">Hide</button></td></tr>
-                                <tr><td>#P104</td><td>Red Onions</td><td>Vegetables</td><td>Palengke Direct</td><td>PHP 80.00</td><td>
+                                <tr><td>#P104</td><td>Galunggong Round Scad</td><td>Fish</td><td>Pasil Fish Market / Stall F-01</td><td>PHP 215.00</td><td>
                                     <span class="status-badge">Active</span></td><td><button class="action-btn">Edit</button>
                                         <button class="action-btn">Hide</button></td></tr>
                             </tbody>
@@ -189,12 +189,12 @@
                     <div class="table-container">
                         <table>
                             <thead>
-                                <tr><th>Product</th><th>Market Price</th><th>SRP</th><th>Difference</th><th>Location</th><th>Action</th></tr>
+                                <tr><th>Product</th><th>Market Price</th><th>SRP</th><th>Difference</th><th>Market / Stall</th><th>Action</th></tr>
                             </thead>
                             <tbody>
-                                <tr><td>Red Onions</td><td>PHP 199</td><td>PHP 140</td><td class="trend-up">+42%</td><td>Metro Manila</td><td><button class="action-btn">Investigate</button></td></tr>
-                                <tr><td>Pork Liempo</td><td>PHP 415</td><td>PHP 340</td><td class="trend-up">+22%</td><td>Quezon City</td><td><button class="action-btn">Investigate</button></td></tr>
-                                <tr><td>Refined Sugar</td><td>PHP 100</td><td>PHP 95</td><td class="trend-up">+5%</td><td>Manila</td><td><button class="action-btn">Ignore</button></td></tr>
+                                <tr><td>Red Onion Local</td><td>PHP 199</td><td>PHP 175</td><td class="trend-up">+14%</td><td>Carbon Public Market / Stall V-01</td><td><button class="action-btn">Investigate</button></td></tr>
+                                <tr><td>Pork Liempo</td><td>PHP 415</td><td>PHP 370</td><td class="trend-up">+12%</td><td>Carbon Public Market / Stall M-01</td><td><button class="action-btn">Investigate</button></td></tr>
+                                <tr><td>Danggit Cebu</td><td>PHP 890</td><td>PHP 780</td><td class="trend-up">+14%</td><td>Taboan Public Market / Stall D-01</td><td><button class="action-btn">Ignore</button></td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -209,11 +209,11 @@
                     </div>
                     
                     <div class="alert-item">
-                        <div style="flex:1"><strong>Price surge detected</strong> - Red Onions up 42% in Metro Manila</div>
+                        <div style="flex:1"><strong>Price surge detected</strong> - Red Onion Local up 14% at Carbon Public Market Stall V-01</div>
                         <button class="action-btn" onclick="showNotification('Alert acknowledged')">Acknowledge</button>
                     </div>
                     <div class="alert-item">
-                        <div style="flex:1"><strong>New supplier pending approval</strong> - Fresh Farms Inc.</div>
+                        <div style="flex:1"><strong>New stall pending approval</strong> - Pasil Fish Market Stall F-21</div>
                         <button class="action-btn" onclick="showNotification('Supplier approved')">Approve</button>
                     </div>
                     <div class="alert-item">
@@ -221,7 +221,7 @@
                         <button class="action-btn" onclick="showNotification('Report reviewed')">Review</button>
                     </div>
                     <div class="alert-item">
-                        <div style="flex:1"><strong>System update</strong> - New price data from DTI available</div>
+                        <div style="flex:1"><strong>System update</strong> - New Cebu market price feed available</div>
                         <button class="action-btn" onclick="showNotification('Syncing data...')">Sync</button>
                     </div>
                 </div>

@@ -129,8 +129,8 @@
         const product = window.prompt('Enter product name:');
         if (!product) return;
 
-        const category = window.prompt('Enter category:', 'General') || 'General';
-        const supplier = window.prompt('Enter supplier:', 'PRISM Supplier') || 'PRISM Supplier';
+        const category = window.prompt('Enter category:', 'GENERAL') || 'GENERAL';
+        const supplier = window.prompt('Enter market and stall:', 'Carbon Public Market / Stall A-01') || 'Carbon Public Market / Stall A-01';
         const price = Number(window.prompt('Enter base price:', '0'));
 
         if (!Number.isFinite(price) || price <= 0) {
@@ -406,6 +406,10 @@
         document.querySelectorAll('.btn-primary, .btn-secondary').forEach((button) => {
             button.addEventListener('click', (event) => {
                 event.stopPropagation();
+
+                if (button instanceof HTMLAnchorElement && button.dataset.navigate) {
+                    return;
+                }
 
                 const label = button.textContent.trim().toLowerCase();
 

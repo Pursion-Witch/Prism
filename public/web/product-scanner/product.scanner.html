@@ -35,7 +35,7 @@
         <div class="scanner-header">
             <h1>Bantay Presyo Platform</h1>
             <div class="subhead">
-                AI-powered fair value analysis for the Filipino consumer. <span>Compare prices</span> against DTI SRP, Lazada, Shopee, and local Palengke trends.
+                AI powered fair value analysis for Filipino consumers. <span>Compare prices</span> against DTI SRP, Lazada, Shopee, and local market trends.
             </div>
         </div>
 
@@ -54,7 +54,7 @@
             
             <div class="input-group">
                 <div class="input-wrapper">
-                    <input type="text" id="productInput" placeholder="e.g., 'Samsung A14 128GB black brand new from Lazada PHP 7,990' or 'Bigas NFA sa palengke PHP 45/kilo'">
+                    <input type="text" id="productInput" placeholder="For example: Samsung A14 128GB black from Lazada PHP 7990 or Bigas NFA sa palengke PHP 45 per kilo">
                     <button id="checkPriceBtn">CHECK PRICE NOW</button>
                 </div>
                 
@@ -63,6 +63,35 @@
                     <span class="example-chip" onclick="fillExample('Bigas NFA sa palengke PHP 45/kilo')"> Bigas NFA PHP 45/kilo</span>
                     <span class="example-chip" onclick="fillExample('Dole Pineapple juice 1L Shopee PHP 89')"> Dole Pineapple 1L PHP 89</span>
                     <span class="example-chip" onclick="fillExample('Mangan Tzu crackers 50g sari-sari store PHP 7')"> Mangan Tzu PHP 7</span>
+                </div>
+
+                <div class="scanner-tools">
+                    <label class="tool-input">
+                        Scan prompt
+                        <input type="text" id="scanPrompt" placeholder="Optional. Example: identify only no price">
+                    </label>
+                    <label class="tool-checkbox">
+                        <input type="checkbox" id="showPriceToggle" checked>
+                        Show price in result
+                    </label>
+                </div>
+
+                <div class="capture-panel">
+                    <div class="capture-preview">
+                        <video id="cameraPreview" autoplay playsinline muted></video>
+                        <img id="captureSnapshot" alt="Captured product preview">
+                        <canvas id="captureCanvas"></canvas>
+                    </div>
+                    <div class="capture-controls">
+                        <button type="button" id="startCameraBtn">START CAMERA</button>
+                        <button type="button" id="captureBtn" disabled>CAPTURE IMAGE</button>
+                        <button type="button" id="scanCaptureBtn" disabled>SCAN CAPTURE</button>
+                        <label class="upload-image-label" for="imageUploadInput">UPLOAD IMAGE</label>
+                        <input type="file" id="imageUploadInput" name="image" accept="image/jpeg,image/jpg,image/png,image/webp">
+                    </div>
+                    <p class="capture-note">
+                        Camera use is optional. You can capture or upload a product image and PRISM will label what AI detects.
+                    </p>
                 </div>
             </div>
 
@@ -73,11 +102,11 @@
                     <div class="option-item">
                         <label>Region / Location</label>
                         <select id="regionSelect">
-                            <option>Metro Manila</option>
-                            <option>North Luzon</option>
-                            <option>South Luzon</option>
-                            <option>Visayas</option>
-                            <option>Mindanao</option>
+                            <option>Cebu City</option>
+                            <option>Mandaue City</option>
+                            <option>Lapu-Lapu City</option>
+                            <option>Talisay City</option>
+                            <option>Consolacion</option>
                         </select>
                     </div>
                     <div class="option-item">
@@ -119,10 +148,10 @@
 <!-- AI auto-detect row -->
 
             <div class="ai-detect-row">
-                <div class="detect-item"><span class="label">[Auto-detects</span> <span class="value" id="detectBrand">Brand</span>]</div>
-                <div class="detect-item"><span class="label">[Infers</span> <span class="value" id="detectLocation">Location</span>]</div>
-                <div class="detect-item"><span class="label">[Pinoy</span> <span class="value" id="detectLanguage">Tagalog Support</span>]</div>
-                <div class="pinoy-badge">ENGLISH - TAGALOG</div>
+                <div class="detect-item"><span class="label">Auto detect</span> <span class="value" id="detectBrand">Brand</span></div>
+                <div class="detect-item"><span class="label">Location hint</span> <span class="value" id="detectLocation">Location</span></div>
+                <div class="detect-item"><span class="label">Language mode</span> <span class="value" id="detectLanguage">Tagalog Support</span></div>
+                <div class="pinoy-badge">ENGLISH AND TAGALOG</div>
             </div>
 
 <!-- Results Section -->

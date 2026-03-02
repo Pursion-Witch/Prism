@@ -35,7 +35,7 @@ router.post('/ingest', (req: Request, res: Response, next: NextFunction) => {
       }
 
       const sourceRaw = typeof req.body?.source === 'string' ? req.body.source.trim() : '';
-      const source = sourceRaw.length ? sourceRaw : null;
+      const source = sourceRaw.length ? sourceRaw : 'documents-api';
       const result = await ingestDocument(req.file.originalname || 'upload.txt', req.file.buffer, source);
 
       return res.status(201).json(result);

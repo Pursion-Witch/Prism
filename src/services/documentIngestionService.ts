@@ -1,19 +1,26 @@
 import path from 'node:path';
 import { query, withDbClient } from '../db';
+import { extractProductsFromDocument, type ImportedProductEntry } from './productImportService';
+import { upsertCatalogProduct } from './productCatalogService';
 
 export interface DocumentRecord {
   product_name: string;
-  category: string | null;
-  region: string | null;
-  srp_price: number | null;
+  category: string;
+  region: string;
+  market_name: string;
+  stall_name: string;
+  brand_name: string | null;
+  srp_price: number;
 }
 
 export interface DocumentIngestionResult {
   ingestion_id: string;
   filename: string;
   file_type: string;
+  source: 'ai' | 'fallback';
   record_count: number;
   inserted_products: number;
+  updated_products: number;
   payload: {
     filename: string;
     file_type: string;
@@ -37,170 +44,24 @@ const SUPPORTED_EXTENSIONS = new Set([
   '.css'
 ]);
 
-function splitCsvLine(line: string, delimiter: ',' | '\t'): string[] {
-  const cells: string[] = [];
-  let current = '';
-  let quoted = false;
-
-  for (let index = 0; index < line.length; index += 1) {
-    const char = line[index];
-
-    if (char === '"') {
-      const isEscapedQuote = quoted && line[index + 1] === '"';
-      if (isEscapedQuote) {
-        current += '"';
-        index += 1;
-      } else {
-        quoted = !quoted;
-      }
-      continue;
-    }
-
-    if (char === delimiter && !quoted) {
-      cells.push(current.trim());
-      current = '';
-      continue;
-    }
-
-    current += char;
-  }
-
-  cells.push(current.trim());
-  return cells;
-}
-
-function parseTabularText(raw: string, delimiter: ',' | '\t'): Record<string, string>[] {
-  const lines = raw
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
-
-  if (lines.length < 2) {
-    return [];
-  }
-
-  const headers = splitCsvLine(lines[0], delimiter).map((header) => header.toLowerCase());
-  const output: Record<string, string>[] = [];
-
-  for (const line of lines.slice(1)) {
-    const values = splitCsvLine(line, delimiter);
-    const row: Record<string, string> = {};
-
-    headers.forEach((header, index) => {
-      row[header] = values[index] ?? '';
-    });
-
-    output.push(row);
-  }
-
-  return output;
-}
-
-function sanitizeText(value: string): string {
-  return value.replace(/\s+/g, ' ').trim();
-}
-
-function pickStringField(row: Record<string, unknown>, keys: string[]): string {
-  for (const key of keys) {
-    const value = row[key];
-    if (typeof value === 'string' && sanitizeText(value)) {
-      return sanitizeText(value);
-    }
-  }
-
-  return '';
-}
-
-function pickNumericField(row: Record<string, unknown>, keys: string[]): number | null {
-  for (const key of keys) {
-    const value = row[key];
-    if (value === undefined || value === null || value === '') {
-      continue;
-    }
-
-    const parsed = Number(value);
-    if (Number.isFinite(parsed) && parsed >= 0) {
-      return Number(parsed.toFixed(2));
-    }
-  }
-
-  return null;
-}
-
-function normalizeRecord(row: Record<string, unknown>): DocumentRecord | null {
-  const productName = pickStringField(row, ['product_name', 'name', 'product', 'item']);
-  if (!productName) {
-    return null;
-  }
-
-  return {
-    product_name: productName,
-    category: pickStringField(row, ['category', 'type']) || null,
-    region: pickStringField(row, ['region', 'location', 'area']) || null,
-    srp_price: pickNumericField(row, ['srp_price', 'price', 'amount', 'fair_market_value'])
-  };
-}
-
-function inferRecordsFromText(raw: string): DocumentRecord[] {
-  const lines = raw.split(/\r?\n/);
-  return lines
-    .map((line) => sanitizeText(line))
-    .filter((line) => line.length > 0)
-    .slice(0, 200)
-    .map((line) => ({
-      product_name: line.slice(0, 160),
-      category: null,
-      region: null,
-      srp_price: null
-    }));
-}
-
-function parseDocument(filename: string, fileBuffer: Buffer): { file_type: string; extracted_text: string; records: DocumentRecord[] } {
+function inferFileType(filename: string): string {
   const extension = path.extname(filename).toLowerCase();
   if (!SUPPORTED_EXTENSIONS.has(extension)) {
     throw new Error(`Unsupported document type: ${extension || 'unknown'}.`);
   }
 
-  const extractedText = fileBuffer.toString('utf8');
-  if (!sanitizeText(extractedText)) {
-    throw new Error('Document is empty or unreadable as UTF-8 text.');
-  }
+  return extension.slice(1) || 'txt';
+}
 
-  if (extension === '.json') {
-    const payload = JSON.parse(extractedText) as unknown;
-    const recordsSource = Array.isArray(payload)
-      ? payload
-      : typeof payload === 'object' && payload !== null && Array.isArray((payload as { records?: unknown }).records)
-      ? (payload as { records: unknown[] }).records
-      : [];
-
-    const records = recordsSource
-      .filter((row): row is Record<string, unknown> => typeof row === 'object' && row !== null && !Array.isArray(row))
-      .map(normalizeRecord)
-      .filter((row): row is DocumentRecord => row !== null);
-
-    return {
-      file_type: extension.slice(1),
-      extracted_text: extractedText,
-      records: records.length ? records : inferRecordsFromText(extractedText)
-    };
-  }
-
-  if (extension === '.csv' || extension === '.tsv') {
-    const rows = parseTabularText(extractedText, extension === '.tsv' ? '\t' : ',');
-    const records = rows.map(normalizeRecord).filter((row): row is DocumentRecord => row !== null);
-
-    return {
-      file_type: extension.slice(1),
-      extracted_text: extractedText,
-      records: records.length ? records : inferRecordsFromText(extractedText)
-    };
-  }
-
+function toDocumentRecord(entry: ImportedProductEntry): DocumentRecord {
   return {
-    file_type: extension.slice(1),
-    extracted_text: extractedText,
-    records: inferRecordsFromText(extractedText)
+    product_name: entry.name,
+    category: entry.category,
+    region: entry.region,
+    market_name: entry.market_name,
+    stall_name: entry.stall_name,
+    brand_name: entry.brand_name,
+    srp_price: entry.srp_price
   };
 }
 
@@ -209,46 +70,65 @@ export async function ingestDocument(
   fileBuffer: Buffer,
   source: string | null
 ): Promise<DocumentIngestionResult> {
-  const parsed = parseDocument(filename, fileBuffer);
+  const fileType = inferFileType(filename);
+  const extractedText = fileBuffer.toString('utf8').trim();
+
+  if (!extractedText) {
+    throw new Error('Document is empty or unreadable as UTF-8 text.');
+  }
+
+  const { entries, source: parserSource } = await extractProductsFromDocument(extractedText);
+  const records = entries.map(toDocumentRecord);
 
   return withDbClient(async (client) => {
     await client.query('BEGIN');
 
     try {
-      const ingestResult = await client.query<{ id: string }>(
+      const ingestionResult = await client.query<{ id: string }>(
         `
           INSERT INTO document_ingestions (filename, source, file_type, extracted_text, parsed_json)
           VALUES ($1, $2, $3, $4, $5::jsonb)
           RETURNING id
         `,
-        [filename, source, parsed.file_type, parsed.extracted_text, JSON.stringify(parsed.records)]
+        [filename, source, fileType, extractedText, JSON.stringify({ source: parserSource, records })]
       );
 
-      const ingestionId = ingestResult.rows[0]?.id;
+      const ingestionId = ingestionResult.rows[0]?.id;
       if (!ingestionId) {
-        throw new Error('Failed to create document ingestion record.');
+        throw new Error('Failed to create ingestion record.');
       }
 
       let insertedProducts = 0;
+      let updatedProducts = 0;
 
-      for (const record of parsed.records) {
+      for (const entry of entries) {
+        const productResult = await upsertCatalogProduct(
+          client,
+          {
+            name: entry.name,
+            category: entry.category,
+            brandName: entry.brand_name,
+            region: entry.region,
+            marketName: entry.market_name,
+            stallName: entry.stall_name,
+            srpPrice: entry.srp_price
+          },
+          { updateExisting: true }
+        );
+
+        if (productResult.action === 'inserted') {
+          insertedProducts += 1;
+        } else if (productResult.action === 'updated') {
+          updatedProducts += 1;
+        }
+
         await client.query(
           `
             INSERT INTO ingested_records (ingestion_id, product_name, category, region, srp_price, raw_record)
             VALUES ($1, $2, $3, $4, $5, $6::jsonb)
           `,
-          [ingestionId, record.product_name, record.category, record.region, record.srp_price, JSON.stringify(record)]
+          [ingestionId, entry.name, entry.category, entry.region, entry.srp_price, JSON.stringify(entry)]
         );
-
-        await client.query(
-          `
-            INSERT INTO products (name, category, region, srp_price)
-            VALUES ($1, $2, $3, $4)
-          `,
-          [record.product_name, record.category, record.region, record.srp_price]
-        );
-
-        insertedProducts += 1;
       }
 
       await client.query('COMMIT');
@@ -256,14 +136,16 @@ export async function ingestDocument(
       return {
         ingestion_id: ingestionId,
         filename,
-        file_type: parsed.file_type,
-        record_count: parsed.records.length,
+        file_type: fileType,
+        source: parserSource,
+        record_count: records.length,
         inserted_products: insertedProducts,
+        updated_products: updatedProducts,
         payload: {
           filename,
-          file_type: parsed.file_type,
-          extracted_text: parsed.extracted_text,
-          records: parsed.records
+          file_type: fileType,
+          extracted_text: extractedText,
+          records
         }
       };
     } catch (error) {

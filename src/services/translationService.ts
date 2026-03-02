@@ -2,11 +2,14 @@ import axios, { isAxiosError } from 'axios';
 import { parseJsonResponse, requireEnv, sanitizeText } from './serviceUtils';
 
 type TranslationSource = 'none' | 'dictionary' | 'ai' | 'dictionary+ai';
+type CanonicalSource = 'none' | 'rules';
 
 export interface TranslationResult {
   original_text: string;
   english_text: string;
   source: TranslationSource;
+  canonical_english_text: string;
+  canonical_source: CanonicalSource;
 }
 
 const translationCache = new Map<string, TranslationResult>();
@@ -27,6 +30,10 @@ const DICTIONARY_REPLACEMENTS: Array<{ pattern: RegExp; replacement: string }> =
   { pattern: /\bkamatis\b/gi, replacement: 'tomato' },
   { pattern: /\bpatatas\b/gi, replacement: 'potato' },
   { pattern: /\bkarot\b/gi, replacement: 'carrot' },
+  { pattern: /\bkarne\b/gi, replacement: 'meat' },
+  { pattern: /\bkarneng\b/gi, replacement: 'meat' },
+  { pattern: /\bkarning\b/gi, replacement: 'meat' },
+  { pattern: /\bkarni\b/gi, replacement: 'meat' },
   { pattern: /\bmanok\b/gi, replacement: 'chicken' },
   { pattern: /\bbaboy\b/gi, replacement: 'pork' },
   { pattern: /\bbaka\b/gi, replacement: 'beef' },
@@ -51,6 +58,73 @@ function applyDictionaryTranslation(input: string): string {
   }
 
   return sanitizeText(output);
+}
+
+function hasAnyWord(text: string, words: string[]): boolean {
+  return words.some((word) => new RegExp(`\\b${word}\\b`, 'i').test(text));
+}
+
+function canonicalizeEnglishText(input: string): { canonicalText: string; source: CanonicalSource } {
+  const normalized = sanitizeText(input).toLowerCase();
+  if (!normalized) {
+    return { canonicalText: '', source: 'none' };
+  }
+
+  const hasSpecificPorkCut = hasAnyWord(normalized, ['liempo', 'kasim', 'giniling', 'belly', 'ham', 'bacon', 'chop']);
+  const hasSpecificBeefCut = hasAnyWord(normalized, ['sirloin', 'brisket', 'round', 'shank', 'tenderloin', 'ribeye']);
+  const hasSpecificChickenCut = hasAnyWord(normalized, ['breast', 'thigh', 'drumstick', 'wing', 'fillet', 'quarter']);
+  const hasSpecificRiceVariant = hasAnyWord(normalized, [
+    'jasmine',
+    'sinandomeng',
+    'dinorado',
+    'malagkit',
+    'brown',
+    'nfa',
+    'well-milled',
+    'well',
+    'adlai'
+  ]);
+
+  if ((hasAnyWord(normalized, ['pork', 'pig']) || /meat\s+pork/i.test(normalized)) && !hasSpecificPorkCut) {
+    return { canonicalText: 'Pork Meat', source: 'rules' };
+  }
+
+  if (hasAnyWord(normalized, ['beef', 'cow']) && !hasSpecificBeefCut) {
+    return { canonicalText: 'Beef Meat', source: 'rules' };
+  }
+
+  if (hasAnyWord(normalized, ['chicken', 'poultry']) && !hasSpecificChickenCut) {
+    return { canonicalText: 'Chicken Meat', source: 'rules' };
+  }
+
+  if (hasAnyWord(normalized, ['onion', 'onions'])) {
+    return { canonicalText: 'Onion', source: 'rules' };
+  }
+
+  if (hasAnyWord(normalized, ['garlic'])) {
+    return { canonicalText: 'Garlic', source: 'rules' };
+  }
+
+  if (hasAnyWord(normalized, ['tomato', 'tomatoes'])) {
+    return { canonicalText: 'Tomato', source: 'rules' };
+  }
+
+  if (hasAnyWord(normalized, ['carrot', 'carrots'])) {
+    return { canonicalText: 'Carrot', source: 'rules' };
+  }
+
+  if (hasAnyWord(normalized, ['potato', 'potatoes'])) {
+    return { canonicalText: 'Potato', source: 'rules' };
+  }
+
+  if (hasAnyWord(normalized, ['rice']) && !hasSpecificRiceVariant) {
+    return { canonicalText: 'Rice', source: 'rules' };
+  }
+
+  return {
+    canonicalText: input,
+    source: 'none'
+  };
 }
 
 function isLikelyEnglish(input: string): boolean {
@@ -155,7 +229,9 @@ export async function normalizeToEnglish(inputText: string): Promise<Translation
     return {
       original_text: inputText,
       english_text: '',
-      source: 'none'
+      source: 'none',
+      canonical_english_text: '',
+      canonical_source: 'none'
     };
   }
 
@@ -182,8 +258,14 @@ export async function normalizeToEnglish(inputText: string): Promise<Translation
   const result: TranslationResult = {
     original_text: input,
     english_text: finalOutput || input,
-    source
+    source,
+    canonical_english_text: '',
+    canonical_source: 'none'
   };
+
+  const canonical = canonicalizeEnglishText(result.english_text || input);
+  result.canonical_english_text = canonical.canonicalText || result.english_text || input;
+  result.canonical_source = canonical.source;
 
   translationCache.set(cacheKey, result);
   return result;

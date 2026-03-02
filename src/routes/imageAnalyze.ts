@@ -2,6 +2,7 @@ import multer, { MulterError } from 'multer';
 import { Router, type NextFunction, type Request, type Response } from 'express';
 import path from 'node:path';
 import { DEFAULT_REGION } from '../constants/cebuDefaults';
+import { extractPrimaryItemName } from '../services/itemNameService';
 import { analyzePrice } from '../services/priceService';
 import { detectFromImage, type VisionDetection } from '../services/visionService';
 
@@ -24,6 +25,69 @@ const upload = multer({
 });
 
 const router = Router();
+
+type RatioLevel = 'OVERPRICED' | 'FAIR' | 'GREAT DEAL' | 'STEAL';
+
+interface RatioAssessment {
+  level: RatioLevel;
+  ratio: number | null;
+  difference_percent: number | null;
+  color: string;
+  note: string;
+}
+
+function buildRatioAssessment(scannedPrice: number, fairPrice: number): RatioAssessment {
+  if (!Number.isFinite(scannedPrice) || scannedPrice <= 0 || !Number.isFinite(fairPrice) || fairPrice <= 0) {
+    return {
+      level: 'FAIR',
+      ratio: null,
+      difference_percent: null,
+      color: '#8f8f8f',
+      note: 'No submitted price to compare.'
+    };
+  }
+
+  const ratio = scannedPrice / fairPrice;
+  const differencePercent = ((scannedPrice - fairPrice) / fairPrice) * 100;
+
+  if (ratio >= 1.15) {
+    return {
+      level: 'OVERPRICED',
+      ratio: Number(ratio.toFixed(4)),
+      difference_percent: Number(differencePercent.toFixed(2)),
+      color: '#ff5f5f',
+      note: 'Submitted price is significantly above fair market.'
+    };
+  }
+
+  if (ratio >= 0.9) {
+    return {
+      level: 'FAIR',
+      ratio: Number(ratio.toFixed(4)),
+      difference_percent: Number(differencePercent.toFixed(2)),
+      color: '#1ed760',
+      note: 'Submitted price is within fair range.'
+    };
+  }
+
+  if (ratio >= 0.75) {
+    return {
+      level: 'GREAT DEAL',
+      ratio: Number(ratio.toFixed(4)),
+      difference_percent: Number(differencePercent.toFixed(2)),
+      color: '#24c9c3',
+      note: 'Submitted price is below fair market.'
+    };
+  }
+
+  return {
+    level: 'STEAL',
+    ratio: Number(ratio.toFixed(4)),
+    difference_percent: Number(differencePercent.toFixed(2)),
+    color: '#2f9bff',
+    note: 'Submitted price is far below market and may need verification.'
+  };
+}
 
 function normalizeFallbackName(value: string): string {
   return value
@@ -125,23 +189,33 @@ router.post('/analyze-image', (req: Request, res: Response, next: NextFunction) 
         return res.status(400).json({ message: 'Could not detect a product name from the image.' });
       }
 
+      const extractedItem = await extractPrimaryItemName(vision.detected_name);
+      const analysisName = extractedItem.item_name || vision.detected_name;
+
       const region = vision.region_guess || DEFAULT_REGION;
       const scannedPrice = vision.detected_price ?? null;
       const marketAnalysis = await analyzePrice({
-        name: vision.detected_name,
+        name: analysisName,
         price: scannedPrice,
         region,
         persist_submission: true
       });
+      const ratioAssessment = buildRatioAssessment(
+        Number(marketAnalysis.scanned_price ?? scannedPrice ?? 0),
+        Number(marketAnalysis.fair_market_value ?? 0)
+      );
 
       return res.json({
         vision,
         market_analysis: marketAnalysis,
+        ratio_assessment: ratioAssessment,
         text_feed: {
-          label: vision.detected_name,
+          label: analysisName,
+          raw_label: vision.detected_name,
           prompt: prompt || null,
           region
         },
+        item_extraction: extractedItem,
         display: {
           show_price: displayPrice
         },

@@ -31,6 +31,8 @@ export interface AnalyzePriceResponse {
   name: string;
   normalized_name?: string;
   translation_source?: string;
+  canonical_name?: string;
+  canonical_source?: string;
   region: string;
   scanned_price: number;
   srp_price: number | null;
@@ -278,7 +280,9 @@ export async function analyzePrice(input: AnalyzePriceInput): Promise<AnalyzePri
   const scannedPrice = toOptionalScannedPrice(input.price);
   const translation = await normalizeToEnglish(inputName);
   const normalizedName = translation.english_text || inputName;
-  const nameCandidates = dedupeNames([inputName, normalizedName]);
+  const canonicalName = translation.canonical_english_text || normalizedName;
+  const nameCandidates = dedupeNames([inputName, normalizedName, canonicalName]);
+  const effectiveName = canonicalName;
 
   const lookup = await findProductByNameAndRegion(nameCandidates, region);
   const product = lookup.product;
@@ -288,7 +292,7 @@ export async function analyzePrice(input: AnalyzePriceInput): Promise<AnalyzePri
   let onlineDiscoveredPrice: number | null = null;
   if (srpPrice === null) {
     onlineDiscoveredPrice = await enrichMissingSrpFromOnline(
-      normalizedName,
+      effectiveName,
       region,
       product?.category,
       product?.brand_name
@@ -311,6 +315,8 @@ export async function analyzePrice(input: AnalyzePriceInput): Promise<AnalyzePri
       name: inputName,
       normalized_name: normalizedName,
       translation_source: translation.source,
+      canonical_name: canonicalName,
+      canonical_source: translation.canonical_source,
       region,
       scanned_price: 0,
       srp_price: srpPrice === null ? null : Number(srpPrice.toFixed(2)),
@@ -321,7 +327,7 @@ export async function analyzePrice(input: AnalyzePriceInput): Promise<AnalyzePri
   }
 
   const aiResult = await analyzeWithDeepseek({
-    name: normalizedName,
+    name: effectiveName,
     price: scannedPrice,
     region,
     srp_price: srpPrice
@@ -332,7 +338,7 @@ export async function analyzePrice(input: AnalyzePriceInput): Promise<AnalyzePri
     productId = await persistSubmissionAsProduct(
       {
         ...input,
-        name: normalizedName,
+        name: effectiveName,
         region
       },
       aiResult.fair_market_value
@@ -345,6 +351,8 @@ export async function analyzePrice(input: AnalyzePriceInput): Promise<AnalyzePri
     name: inputName,
     normalized_name: normalizedName,
     translation_source: translation.source,
+    canonical_name: canonicalName,
+    canonical_source: translation.canonical_source,
     region,
     scanned_price: scannedPrice,
     srp_price: srpPrice === null ? null : Number(srpPrice.toFixed(2)),

@@ -155,7 +155,7 @@
         const insights = byId('insightsBox');
         const results = byId('resultsSection');
         if (title) title.textContent = `${name} Price Analysis`;
-        if (score) score.textContent = '...';
+        setScoreVisual(score, '...', '#8f8f8f');
         if (comparison) comparison.innerHTML = '<div class="price-card"><div class="price-source">Status</div><div class="price-value">Loading</div><div class="price-note">Running AI analysis</div></div>';
         if (insights) insights.textContent = 'Please wait...';
         if (results) results.classList.add('show');
@@ -166,14 +166,123 @@
         const comparison = byId('priceComparison');
         const insights = byId('insightsBox');
         const results = byId('resultsSection');
-        if (score) score.textContent = '--';
+        setScoreVisual(score, '--', '#8f8f8f');
         if (comparison) comparison.innerHTML = '';
         if (insights) insights.innerHTML = `<strong>Error:</strong> ${message}`;
         if (results) results.classList.add('show');
     }
 
+    function withAlpha(color, alphaHex) {
+        if (typeof color !== 'string') return color;
+        return /^#[0-9a-f]{6}$/i.test(color) ? `${color}${alphaHex}` : color;
+    }
+
+    function setScoreVisual(scoreElement, label, color) {
+        if (!scoreElement) return;
+        scoreElement.textContent = label;
+        scoreElement.style.color = color || '';
+        scoreElement.style.background = color ? withAlpha(color, '20') : '';
+        scoreElement.style.border = color ? `1px solid ${withAlpha(color, '55')}` : '';
+    }
+
+    function buildFallbackAssessment(scannedPrice, fairPrice) {
+        if (!(Number.isFinite(scannedPrice) && scannedPrice > 0 && Number.isFinite(fairPrice) && fairPrice > 0)) {
+            return {
+                level: 'FAIR',
+                ratio: null,
+                difference_percent: null,
+                color: '#8f8f8f',
+                note: 'No submitted price to compare.'
+            };
+        }
+
+        const ratio = scannedPrice / fairPrice;
+        const differencePercent = ((scannedPrice - fairPrice) / fairPrice) * 100;
+
+        if (ratio >= 1.15) {
+            return {
+                level: 'OVERPRICED',
+                ratio: Number(ratio.toFixed(4)),
+                difference_percent: Number(differencePercent.toFixed(2)),
+                color: '#ff5f5f',
+                note: 'Submitted price is significantly above fair market.'
+            };
+        }
+
+        if (ratio >= 0.9) {
+            return {
+                level: 'FAIR',
+                ratio: Number(ratio.toFixed(4)),
+                difference_percent: Number(differencePercent.toFixed(2)),
+                color: '#1ed760',
+                note: 'Submitted price is within fair range.'
+            };
+        }
+
+        if (ratio >= 0.75) {
+            return {
+                level: 'GREAT DEAL',
+                ratio: Number(ratio.toFixed(4)),
+                difference_percent: Number(differencePercent.toFixed(2)),
+                color: '#24c9c3',
+                note: 'Submitted price is below fair market.'
+            };
+        }
+
+        return {
+            level: 'STEAL',
+            ratio: Number(ratio.toFixed(4)),
+            difference_percent: Number(differencePercent.toFixed(2)),
+            color: '#2f9bff',
+            note: 'Submitted price is far below market and may need verification.'
+        };
+    }
+
+    function normalizeRatioAssessment(assessment, scannedPrice, fairPrice) {
+        if (!assessment || typeof assessment !== 'object') {
+            return buildFallbackAssessment(scannedPrice, fairPrice);
+        }
+
+        const level = String(assessment.level || '').toUpperCase();
+        const allowedLevels = new Set(['OVERPRICED', 'FAIR', 'GREAT DEAL', 'STEAL']);
+        if (!allowedLevels.has(level)) {
+            return buildFallbackAssessment(scannedPrice, fairPrice);
+        }
+
+        return {
+            level,
+            ratio: Number.isFinite(Number(assessment.ratio)) ? Number(assessment.ratio) : null,
+            difference_percent: Number.isFinite(Number(assessment.difference_percent))
+                ? Number(assessment.difference_percent)
+                : null,
+            color: typeof assessment.color === 'string' && assessment.color ? assessment.color : '#8f8f8f',
+            note: typeof assessment.note === 'string' && assessment.note ? assessment.note : ''
+        };
+    }
+
+    function describeInputPriceSource(source) {
+        const normalized = String(source || '').toLowerCase();
+        if (normalized === 'explicit') return 'Entered directly by user';
+        if (normalized === 'sentence-detected') return 'Detected from sentence input';
+        if (normalized === 'vision-detected') return 'Detected by camera scan';
+        return 'Scanner or user input';
+    }
+
     function renderResults(payload) {
-        const { name, scannedPrice, fairPrice, anomalyScore, showPrice, reasoning } = payload;
+        const {
+            name,
+            normalizedName,
+            canonicalName,
+            scannedPrice,
+            fairPrice,
+            showPrice,
+            reasoning,
+            ratioAssessment,
+            inputPriceSource,
+            translationSource,
+            canonicalSource,
+            extractionSource
+        } = payload;
         const title = byId('resultProduct');
         const score = byId('fairnessScore');
         const comparison = byId('priceComparison');
@@ -184,9 +293,21 @@
         if (title) title.textContent = `${name} Price Analysis`;
 
         if (!showPrice) {
-            if (score) score.textContent = 'LABEL';
+            setScoreVisual(score, 'LABEL', '#8f8f8f');
             if (comparison) {
-                comparison.innerHTML = `<div class="price-card"><div class="price-source">Detected Label</div><div class="price-value">${name}</div><div class="price-note">Price hidden by prompt</div></div>`;
+                const normalizedLine = normalizedName && normalizedName.toLowerCase() !== String(name).toLowerCase()
+                    ? `<div class="price-note">English: ${normalizedName}</div>`
+                    : '';
+                const canonicalLine = canonicalName && canonicalName.toLowerCase() !== String(name).toLowerCase()
+                    ? `<div class="price-note">Generalized: ${canonicalName}</div>`
+                    : '';
+                const translationLine = translationSource && translationSource !== 'none'
+                    ? `<div class="price-note">Translated to English for market matching</div>`
+                    : '';
+                comparison.innerHTML = `<div class="price-card"><div class="price-source">Detected Label</div><div class="price-value">${name}</div>${normalizedLine}${canonicalLine}<div class="price-note">Price hidden by prompt</div></div>`;
+                if (translationLine) {
+                    comparison.innerHTML += `<div class="price-card"><div class="price-source">Normalization</div><div class="price-value">READY</div>${translationLine}</div>`;
+                }
             }
             if (insights) {
                 insights.innerHTML = `<strong>Label mode:</strong> ${reasoning || 'Detected product text is ready for database use.'}`;
@@ -198,15 +319,53 @@
         const hasScanned = Number.isFinite(scannedPrice) && scannedPrice > 0;
         const hasFair = Number.isFinite(fairPrice) && fairPrice > 0;
         const delta = hasScanned && hasFair ? scannedPrice - fairPrice : 0;
-        const anomalyPercent = hasFair ? Number(anomalyScore) * 100 : 0;
+        const assessment = normalizeRatioAssessment(ratioAssessment, scannedPrice, fairPrice);
+        const hasDifference = Number.isFinite(assessment.difference_percent) && assessment.difference_percent !== null;
+        const hasRatio = Number.isFinite(assessment.ratio) && assessment.ratio !== null;
 
-        if (score) score.textContent = hasFair ? `${anomalyPercent.toFixed(2)}%` : 'N/A';
+        if (hasScanned && hasFair) {
+            setScoreVisual(score, assessment.level, assessment.color);
+        } else if (hasFair) {
+            setScoreVisual(score, 'NO INPUT PRICE', '#8f8f8f');
+        } else {
+            setScoreVisual(score, 'NO MARKET DATA', '#8f8f8f');
+        }
+
         if (comparison) {
+            const normalizedLine = normalizedName && normalizedName.toLowerCase() !== String(name).toLowerCase()
+                ? `<div class="price-note">English: ${normalizedName}</div>`
+                : '';
+            const canonicalLine = canonicalName && canonicalName.toLowerCase() !== String(name).toLowerCase()
+                ? `<div class="price-note">Generalized item: ${canonicalName}</div>`
+                : '';
+            const translationLine = translationSource && translationSource !== 'none'
+                ? `<div class="price-note">Translation source: ${translationSource}</div>`
+                : '';
+            const canonicalSourceLine = canonicalSource === 'rules'
+                ? `<div class="price-note">Grouped with similar items</div>`
+                : '';
+            const extractionLine = extractionSource && extractionSource !== 'raw'
+                ? `<div class="price-note">Item extracted from sentence text</div>`
+                : '';
+            const inputSourceLine = `<div class="price-note">${describeInputPriceSource(inputPriceSource)}</div>`;
+            const ratioLine = hasRatio ? `<div class="price-note">Ratio: ${Number(assessment.ratio).toFixed(2)}x of fair price</div>` : '';
+            const differenceTag = hasScanned && hasFair
+                ? `<span style="color:${assessment.color}; font-weight:700;">${assessment.level}</span>`
+                : 'Need both prices';
             comparison.innerHTML = `
+                <div class="price-card">
+                    <div class="price-source">Analyzed Item</div>
+                    <div class="price-value">${name}</div>
+                    ${normalizedLine}
+                    ${canonicalLine}
+                    ${translationLine}
+                    ${canonicalSourceLine}
+                    ${extractionLine}
+                </div>
                 <div class="price-card">
                     <div class="price-source">Submitted Price</div>
                     <div class="price-value">${hasScanned ? formatMoney(scannedPrice) : 'Not detected'}</div>
-                    <div class="price-note">Scanner or user input</div>
+                    ${inputSourceLine}
                 </div>
                 <div class="price-card">
                     <div class="price-source">Fair Price</div>
@@ -216,7 +375,8 @@
                 <div class="price-card">
                     <div class="price-source">Difference</div>
                     <div class="price-value">${hasScanned && hasFair ? `${delta >= 0 ? '+' : '-'}${formatMoney(Math.abs(delta))}` : 'Not available'}</div>
-                    <div class="price-note">${hasScanned && hasFair ? (delta > 0 ? 'Above fair price' : delta < 0 ? 'Below fair price' : 'At fair price') : 'Need both prices'}</div>
+                    <div class="price-note">${differenceTag}</div>
+                    ${ratioLine}
                 </div>
             `;
         }
@@ -224,12 +384,21 @@
         if (insights) {
             if (!hasFair) {
                 insights.innerHTML = '<strong>Notice:</strong> Fair price is not available yet.';
-            } else if (anomalyPercent >= 25) {
-                insights.innerHTML = `<strong>Alert:</strong> Price differs by <span style="color:#ff6b6b;">${anomalyPercent.toFixed(2)}%</span>.`;
-            } else if (anomalyPercent >= 10) {
-                insights.innerHTML = `<strong>Notice:</strong> Price differs by <span style="color:#ffaa33;">${anomalyPercent.toFixed(2)}%</span>.`;
+            } else if (!hasScanned) {
+                insights.innerHTML = '<strong>Notice:</strong> No submitted price detected. Add a price to compare against current market.';
             } else {
-                insights.innerHTML = `<strong>Good match:</strong> Price differs by <span style="color:#1ED760;">${anomalyPercent.toFixed(2)}%</span>.`;
+                const direction = Number(assessment.difference_percent) > 0
+                    ? 'above'
+                    : Number(assessment.difference_percent) < 0
+                        ? 'below'
+                        : 'equal to';
+                const differenceLine = hasDifference
+                    ? `Submitted price is <span style="color:${assessment.color};">${Math.abs(Number(assessment.difference_percent)).toFixed(2)}%</span> ${direction} market reference.`
+                    : 'Submitted price and market reference are being compared.';
+                insights.innerHTML = `<strong style="color:${assessment.color};">${assessment.level}:</strong> ${assessment.note}<br><br>${differenceLine}`;
+                if (inputPriceSource === 'sentence-detected') {
+                    insights.innerHTML += '<br><strong>Input parsing:</strong> Price value was extracted from your sentence.';
+                }
             }
             if (reasoning) insights.innerHTML += `<br><br><strong>AI reasoning:</strong> ${reasoning}`;
         }
@@ -274,14 +443,21 @@
             }
 
             renderResults({
-                name: parsed.name,
+                name: payload.name ?? parsed.name,
+                normalizedName: payload.normalized_name ?? parsed.name,
+                canonicalName: payload.canonical_name ?? payload.normalized_name ?? parsed.name,
                 scannedPrice: Number(payload.scanned_price ?? parsed.price ?? 0),
                 fairPrice: Number(payload.fairPrice ?? payload.fair_market_value ?? 0),
-                anomalyScore: Number(payload.anomalyScore ?? 0),
                 showPrice: payload.display?.show_price ?? showPriceRequest,
-                reasoning: payload.reasoning
+                reasoning: payload.reasoning,
+                ratioAssessment: payload.ratio_assessment ?? null,
+                inputPriceSource: payload.input_price_source ?? (parsed.price ? 'explicit' : 'none'),
+                translationSource: payload.translation_source ?? 'none',
+                canonicalSource: payload.canonical_source ?? 'none',
+                extractionSource: payload.item_extraction?.source ?? 'raw'
             });
-            showNotification(`Analysis complete for ${parsed.name.substring(0, 40)}`);
+            const displayName = String(payload.name ?? parsed.name);
+            showNotification(`Analysis complete for ${displayName.substring(0, 40)}`);
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Service request failed.';
             renderError(message);
@@ -315,10 +491,9 @@
 
             const vision = payload.vision || {};
             const market = payload.market_analysis || {};
-            const name = vision.detected_name || market.name || 'Detected Product';
+            const name = market.name || vision.detected_name || 'Detected Product';
             const scannedPrice = Number(market.scanned_price ?? vision.detected_price ?? 0);
             const fairPrice = Number(market.fair_market_value ?? 0);
-            const anomalyScore = fairPrice > 0 ? Math.abs(scannedPrice - fairPrice) / fairPrice : 0;
             const shouldShowPrice = payload.display?.show_price ?? showPriceRequest;
 
             const input = byId('productInput');
@@ -329,11 +504,17 @@
             updateMetadata(name);
             renderResults({
                 name,
+                normalizedName: market.normalized_name ?? name,
+                canonicalName: market.canonical_name ?? market.normalized_name ?? name,
                 scannedPrice,
                 fairPrice,
-                anomalyScore,
                 showPrice: shouldShowPrice,
-                reasoning: market.reasoning
+                reasoning: market.reasoning,
+                ratioAssessment: payload.ratio_assessment ?? null,
+                inputPriceSource: scannedPrice > 0 ? 'vision-detected' : 'none',
+                translationSource: market.translation_source ?? 'none',
+                canonicalSource: market.canonical_source ?? 'none',
+                extractionSource: payload.item_extraction?.source ?? 'raw'
             });
 
             if (payload.vision_warning) {

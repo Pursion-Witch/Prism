@@ -26,20 +26,28 @@ const port = Number(process.env.PORT ?? 3000);
 const rootDir = path.join(__dirname, '..');
 const publicDir = path.join(rootDir, 'public');
 const baselinePath = path.join(rootDir, 'data', 'baseline.json');
+const mainPage = 'product-scanner.html';
 
-const pageRoutes: Record<string, string> = {
-  '/': 'index.html',
-  '/home': 'index.html',
-  '/index.html': 'index.html',
-  '/product-scanner': 'product-scanner.html',
-  '/product-scanner.html': 'product-scanner.html',
-  '/dashboard': 'dashboard.html',
-  '/dashboard.html': 'dashboard.html',
-  '/marketplace': 'marketplace.html',
-  '/marketplace.html': 'marketplace.html',
-  '/admin-panel': 'admin-panel.html',
-  '/admin-panel.html': 'admin-panel.html'
-};
+const pageRoutes = [
+  '/',
+  '/home',
+  '/index.html',
+  '/home-page',
+  '/home-page.html',
+  '/product-scanner',
+  '/product-scanner.html',
+  '/dashboard',
+  '/dashboard.html',
+  '/marketplace',
+  '/marketplace.html',
+  '/admin-panel',
+  '/admin-panel.html',
+  '/home-page/home-page.html',
+  '/product-scanner/product.scanner.html',
+  '/dashboard/dashboard.html',
+  '/marketplace/marketplace.html',
+  '/admin-panel/admin-panel.html'
+];
 
 app.disable('x-powered-by');
 app.use(express.json({ limit: '512kb' }));
@@ -67,9 +75,9 @@ function parsePositivePrice(value: unknown): number | null {
   return Number(parsed.toFixed(2));
 }
 
-for (const [route, fileName] of Object.entries(pageRoutes)) {
+for (const route of pageRoutes) {
   app.get(route, (_req, res) => {
-    res.sendFile(path.join(publicDir, fileName));
+    res.sendFile(path.join(publicDir, mainPage));
   });
 }
 
@@ -213,7 +221,11 @@ app.use((req, res) => {
     return res.status(404).json({ message: 'Endpoint not found.' });
   }
 
-  return res.status(404).send('Page not found.');
+  if (path.extname(req.path)) {
+    return res.status(404).send('Page not found.');
+  }
+
+  return res.sendFile(path.join(publicDir, mainPage));
 });
 
 app.use((_error: unknown, _req: Request, res: Response, _next: NextFunction) => {

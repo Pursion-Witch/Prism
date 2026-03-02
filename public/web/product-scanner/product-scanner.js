@@ -135,8 +135,13 @@
             .replace(/\s+/g, ' ')
             .trim();
 
+        const normalizedName = name || input;
+        if (!/[a-zA-Z]/.test(normalizedName)) {
+            return null;
+        }
+
         return {
-            name: name || input,
+            name: normalizedName,
             price: Number(parsedPrice.toFixed(2))
         };
     }
@@ -148,6 +153,25 @@
         button.disabled = isLoading;
         button.textContent = isLoading ? 'ANALYZING...' : 'CHECK PRICE NOW';
     }
+
+    async function analyzeImage(file) {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const res = await fetch('/api/analyze-image', {
+            method: 'POST',
+            body: formData
+        });
+
+        const payload = await res.json();
+        if (!res.ok) {
+            throw new Error(payload.message || 'Failed to analyze image.');
+        }
+
+        return payload;
+    }
+
+    window.analyzeImage = analyzeImage;
 
     let currentMode = 'basic';
 
@@ -205,6 +229,15 @@
 
         showNotification(`AI detected: ${metadata.brand}`);
     };
+
+    function sanitizeExampleChipLabels() {
+        document.querySelectorAll('.example-chip').forEach((chip) => {
+            chip.textContent = chip.textContent
+                .replace(/(?:\u20B1|₱)\s*[0-9][0-9,]*(?:\.[0-9]+)?(?:\s*\/\s*[a-zA-Z]+)?/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+        });
+    }
 
     function renderLoading(name) {
         const resultsSection = document.getElementById('resultsSection');
@@ -368,7 +401,6 @@
 
             const parsedInput = parseAnalyzeInput(productInput.value);
             if (!parsedInput) {
-                showNotification('Please enter a product with a valid price');
                 renderError('Invalid input. Example: Bigas NFA PHP 45/kilo');
                 return;
             }
@@ -386,10 +418,12 @@
             renderLoading(parsedInput.name);
 
             try {
+                const regionSelect = document.getElementById('regionSelect');
+                const region = regionSelect ? regionSelect.value : 'Metro Manila';
                 const response = await fetch('/api/analyze', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: parsedInput.name, price: parsedInput.price })
+                    body: JSON.stringify({ name: parsedInput.name, price: parsedInput.price, region })
                 });
 
                 const data = await response.json();
@@ -397,7 +431,13 @@
                     throw new Error(data.message || 'Failed to analyze price.');
                 }
 
-                showResults(parsedInput.name, parsedInput.price, data.fairPrice, data.anomalyScore);
+                const fairPrice = Number(data.fairPrice ?? data.fair_market_value ?? 0);
+                const anomalyScore = Number(
+                    data.anomalyScore ??
+                    (fairPrice > 0 ? Math.abs(parsedInput.price - fairPrice) / fairPrice : 0)
+                );
+
+                showResults(parsedInput.name, parsedInput.price, fairPrice, anomalyScore);
                 showNotification(`${currentMode.toUpperCase()} analysis complete for: ${parsedInput.name.substring(0, 30)}...`);
             } catch (error) {
                 const message = error instanceof Error ? error.message : 'Error contacting analysis service.';
@@ -408,6 +448,50 @@
             }
         });
     }
+
+    function attachImageAnalyzeInput() {
+        const imageInput = document.querySelector('input[type="file"][name="image"], input[type="file"]');
+        if (!imageInput) return;
+
+        imageInput.addEventListener('change', async (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLInputElement) || !target.files || target.files.length === 0) {
+                return;
+            }
+
+            const file = target.files[0];
+            setLoadingState(true);
+            renderLoading(file.name);
+
+            try {
+                const payload = await analyzeImage(file);
+                const market = payload.market_analysis || {};
+                const vision = payload.vision || {};
+                const detectedName = vision.detected_name || market.name || file.name;
+                const scannedPrice = Number(market.scanned_price ?? vision.detected_price ?? 0);
+                const fairPrice = Number(market.fair_market_value ?? 0);
+                const anomalyScore = fairPrice > 0 ? Math.abs(scannedPrice - fairPrice) / fairPrice : 0;
+
+                showResults(detectedName, scannedPrice, fairPrice, anomalyScore);
+
+                if (payload.low_confidence) {
+                    showNotification('Low confidence image detection. Verify before relying on this result.');
+                } else {
+                    showNotification(`Image analysis complete: ${detectedName}`);
+                }
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Image analysis failed.';
+                renderError(message);
+                showNotification(message);
+            } finally {
+                target.value = '';
+                setLoadingState(false);
+            }
+        });
+    }
+
+    attachImageAnalyzeInput();
+    sanitizeExampleChipLabels();
 
     window.switchMode('basic', { target: document.querySelector('.mode-option') });
 

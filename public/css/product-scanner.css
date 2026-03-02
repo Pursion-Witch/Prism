@@ -334,6 +334,12 @@
             font-family: 'Plus Jakarta', sans-serif;
             margin-right: 0.3rem;
         }
+
+        @media (max-width: 768px) {
+            .input-wrapper button{
+                padding: 0.7rem 1.3rem;
+            }
+        }
         .input-wrapper button:hover {
             background: #15b34e;
             transform: scale(1.02);

@@ -383,6 +383,7 @@
             max-width: 1300px;
             margin: 0 auto;
         }
+        
         .footer {
             background: #15b34e;
         }
@@ -400,6 +401,17 @@
         }
         .footer-left a:hover {
             text-decoration: underline;
+        }
+
+/*  Footer Mobile  */
+
+        @media (max-width: 768px) {
+            .footer-right{
+                font-size: 14px;
+                text-align: center;
+                overflow-wrap: break-word;
+                word-wrap: break-word;
+            }
         }
 
 /* Notification */

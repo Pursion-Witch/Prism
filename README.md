@@ -1,9 +1,45 @@
 # PRISM
-***Ai pwoered price checker and regulator***
 
-**by Team PRISM - Abuyo, de la Cruz, Egagamao, Gadon, Rapsing**
+AI-powered price checker and regulator backend for PRISM PH.
 
-University of the Philippines - Cebu - SRP Campus
+## What is implemented
 
+- Product price analysis APIs (`/api/analyze`, `/api/analyze-image`, admin APIs).
+- Document ingestion pipeline: **document file -> extracted text -> normalized JSON records -> PostgreSQL**.
+- PostgreSQL schema for products, logs, market indices, and ingestion audit trail.
+- Docker compose stack with:
+  - `postgres`
+  - `api`
+  - `etl-worker` (daily baseline sync)
+  - optional `pgadmin` profile
 
-Track: SDG 8 - Decent Work and Sustainable Growth
+## Document ingestion API
+
+### POST `/api/documents/ingest`
+
+`multipart/form-data` with:
+- `document`: file (required)
+- `source`: string (optional)
+
+Supported file extensions:
+- `.txt`, `.md`, `.json`, `.csv`, `.tsv`
+- `.ts`, `.tsx`, `.js`, `.jsx`
+- `.sql`, `.html`, `.css`
+
+Response includes:
+- ingestion metadata
+- extracted text
+- normalized records inserted into `ingested_records`
+- mirrored product inserts in `products`
+
+### GET `/api/documents/ingestions`
+
+Returns ingestion history and record counts.
+
+## Run with Docker
+
+```bash
+docker compose up --build
+```
+
+API will be available at `http://localhost:3000`.

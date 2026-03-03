@@ -28,7 +28,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql://prism:prism@postgres:5432/prism}
+      DATABASE_URL: postgresql://prism:prism@postgres:5432/prism
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       PORT: ${PORT:-3000}
       NODE_ENV: production
@@ -43,7 +43,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql://prism:prism@postgres:5432/prism}
+      DATABASE_URL: postgresql://prism:prism@postgres:5432/prism
       ETL_INTERVAL_MS: ${ETL_INTERVAL_MS:-86400000}
       NODE_ENV: production
     command: ["node", "dist/worker.js"]

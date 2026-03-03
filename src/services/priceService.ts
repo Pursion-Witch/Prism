@@ -1,6 +1,6 @@
 import { DEFAULT_CATEGORY, DEFAULT_MARKET_NAME, DEFAULT_STALL_NAME } from '../constants/cebuDefaults';
 import { query } from '../db';
-import { analyzeWithDeepseek, type DeepseekAnalysis } from './deepseekiService';
+import { analyzeWithDeepseek, type DeepseekAnalysis } from './deepseekService';
 import { lookupAveragePriceOnline } from './onlinePriceService';
 import { buildCatalogCode, upsertCatalogProductWithDb } from './productCatalogService';
 import { normalizeToEnglish } from './translationService';

@@ -11,7 +11,7 @@ import { extractPriceLinesFromText, type PriceExtractionLine } from '../services
 import { inferPriceNormalization } from '../services/unitNormalizationService';
 import { detectFromImage, extractImageTextFromDeepseek, type VisionDetection } from '../services/visionService';
 
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+const DEFAULT_IMAGE_UPLOAD_MAX_MB = 15;
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
 const INVALID_TYPE_ERROR = 'INVALID_IMAGE_TYPE';
 const MINIMUM_CONFIDENCE_HIGH = 0.82; // Strict threshold for automatic approval
@@ -34,6 +34,18 @@ const GENERIC_ITEM_TOKENS = new Set([
   'goods',
   'snack'
 ]);
+
+function resolveImageUploadMaxMb(): number {
+  const raw = Number(process.env.IMAGE_UPLOAD_MAX_MB ?? DEFAULT_IMAGE_UPLOAD_MAX_MB);
+  if (!Number.isFinite(raw) || raw < 1) {
+    return DEFAULT_IMAGE_UPLOAD_MAX_MB;
+  }
+
+  return Math.floor(raw);
+}
+
+const IMAGE_UPLOAD_MAX_MB = resolveImageUploadMaxMb();
+const MAX_FILE_SIZE_BYTES = IMAGE_UPLOAD_MAX_MB * 1024 * 1024;
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -268,7 +280,7 @@ function shouldShowPrice(prompt: string, explicitFlag: unknown): boolean {
 function getUploadErrorMessage(error: unknown): string {
   if (error instanceof MulterError) {
     if (error.code === 'LIMIT_FILE_SIZE') {
-      return 'Image file is too large. Maximum upload size is 5MB.';
+      return `Image file is too large. Maximum upload size is ${IMAGE_UPLOAD_MAX_MB}MB.`;
     }
 
     return 'Invalid image upload.';
@@ -326,7 +338,6 @@ router.post('/analyze-image', (req: Request, res: Response, next: NextFunction) 
       let visionSource: VisionSource = 'deepseek-vl';
       let imageTextError: string | null = null;
       let visionError: string | null = null;
-      let extractedPriceLines: string[] = [];
       let extractedPriceModel: string | null = null;
       let extractedPriceBest: PriceExtractionLine | null = null;
 
@@ -365,7 +376,6 @@ router.post('/analyze-image', (req: Request, res: Response, next: NextFunction) 
         // Extract price lines from text
         try {
           const extractedFromPrompt = await extractPriceLinesFromText(imageText);
-          extractedPriceLines = extractedFromPrompt.lines;
           extractedPriceModel = extractedFromPrompt.model;
           extractedPriceBest = getBestExtractedLine(extractedFromPrompt.parsed);
         } catch {

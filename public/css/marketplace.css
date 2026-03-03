@@ -1,0 +1,796 @@
+        @font-face {
+            font-family: 'Inter';
+            src: url('../fonts/Inter-Regular.woff2') format('woff2');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Neue Montreal';
+            src: url('../fonts/NeueMontreal-Regular.woff2') format('woff2');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Plus Jakarta';
+            src: url('../fonts/PlusJakartaSans-VariableFont_wght.woff2') format('woff2');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Valonik';
+            src: url('../fonts/ValonikPersonalUse-Thin.woff2') format('woff2');
+            font-display: swap;
+        }
+
+/* ----- Base ----- */
+
+        * { margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Plus Jakarta';
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4 { 
+            font-family: 'Plus Jakarta', sans-serif; 
+            font-weight: 700; 
+            letter-spacing: -0.02em; 
+            line-height: 1.2; }
+
+/* ----- Stars Background ----- */
+
+        .stars-container {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            pointer-events: none; 
+            z-index: 0; 
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute; 
+            background: white; 
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            animation: twinkle linear infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .content { 
+            position: relative; 
+            z-index: 2; }
+
+/* ----- Navbar ----- */
+
+        .navbar {
+<<<<<<<< HEAD:public/web/marketplace/marketplace.css
+            position: relative; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            padding: 1.5rem 5%; 
+            background-color: #000; 
+            z-index: 100; 
+========
+            position: sticky;
+            top: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 5%;
+            background-color: #000000;
+            z-index: 100;
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/marketplace.css
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .logo img { 
+            height: 40px; 
+            width: auto; 
+            display: block; 
+        }
+
+        .hamburger { 
+            display: none; 
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            padding: 0.5rem; 
+        }
+
+        .hamburger img {
+             width: 30px; 
+             height: 30px; 
+             filter: invert(1); 
+        }
+
+        .nav-links { 
+            display: flex; 
+            gap: clamp(1rem, 4vw, 4rem); 
+            list-style: none; 
+        }
+        
+        .nav-links a { 
+            text-decoration: none; 
+            color: #fff; font-weight: 500; 
+            font-size: 0.95rem; 
+            position: relative; 
+            padding: 0.3rem 0; 
+            transition: color 0.3s ease; 
+        }
+
+        .nav-links a span::after { 
+            content: ''; position: 
+            absolute; bottom: -2px; 
+            left: 0; width: 0; 
+            height: 2px; 
+            background: #1ED760; 
+            transition: width 0.25s; 
+        }
+
+        .nav-links a:hover span::after { 
+            width: 100%; 
+        }
+
+        .nav-links a:hover { 
+            color: #1ED760; 
+        }
+
+        @media (max-width: 768px) {
+            .hamburger { display: block; }
+            .nav-links {
+                position: fixed; 
+                top: 80px; 
+                left: 0; 
+                right: 0; 
+                background: rgba(0, 0, 0, 0.95); 
+                backdrop-filter: blur(10px);
+                flex-direction: column; 
+                align-items: center; 
+                padding: 2rem; 
+                gap: 1.5rem;
+                transform: translateY(-150%); 
+                opacity: 0; 
+                transition: all 0.3s ease; 
+                pointer-events: none;
+                border-bottom: 2px solid #1ED760; 
+                z-index: 99;
+            }
+
+            .nav-links.active { 
+                transform: translateY(0); 
+                opacity: 1; 
+                pointer-events: all; }
+        }
+
+/* ----- Marketplace Header / Seacrh / Pills  ----- */
+
+        .marketplace-header { 
+            text-align: center; 
+            padding: 3rem 5% 1rem; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+        }
+
+        .marketplace-header h1 { 
+            font-size: clamp(2.5rem, 6vw, 4rem); 
+            font-weight: 800; 
+            color: white; 
+            margin-bottom: 0.5rem; 
+        }
+
+        .marketplace-header .subhead { 
+            font-size: 1.2rem; 
+            color: #ffffff; 
+            font-weight: 400; 
+        }
+
+        .marketplace-header .subhead span { 
+            color: #1ED760; 
+            font-weight: 600; 
+        }
+
+        .marketplace-search { 
+            max-width: 800px; 
+            margin: 2rem auto; 
+            padding: 0 5%; 
+        }
+
+        .search-wrapper {
+            display: flex; 
+            align-items: center; 
+            background: #111; 
+            border: 1px solid #262626;
+            border-radius: 60px; 
+            padding: 0.3rem 0.3rem 0.3rem 1.5rem;
+        }
+
+        .search-wrapper input {
+            flex: 1; background: transparent; 
+            border: none; 
+            padding: 1rem 0.5rem; 
+            color: #fff;
+            font-size: 1rem; 
+            outline: none;
+        }
+
+        .search-wrapper button {
+            background: #1ED760; 
+            border: none; 
+            color: #000; 
+            font-weight: 600; 
+            padding: 0.8rem 2rem;
+            border-radius: 40px; 
+            cursor: pointer;
+        }
+
+<<<<<<<< HEAD:public/web/marketplace/marketplace.css
+========
+        /*  search btn mobile  */
+        @media (max-width: 768px) {
+            .search-wrapper button{
+                padding: 0.8rem 1rem;
+                cursor: pointer;
+            }
+        }
+
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/marketplace.css
+        .category-section { 
+            max-width: 1300px; 
+            margin: 2rem auto 1.5rem; 
+            padding: 0 5%; 
+        }
+
+        .category-pills {
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 0.8rem; 
+            margin-bottom: 2rem; 
+            justify-content: center;
+        }
+
+        .pill {
+            background: #111; 
+            border: 1px solid #262626; 
+            border-radius: 40px; 
+            padding: 0.6rem 1.5rem;
+            font-size: 1rem; 
+            color: #fff; 
+            cursor: pointer; 
+            transition: 0.2s;
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.5rem;
+        }
+
+        .pill:hover, .pill.active { 
+            background: #1ED760; 
+            color: #000; 
+            border-color: #1ED760; 
+        }
+
+        .icon-svg { width: 18px; height: 18px; fill: currentColor; display: inline-block; }
+
+/* ----- Main Layout: 3 columns (filters | products | chats) ----- */
+
+        .marketplace-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1.2fr;
+            gap: 1.5rem;
+            max-width: 1600px;
+            margin: 0 auto 3rem;
+            padding: 0 5%;
+        }
+
+        .left-sidebar {
+            background: #111; 
+            border: 1px solid #262626; 
+            border-radius: 32px; 
+            padding: 1.5rem;
+            height: fit-content; 
+            position: sticky; top: 100px;
+        }
+
+        .filter-section { 
+            margin-bottom: 2rem; 
+        }
+
+        .filter-title { 
+            color: #1ED760; 
+            font-weight: 600; 
+            margin-bottom: 1rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+        }
+
+        .filter-option { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            padding: 0.5rem 0; 
+            color: #ccc; 
+            cursor: pointer; 
+        }
+
+        .filter-option:hover { 
+            color: #1ED760; 
+        }
+
+        .price-range { 
+            display: flex; 
+            gap: 0.5rem; 
+            margin: 1rem 0; 
+        }
+
+        .price-range input { 
+            width: 50%; 
+            background: #1a1a1a; 
+            border: 1px solid #333; 
+            border-radius: 16px; 
+            padding: 0.5rem; 
+            color: #fff; 
+        }
+
+/* Product Grid  */
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1.2rem;
+            align-items: start;     
+        }
+
+        .product-card {
+            background: #111; 
+            border: 1px solid #262626; 
+            border-radius: 24px; 
+            overflow: hidden;
+            transition: 0.3s; 
+            cursor: pointer; 
+            display: flex; 
+            flex-direction: column;
+            width: 100%;          
+        }
+
+        .product-card:hover { 
+            border-color: #1ED760; 
+            transform: translateY(-5px); 
+            box-shadow: 0 20px 30px rgba(30,215,96,0.15); 
+        }
+
+        .product-image {
+            width: 100%; 
+            aspect-ratio: 1/1; 
+            background: #1a1a1a;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            border-bottom: 1px solid #262626;
+            font-size: 0; 
+            background-size: cover; 
+            background-position: center; 
+            background-repeat: no-repeat;
+        }
+
+        .product-info { 
+            padding: 1rem; 
+            flex: 1; display: flex; 
+            flex-direction: column; 
+        }
+
+        .product-supplier { 
+            font-size: 0.8rem; 
+            color: #1ED760; 
+            margin-bottom: 0.3rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 0.3rem; 
+        }
+
+        .product-name { 
+            font-weight: 600; 
+            font-size: 1rem; 
+            margin-bottom: 0.3rem; 
+        }
+
+        .product-price { 
+            font-size: 1.2rem; 
+            font-weight: 700; 
+            color: #1ED760;
+            margin-top: auto; 
+        }
+
+        .product-meta { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-top: 0.5rem; 
+            color: #888; 
+            font-size: 0.75rem; 
+        }
+
+        .chat-badge { 
+            background: #1ED76020; 
+            color: #1ED760; 
+            padding: 0.2rem 0.6rem; 
+            border-radius: 40px; 
+            font-size: 0.7rem; 
+            font-weight: 600; 
+        }
+
+/* Right Sidebar (chats) */
+
+        .right-sidebar {
+            background: #111; 
+            border: 1px solid #262626; 
+            border-radius: 32px;
+            display: flex; 
+            flex-direction: column; 
+            height: calc(100vh - 150px); 
+            max-height: 800px;
+            position: sticky; 
+            top: 100px;
+        }
+
+        .chat-tabs { 
+            display: flex; 
+            border-bottom: 1px solid #262626; 
+            padding: 1rem 1rem 0 1rem; 
+            gap: 1rem; 
+        }
+
+        .chat-tab { 
+            padding: 0.5rem 1rem; 
+            cursor: pointer; 
+            color: #888; 
+            border-bottom: 2px solid transparent; 
+        }
+
+        .chat-tab.active { 
+            color: #1ED760; 
+            border-bottom-color: #1ED760;
+        }
+
+        .chat-list { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 1rem; 
+        }
+
+        .chat-item { 
+            display: flex; 
+            gap: 1rem; 
+            padding: 1rem; 
+            border-radius: 16px; 
+            cursor: pointer; 
+            transition: 0.2s; 
+            margin-bottom: 0.5rem; 
+            position: relative; 
+        }
+
+        .chat-item:hover, .chat-item.active { 
+            background: #1a1a1a; 
+        }
+
+        .chat-item.active { 
+            border-left: 3px solid #1ED760; 
+        }
+
+        .chat-avatar {
+            width: 48px; 
+            height: 48px; 
+            background: #1ED76020; 
+            border-radius: 50%;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: #1ED760; 
+            font-weight: 700; 
+            position: relative;
+        }
+
+        .online-indicator { 
+            position: absolute; 
+            bottom: 2px; right: 2px; 
+            width: 10px; height: 10px; 
+            background: #1ED760; 
+            border-radius: 50%;
+            border: 2px solid #111; 
+        }
+
+        .chat-info { 
+            flex: 1; 
+        }
+
+        .chat-name { 
+            font-weight: 600; 
+            display: flex; 
+            justify-content: space-between; 
+        }
+
+        .chat-time { 
+            color: #888; 
+            font-size: 0.7rem; 
+        }
+
+        .chat-preview { 
+            color: #888; 
+            font-size: 0.8rem; 
+<<<<<<<< HEAD:public/web/marketplace/marketplace.css
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            overflow-wrap: anywhere;
+            max-width: 100%;
+========
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            max-width: 150px; 
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/marketplace.css
+        }
+
+        .unread-badge { 
+            background: #1ED760; 
+            color: #000; 
+            border-radius: 50%; 
+            width: 20px; height: 20px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 0.7rem; 
+            font-weight: 600; 
+            margin-left: auto; 
+        }
+
+        .chat-window { 
+            border-top: 1px solid #262626; 
+            display: flex; 
+            flex-direction: column; 
+            height: 400px; 
+        }
+
+        .chat-window-header { 
+            padding: 1rem; 
+            border-bottom: 1px solid #262626;
+             display: flex; 
+             align-items: center; 
+             gap: 1rem; 
+        }
+
+        .chat-window-messages { 
+            flex: 1; overflow-y: auto;
+             padding: 1rem; 
+             display: flex; 
+             flex-direction: column; 
+             gap: 1rem; 
+        }
+
+        .message { 
+            display: flex; 
+            gap: 0.5rem; 
+            max-width: 80%; 
+        }
+
+        .message.incoming { 
+            align-self: flex-start; 
+        }
+
+        .message.outgoing { 
+            align-self: flex-end; 
+            flex-direction: row-reverse; 
+        }
+
+        .message-avatar { 
+            width: 28px; 
+            height: 28px; 
+            background: #1ED76020; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 0.7rem; 
+            color: #1ED760; 
+        }
+
+        .message-bubble { 
+            background: #1a1a1a; 
+            padding: 0.6rem 1rem; 
+            border-radius: 18px; 
+            border: 1px solid #262626;
+        }
+
+        .message.outgoing .message-bubble { 
+            background: #1ED76010; 
+            border-color: #1ED76040; 
+        }
+
+        .message-text { 
+            font-size: 0.9rem; 
+        }
+
+        .message-time { 
+            font-size: 0.6rem; 
+            color: #888; 
+            margin-top: 0.2rem; 
+            text-align: right; 
+        }
+
+        .chat-input-area { 
+            padding: 1rem; 
+            border-top: 1px solid #262626; 
+            display: flex; 
+            gap: 0.5rem; 
+        }
+
+        .chat-input-area input { 
+            flex: 1; 
+            background: #1a1a1a; 
+            border: 1px solid #333; 
+            border-radius: 40px; 
+            padding: 0.8rem 1rem; 
+            color: #fff; 
+            outline: none; 
+        }
+
+        .chat-input-area input:focus { 
+            border-color: #1ED760; 
+        }
+
+        .chat-input-area button { 
+            background: #1ED760; 
+            border: none; 
+            border-radius: 40px; 
+            padding: 0.8rem 1.5rem; 
+            font-weight: 600; 
+            color: #000; 
+            cursor: pointer; 
+        }
+
+/* Footer */
+
+        .prism-section { 
+            background: #1ED760; 
+            color: #000; 
+            padding: 2rem 5%; 
+            margin-top: 4rem; 
+        }
+
+        .prism-container { 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: space-between; 
+            align-items: center; 
+            gap: 2rem; 
+            max-width: 1300px; 
+            margin: 0 auto; 
+        }
+
+<<<<<<<< HEAD:public/web/marketplace/marketplace.css
+        .footer { 
+            background: #15b34e; 
+        }
+
+        .footer-left, .footer-right pre{
+             display: flex; 
+             flex-wrap: wrap; 
+             gap: 0.5rem 1rem; 
+             align-items: center; 
+             font-family: 'Plus Jakarta', sans-serif; 
+        }
+
+        .footer-left a { 
+            color: #000; 
+            text-decoration: none; 
+            font-weight: 500; 
+        }
+
+        .footer-left a:hover { 
+            text-decoration: underline; 
+========
+/* Footer */
+
+        .prism-section {
+            background: #1ED760;
+            color: #000;
+            padding: 2rem 5%;
+            margin-top: 4rem;
+        }
+        .prism-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+        
+        .footer {
+            background: #15b34e;
+        }
+        .footer-left, .footer-right pre{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            align-items: center;
+            font-family: 'Plus Jakarta', sans-serif;
+        }
+        .footer-left a {
+            color: #000;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .footer-left a:hover {
+            text-decoration: underline;
+        }
+
+/*  Footer Mobile  */
+
+        @media (max-width: 768px) {
+            .footer-right{
+                font-size: 14px;
+                text-align: center;
+                overflow-wrap: break-word;
+                word-wrap: break-word;
+            }
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/marketplace.css
+        }
+
+        .notification {
+            position: fixed; 
+            top: 100px; 
+            right: 20px; 
+            background: #1ED760; 
+            color: #000;
+            padding: 1rem 2rem; 
+            border-radius: 60px; 
+            font-weight: 600; 
+            z-index: 9999;
+            box-shadow: 0 10px 30px black; 
+            animation: slideIn 0.2s;
+        }
+
+<<<<<<<< HEAD:public/web/marketplace/marketplace.css
+========
+/*  Notification: mobile  */
+
+        @media (max-width: 768px) {
+            .notification{
+                position: fixed;
+                text-align: center;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 70%;
+                z-index: 1000;
+            }
+        }
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/marketplace.css
+        @keyframes slideIn { from { opacity:0; transform:translateX(40px); } }
+        @keyframes slideOut { to { opacity:0; transform:translateX(40px); } }
+
+        /* responsiveness */
+        @media (max-width: 1200px) {
+            .marketplace-layout { grid-template-columns: 1fr 2fr; }
+            .right-sidebar { display: none; }
+        }
+        @media (max-width: 800px) {
+            .marketplace-layout { grid-template-columns: 1fr; }
+            .left-sidebar { display: none; }
+<<<<<<<< HEAD:public/web/marketplace/marketplace.css
+        }       
+========
+        }       
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/marketplace.css

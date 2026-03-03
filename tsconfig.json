@@ -11,7 +11,7 @@
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node16", //ignore ok ra dgway ni
-    "types": ["node", "express"],
+    // "types": ["node", "express"], // RETURNS ERROR, TEMP DISABLED
     "lib": ["ES2020"]
   },
   "include": [
@@ -22,4 +22,4 @@
   ]
 }
 
-// 
+//    

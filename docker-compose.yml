@@ -24,12 +24,20 @@ services:
     build: .
     container_name: prism-api
     restart: unless-stopped
+    env_file:
+      - .env
     depends_on:
       postgres:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://prism:prism@postgres:5432/prism
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      VISION_PROVIDER: ${VISION_PROVIDER:-auto}
+      OPENAI_VISION_MODEL: ${OPENAI_VISION_MODEL:-gpt-4o-mini}
+      DEEPSEEK_VISION_MODEL: ${DEEPSEEK_VISION_MODEL:-}
+      DEEPSEEK_VL_MODEL: ${DEEPSEEK_VL_MODEL:-}
+      DEEPSEEK_OCR_MODEL: ${DEEPSEEK_OCR_MODEL:-}
       PORT: ${PORT:-3000}
       NODE_ENV: production
     ports:
@@ -39,11 +47,15 @@ services:
     build: .
     container_name: prism-etl-worker
     restart: unless-stopped
+    env_file:
+      - .env
     depends_on:
       postgres:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://prism:prism@postgres:5432/prism
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       ETL_INTERVAL_MS: ${ETL_INTERVAL_MS:-86400000}
       NODE_ENV: production
     command: ["node", "dist/worker.js"]

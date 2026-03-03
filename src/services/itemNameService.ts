@@ -12,6 +12,7 @@ export interface ItemNameExtractionResult {
 
 const AI_TIMEOUT_MS = Number(process.env.AI_ITEM_EXTRACTION_TIMEOUT_MS ?? 8000);
 const MAX_REASONABLE_PRICE = 200000;
+const AI_TEMPERATURE = 0.2; // Slightly increase from 0 for better contextual reasoning
 
 const SENTENCE_CUT_WORDS = new Set([
   'was',
@@ -309,7 +310,7 @@ async function extractItemWithAi(rawText: string): Promise<string | null> {
         'https://api.deepseek.com/v1/chat/completions',
         {
           model,
-          temperature: 0,
+          temperature: AI_TEMPERATURE,
           response_format: { type: 'json_object' },
           messages: [
             {

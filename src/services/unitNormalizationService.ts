@@ -9,6 +9,14 @@ export interface PriceNormalizationResult {
   note: string;
 }
 
+export interface QuantityNormalizationHint {
+  submitted_quantity: number;
+  submitted_unit: string;
+  normalized_quantity: number;
+  normalized_unit: string;
+  note: string;
+}
+
 const MAX_REASONABLE_QUANTITY = 100000;
 
 function clampQuantity(value: number): number {
@@ -166,6 +174,70 @@ function normalizeQuantityAndPrice(
   };
 }
 
+function normalizeQuantityOnly(
+  quantity: number,
+  unit: string,
+  normalizedUnit: string
+): Pick<QuantityNormalizationHint, 'submitted_quantity' | 'submitted_unit' | 'normalized_quantity' | 'normalized_unit'> {
+  const safeQuantity = clampQuantity(quantity);
+  let normalizedQuantity = safeQuantity;
+
+  if (unit === 'g' && normalizedUnit === 'kg') {
+    normalizedQuantity = safeQuantity / 1000;
+  }
+  if (unit === 'ml' && normalizedUnit === 'liter') {
+    normalizedQuantity = safeQuantity / 1000;
+  }
+
+  normalizedQuantity = clampQuantity(normalizedQuantity);
+  return {
+    submitted_quantity: safeQuantity,
+    submitted_unit: unit,
+    normalized_quantity: normalizedQuantity,
+    normalized_unit: normalizedUnit
+  };
+}
+
+export function inferQuantityHint(rawText: string, itemName: string): QuantityNormalizationHint {
+  const text = sanitizeText(`${rawText} ${itemName}`.toLowerCase());
+  const isEggItem = /\begg|eggs|itlog\b/i.test(text);
+
+  if (isEggItem) {
+    const eggQuantity = inferEggQuantity(text);
+    if (eggQuantity && eggQuantity > 0) {
+      const normalized = normalizeQuantityOnly(eggQuantity, 'piece', 'piece');
+      return {
+        ...normalized,
+        note:
+          eggQuantity === 12
+            ? 'Egg quantity interpreted as one dozen (12 eggs).'
+            : `Egg quantity interpreted as ${eggQuantity} piece(s).`
+      };
+    }
+  }
+
+  const metricQuantity = inferMetricQuantity(text);
+  if (metricQuantity) {
+    const normalized = normalizeQuantityOnly(
+      metricQuantity.quantity,
+      metricQuantity.unit,
+      metricQuantity.normalizedUnit
+    );
+    return {
+      ...normalized,
+      note: `Quantity normalized from ${metricQuantity.unit} to ${metricQuantity.normalizedUnit}.`
+    };
+  }
+
+  return {
+    submitted_quantity: 1,
+    submitted_unit: 'piece',
+    normalized_quantity: 1,
+    normalized_unit: 'piece',
+    note: 'No quantity marker found. Quantity treated as one piece.'
+  };
+}
+
 export function inferPriceNormalization(rawText: string, itemName: string, submittedPrice: number): PriceNormalizationResult {
   const safePrice = roundMoney(submittedPrice);
   if (safePrice <= 0) {
@@ -179,34 +251,17 @@ export function inferPriceNormalization(rawText: string, itemName: string, submi
     };
   }
 
-  const text = sanitizeText(`${rawText} ${itemName}`.toLowerCase());
-  const isEggItem = /\begg|eggs|itlog\b/i.test(text);
-
-  if (isEggItem) {
-    const eggQuantity = inferEggQuantity(text);
-    if (eggQuantity && eggQuantity > 0) {
-      const normalized = normalizeQuantityAndPrice(safePrice, eggQuantity, 'piece', 'piece');
-      return {
-        ...normalized,
-        note:
-          eggQuantity === 12
-            ? 'Egg quantity interpreted as one dozen (12 eggs).'
-            : `Egg quantity interpreted as ${eggQuantity} piece(s).`
-      };
-    }
-  }
-
-  const metricQuantity = inferMetricQuantity(text);
-  if (metricQuantity) {
+  const hint = inferQuantityHint(rawText, itemName);
+  if (hint.normalized_quantity !== 1 || hint.normalized_unit !== 'piece') {
     const normalized = normalizeQuantityAndPrice(
       safePrice,
-      metricQuantity.quantity,
-      metricQuantity.unit,
-      metricQuantity.normalizedUnit
+      hint.submitted_quantity,
+      hint.submitted_unit,
+      hint.normalized_unit
     );
     return {
       ...normalized,
-      note: `Quantity normalized from ${metricQuantity.unit} to ${metricQuantity.normalizedUnit}.`
+      note: hint.note
     };
   }
 

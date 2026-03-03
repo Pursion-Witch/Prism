@@ -4,7 +4,7 @@ import { analyzeWithDeepseek, type DeepseekAnalysis } from './deepseekiService';
 import { lookupAveragePriceOnline } from './onlinePriceService';
 import { buildCatalogCode, upsertCatalogProductWithDb } from './productCatalogService';
 import { normalizeToEnglish } from './translationService';
-import type { PriceNormalizationResult } from './unitNormalizationService';
+import { inferQuantityHint, type PriceNormalizationResult } from './unitNormalizationService';
 
 interface ProductRow {
   id: string;
@@ -367,6 +367,58 @@ async function findHistoricalAveragePrice(names: string[], region: string): Prom
   return null;
 }
 
+async function findHistoricalNormalizedUnitPrice(
+  names: string[],
+  region: string,
+  normalizedUnit: string
+): Promise<number | null> {
+  const candidates = dedupeNames(names);
+  if (!candidates.length || !normalizedUnit) {
+    return null;
+  }
+
+  for (const name of candidates) {
+    const regionResult = await query<{ average_price: string | null }>(
+      `
+        SELECT ROUND(AVG(pl.normalized_price)::numeric, 2)::text AS average_price
+        FROM price_logs pl
+        JOIN products p ON p.id = pl.product_id
+        WHERE LOWER(p.name) = LOWER($1)
+          AND LOWER(COALESCE(p.region, '')) = LOWER($2)
+          AND LOWER(COALESCE(pl.normalized_unit, '')) = LOWER($3)
+          AND pl.normalized_price IS NOT NULL
+      `,
+      [name, region, normalizedUnit]
+    );
+
+    const regionValue = Number(regionResult.rows[0]?.average_price ?? NaN);
+    if (Number.isFinite(regionValue) && regionValue > 0) {
+      return Number(regionValue.toFixed(2));
+    }
+  }
+
+  for (const name of candidates) {
+    const fallbackResult = await query<{ average_price: string | null }>(
+      `
+        SELECT ROUND(AVG(pl.normalized_price)::numeric, 2)::text AS average_price
+        FROM price_logs pl
+        JOIN products p ON p.id = pl.product_id
+        WHERE LOWER(p.name) = LOWER($1)
+          AND LOWER(COALESCE(pl.normalized_unit, '')) = LOWER($2)
+          AND pl.normalized_price IS NOT NULL
+      `,
+      [name, normalizedUnit]
+    );
+
+    const fallbackValue = Number(fallbackResult.rows[0]?.average_price ?? NaN);
+    if (Number.isFinite(fallbackValue) && fallbackValue > 0) {
+      return Number(fallbackValue.toFixed(2));
+    }
+  }
+
+  return null;
+}
+
 async function persistSubmissionAsProduct(
   input: AnalyzePriceInput,
   fairMarketValue: number
@@ -454,9 +506,22 @@ export async function analyzePrice(input: AnalyzePriceInput): Promise<AnalyzePri
   }
 
   if (scannedPrice === null) {
-    const inferredFairPrice = srpPrice ?? (await findHistoricalAveragePrice(nameCandidates, region));
+    const quantityHint = inferQuantityHint(input.raw_input ?? '', effectiveName);
+    const unitPrice = await findHistoricalNormalizedUnitPrice(
+      nameCandidates,
+      region,
+      quantityHint.normalized_unit
+    );
+    const quantityAdjustedFairPrice =
+      unitPrice && quantityHint.normalized_quantity > 0
+        ? Number((unitPrice * quantityHint.normalized_quantity).toFixed(2))
+        : null;
+
+    const inferredFairPrice = quantityAdjustedFairPrice ?? srpPrice ?? (await findHistoricalAveragePrice(nameCandidates, region));
     const fairMarketValue = inferredFairPrice ?? 0;
-    const reasoning = inferredFairPrice
+    const reasoning = quantityAdjustedFairPrice
+      ? `No scanned price was provided. PRISM estimated package fair value using historical ${quantityHint.normalized_unit} unit pricing and detected quantity.`
+      : inferredFairPrice
       ? onlineDiscoveredPrice !== null
         ? 'No scanned price was provided. PRISM used web listings to estimate the average price and stored it in the local database.'
         : 'No scanned price was provided, so PRISM used existing market records for this product.'

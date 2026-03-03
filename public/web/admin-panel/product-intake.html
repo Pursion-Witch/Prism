@@ -18,7 +18,7 @@
                 <img src="/images/menu.png" alt="Menu">
             </button>
             <ul class="nav-links" id="navLinks">
-                <li><a href="/web/home-page/home-page.html"><span>HOME</span></a></li>
+                <li><a href="/web/home-page/hjome-page.html"><span>HOME</span></a></li>
                 <li><a href="/web/product-scanner/product.scanner.html"><span>PRODUCT SCANNER</span></a></li>
                 <li><a href="/web/dashboard/dashboard.html"><span>DASHBOARD</span></a></li>
                 <li><a href="/web/marketplace/marketplace.html"><span>MARKETPLACE</span></a></li>
@@ -80,20 +80,37 @@
                             Select Document
                             <input type="file" id="document" name="document" accept=".txt,.csv,.json,.md" required>
                         </label>
-                        <button type="submit" class="btn-primary" id="uploadSubmitBtn">Upload and Import</button>
+                        <div class="button-row">
+                            <button type="submit" class="btn-primary" id="uploadSubmitBtn">Upload and Import</button>
+                            <button type="button" class="btn-danger" id="clearAllBtn">Clear All Prices</button>
+                        </div>
                     </form>
-                    <div class="hint">
-                        Recommended formats:
-                        <code>name,price,category,brand,market,stall,region</code>
-                        or
-                        <code>Product Name - 123.45</code>
+                    <div class="file-preview" id="filePreview">
+                        <div class="file-preview-head">
+                            <strong id="filePreviewName">No file selected</strong>
+                            <span id="filePreviewMeta">Select a file to preview before AI import.</span>
+                        </div>
+                        <pre id="filePreviewText">Preview will appear here.</pre>
                     </div>
                 </article>
             </section>
 
             <section class="results card">
                 <h2>Latest Result</h2>
-                <pre id="resultBox">No operations yet.</pre>
+                <div id="resultMetrics" class="result-metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Status</div>
+                        <div class="metric-value">No operations yet</div>
+                    </div>
+                </div>
+                <div id="resultMeta" class="result-meta"></div>
+                <div class="result-table-wrap">
+                    <table id="resultTable" class="result-table"></table>
+                </div>
+                <details class="raw-result">
+                    <summary>Raw Payload</summary>
+                    <pre id="resultBox">No operations yet.</pre>
+                </details>
             </section>
         </main>
     </div>
@@ -102,3 +119,4 @@
     <script src="/web/admin-panel/product-intake.js"></script>
 </body>
 </html>
+

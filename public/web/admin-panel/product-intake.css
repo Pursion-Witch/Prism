@@ -201,12 +201,54 @@ input:focus {
     background: #15b34e;
 }
 
-.hint {
+.button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.btn-danger {
+    border: 1px solid #5e1f1f;
+    border-radius: 999px;
+    background: #2a1010;
+    color: #ffb6b6;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0.7rem 1.1rem;
+    font-family: inherit;
+}
+
+.btn-danger:hover {
+    background: #3a1313;
+}
+
+.file-preview {
     margin-top: 1rem;
-    color: #a0a0a0;
-    font-size: 0.86rem;
-    display: grid;
-    gap: 0.4rem;
+    border: 1px solid #262626;
+    border-radius: 14px;
+    background: #0a0a0a;
+    overflow: hidden;
+}
+
+.file-preview-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    align-items: baseline;
+    padding: 0.65rem 0.85rem;
+    background: #111;
+    border-bottom: 1px solid #1f1f1f;
+}
+
+.file-preview-head strong {
+    color: #e8f8ee;
+    font-size: 0.9rem;
+}
+
+.file-preview-head span {
+    color: #9aa39d;
+    font-size: 0.78rem;
+    text-align: right;
 }
 
 code {
@@ -222,8 +264,87 @@ code {
     margin-top: 1.5rem;
 }
 
-#resultBox {
+.result-metrics {
     margin-top: 0.8rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.7rem;
+}
+
+.metric-card {
+    border: 1px solid #252525;
+    border-radius: 12px;
+    background: #0d0d0d;
+    padding: 0.7rem;
+}
+
+.metric-label {
+    color: #8f9891;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.metric-value {
+    margin-top: 0.2rem;
+    color: #e9efe9;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.result-meta {
+    margin-top: 0.8rem;
+    color: #a8b2aa;
+    font-size: 0.86rem;
+}
+
+.result-table-wrap {
+    margin-top: 0.8rem;
+    border: 1px solid #262626;
+    border-radius: 12px;
+    overflow: hidden;
+    overflow-x: auto;
+}
+
+.result-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 680px;
+}
+
+.result-table th,
+.result-table td {
+    text-align: left;
+    padding: 0.6rem 0.7rem;
+    border-bottom: 1px solid #1f1f1f;
+    font-size: 0.86rem;
+}
+
+.result-table th {
+    background: #0f0f0f;
+    color: #97a19a;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.74rem;
+}
+
+.result-table tbody tr:hover {
+    background: #121212;
+}
+
+.raw-result {
+    margin-top: 0.9rem;
+}
+
+.raw-result summary {
+    cursor: pointer;
+    color: #9fa89f;
+    font-size: 0.84rem;
+}
+
+#resultBox,
+#filePreviewText {
+    margin-top: 0.45rem;
     background: #0a0a0a;
     border: 1px solid #262626;
     border-radius: 12px;
@@ -231,6 +352,8 @@ code {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     color: #d4d4d4;
+    max-height: 240px;
+    overflow-y: auto;
 }
 
 .notification {

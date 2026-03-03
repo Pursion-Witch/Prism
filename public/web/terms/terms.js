@@ -95,7 +95,7 @@
         localStorage.removeItem(TERMS_CONSENT_KEY);
         showNotification('Redirecting to homepage...');
         setTimeout(() => {
-            window.location.href = '/web/home-page/home-page.html';
+            window.location.href = '/web/home-page/hjome-page.html';
         }, 800);
     };
 
@@ -110,3 +110,4 @@
         setAcceptanceVisibility(false);
     }
 })();
+

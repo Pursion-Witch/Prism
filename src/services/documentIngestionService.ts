@@ -1,6 +1,10 @@
 import path from 'node:path';
 import { query, withDbClient } from '../db';
-import { extractProductsFromDocument, type ImportedProductEntry } from './productImportService';
+import {
+  extractProductsFromDocument,
+  type ImportedProductDraftEntry,
+  type ImportedProductEntry
+} from './productImportService';
 import { upsertCatalogProduct } from './productCatalogService';
 
 export interface DocumentRecord {
@@ -10,7 +14,7 @@ export interface DocumentRecord {
   market_name: string;
   stall_name: string;
   brand_name: string | null;
-  srp_price: number;
+  srp_price: number | null;
 }
 
 export interface DocumentIngestionResult {
@@ -19,6 +23,8 @@ export interface DocumentIngestionResult {
   file_type: string;
   source: 'ai' | 'fallback';
   record_count: number;
+  draft_count: number;
+  rows_without_price: number;
   inserted_products: number;
   updated_products: number;
   payload: {
@@ -26,28 +32,16 @@ export interface DocumentIngestionResult {
     file_type: string;
     extracted_text: string;
     records: DocumentRecord[];
+    drafts: ImportedProductDraftEntry[];
   };
 }
 
-const SUPPORTED_EXTENSIONS = new Set([
-  '.txt',
-  '.md',
-  '.json',
-  '.csv',
-  '.tsv',
-  '.ts',
-  '.tsx',
-  '.js',
-  '.jsx',
-  '.sql',
-  '.html',
-  '.css'
-]);
+const SUPPORTED_EXTENSIONS = new Set(['.txt', '.csv', '.json', '.md']);
 
 function inferFileType(filename: string): string {
   const extension = path.extname(filename).toLowerCase();
   if (!SUPPORTED_EXTENSIONS.has(extension)) {
-    throw new Error(`Unsupported document type: ${extension || 'unknown'}.`);
+    throw new Error(`Unsupported document type: ${extension || 'unknown'}. Use txt, csv, json, or md.`);
   }
 
   return extension.slice(1) || 'txt';
@@ -77,8 +71,13 @@ export async function ingestDocument(
     throw new Error('Document is empty or unreadable as UTF-8 text.');
   }
 
-  const { entries, source: parserSource } = await extractProductsFromDocument(extractedText);
+  const { entries, drafts, source: parserSource } = await extractProductsFromDocument(extractedText);
+  if (!entries.length) {
+    throw new Error('No valid product rows were found in this document.');
+  }
+
   const records = entries.map(toDocumentRecord);
+  const rowsWithoutPrice = drafts.filter((draft) => draft.srp_price === null).length;
 
   return withDbClient(async (client) => {
     await client.query('BEGIN');
@@ -90,7 +89,7 @@ export async function ingestDocument(
           VALUES ($1, $2, $3, $4, $5::jsonb)
           RETURNING id
         `,
-        [filename, source, fileType, extractedText, JSON.stringify({ source: parserSource, records })]
+        [filename, source, fileType, extractedText, JSON.stringify({ source: parserSource, records, drafts })]
       );
 
       const ingestionId = ingestionResult.rows[0]?.id;
@@ -139,13 +138,16 @@ export async function ingestDocument(
         file_type: fileType,
         source: parserSource,
         record_count: records.length,
+        draft_count: drafts.length,
+        rows_without_price: rowsWithoutPrice,
         inserted_products: insertedProducts,
         updated_products: updatedProducts,
         payload: {
           filename,
           file_type: fileType,
           extracted_text: extractedText,
-          records
+          records,
+          drafts
         }
       };
     } catch (error) {

@@ -1,5 +1,6 @@
 import multer, { MulterError } from 'multer';
 import { Router, type NextFunction, type Request, type Response } from 'express';
+import { withDbClient } from '../db';
 import {
   DEFAULT_CATEGORY,
   DEFAULT_MARKET_NAME,
@@ -33,6 +34,7 @@ const ALLOWED_DOCUMENT_MIME_TYPES = new Set([
   'text/csv',
   'application/csv',
   'application/json',
+  'text/json',
   'application/octet-stream',
   'text/markdown'
 ]);
@@ -43,7 +45,7 @@ const uploadDocument = multer({
   fileFilter: (_req, file, callback) => {
     const mimeType = file.mimetype.toLowerCase();
     const extension = file.originalname.split('.').pop()?.toLowerCase() ?? '';
-    const validExtension = ['txt', 'csv', 'json', 'md', 'tsv'].includes(extension);
+    const validExtension = ['txt', 'csv', 'json', 'md'].includes(extension);
 
     if (!ALLOWED_DOCUMENT_MIME_TYPES.has(mimeType) && !validExtension) {
       callback(new Error(INVALID_DOCUMENT_TYPE));
@@ -92,7 +94,7 @@ function getUploadErrorMessage(error: unknown): string {
   }
 
   if (error instanceof Error && error.message === INVALID_DOCUMENT_TYPE) {
-    return 'Only txt, csv, json, tsv, or md documents are allowed.';
+    return 'Only txt, csv, json, or md documents are allowed.';
   }
 
   return 'Invalid document upload.';
@@ -180,16 +182,51 @@ router.post('/products/import', (req: Request, res: Response, next: NextFunction
 
       return res.status(201).json({
         message: `Imported ${result.record_count} product rows.`,
+        filename: result.filename,
+        file_type: result.file_type,
         source: result.source,
         imported: result.record_count,
+        draft_count: result.draft_count,
+        rows_without_price: result.rows_without_price,
         inserted: result.inserted_products,
         updated: result.updated_products,
-        ingestion_id: result.ingestion_id
+        ingestion_id: result.ingestion_id,
+        records_preview: result.payload.records.slice(0, 12)
       });
     } catch (error) {
       return next(error);
     }
   });
+});
+
+router.delete('/products/prices', async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const result = await withDbClient(async (client) => {
+      await client.query('BEGIN');
+
+      try {
+        const clearPricesResult = await client.query(`UPDATE products SET srp_price = NULL WHERE srp_price IS NOT NULL`);
+        const clearIngestionsResult = await client.query(`DELETE FROM document_ingestions`);
+
+        await client.query('COMMIT');
+
+        return {
+          cleared_prices: clearPricesResult.rowCount ?? 0,
+          cleared_ingestions: clearIngestionsResult.rowCount ?? 0
+        };
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      }
+    });
+
+    return res.json({
+      message: 'All uploaded prices were cleared.',
+      ...result
+    });
+  } catch (error) {
+    return next(error);
+  }
 });
 
 router.get('/stats', async (_req: Request, res: Response, next: NextFunction) => {

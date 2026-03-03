@@ -3,10 +3,33 @@ import { Router, type NextFunction, type Request, type Response } from 'express'
 import { ingestDocument, listDocumentIngestions } from '../services/documentIngestionService';
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const INVALID_DOCUMENT_TYPE = 'INVALID_DOCUMENT_TYPE';
+const ALLOWED_DOCUMENT_MIME_TYPES = new Set([
+  'text/plain',
+  'text/csv',
+  'application/csv',
+  'application/json',
+  'text/json',
+  'text/markdown',
+  'application/octet-stream'
+]);
+const ALLOWED_DOCUMENT_EXTENSIONS = new Set(['txt', 'csv', 'json', 'md']);
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: MAX_FILE_SIZE_BYTES }
+  limits: { fileSize: MAX_FILE_SIZE_BYTES },
+  fileFilter: (_req, file, callback) => {
+    const mimeType = file.mimetype.toLowerCase();
+    const extension = file.originalname.split('.').pop()?.toLowerCase() ?? '';
+    const validExtension = ALLOWED_DOCUMENT_EXTENSIONS.has(extension);
+
+    if (!ALLOWED_DOCUMENT_MIME_TYPES.has(mimeType) && !validExtension) {
+      callback(new Error(INVALID_DOCUMENT_TYPE));
+      return;
+    }
+
+    callback(null, true);
+  }
 });
 
 const router = Router();
@@ -18,6 +41,10 @@ function uploadErrorMessage(error: unknown): string {
     }
 
     return 'Invalid document upload.';
+  }
+
+  if (error instanceof Error && error.message === INVALID_DOCUMENT_TYPE) {
+    return 'Only txt, csv, json, or md documents are allowed.';
   }
 
   return 'Invalid document upload.';

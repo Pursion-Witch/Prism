@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>PRISM - Price Intelligence</title>
+    <link rel="icon" type="image/png" href="/images/prism.favicon.png">
+    <style>
+        @font-face {
+            font-family: 'Inter';
+            src: url('../fonts/Inter-Regular.woff2');
+        }
+        @font-face {
+            font-family: 'Neue Montreal';
+            src: url('../fonts/NeueMontreal-Regular.woff2');
+        }
+        @font-face {
+            font-family: 'Plus Jakarta';
+            src: url('../fonts/PlusJakartaSans-VariableFont_wght.woff2');
+        }
+        @font-face {
+            font-family: 'Valonik';
+            src: url('../fonts/ValonikPersonalUse-Thin.woff2');
+        }
+
+/* -- Body -- */
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: black;   
+            color: white;             
+            font-family: 'Plus Jakarta', sans-serif;
+        } 
+
+/* -- New Background instead of Stars -- */
+
+        .bg-accent {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-accent div {
+            position: absolute;
+            background: rgba(30, 215, 96, 0.02); /* #1ED760 with minimal opacity */
+            border-radius: 50%;
+            filter: blur(80px);
+        }
+
+        .bg-accent-1 {
+            width: 500px;
+            height: 500px;
+            top: -100px;
+            right: -100px;
+            background: rgba(30, 215, 96, 0.03);
+        }
+
+        .bg-accent-2 {
+            width: 400px;
+            height: 400px;
+            bottom: 10%;
+            left: -150px;
+            background: rgba(30, 215, 96, 0.02);
+        }
+
+        .bg-accent-3 {
+            width: 300px;
+            height: 300px;
+            top: 40%;
+            left: 30%;
+            background: rgba(255, 255, 255, 0.01);
+            filter: blur(100px);
+        }
+
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(30, 215, 96, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(30, 215, 96, 0.02) 1px, transparent 1px);
+            background-size: 80px 80px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .navbar, .home-page, .partner-section, .problem-hero, 
+        .who-we-serve, .market-impact, .subscription, 
+        .prism-section, .footer {
+            position: relative;
+            z-index: 2;
+        }
+
+/* -- Navbar -- */
+
+        .navbar {
+            position: sticky;
+            top: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            background: rgba(0, 0, 0, 0.6); 
+            backdrop-filter: blur(40px);    
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logo img {
+            height: 30px;
+            width: auto;
+            display: block;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #fff;
+            font-weight: 500;
+            font-size: 14px;
+            font-family: 'Plus Jakarta', sans-serif;
+            position: relative;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background-color: #1ED760;
+            color: black;
+            transform: translateY(-2px);
+        }
+
+/* -- Home Page -- */
+
+        .home-page {
+            position: relative;
+            z-index: 1;
+            padding: 2rem 5% 4rem;
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            margin-top: -120px;
+        }
+
+        .home-content {
+            display: flex;
+            align-items: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .home-text {
+            flex: 1 1 400px;
+        }
+
+        .home-text h1 {
+            font-size: 60px;
+            font-weight: 800;
+            line-height: 0.75;
+            margin: 0 0 1rem 0;
+            font-family: 'Plus Jakarta', sans-serif;
+        }
+
+        .home-text span {
+            color: #1ED760;
+        }
+
+        .home-description {
+            font-size: 17px;
+            font-weight: 400;
+            line-height: 1.6;
+            margin: 0 0 2rem 0;
+            font-family: 'Plus Jakarta', sans-serif;
+            max-width: 600px;
+            margin-top: 30px;
+        }
+
+        .home-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: -30px;
+        }
+
+        .home-buttons button {
+            padding: 0.8rem 2rem;
+            border-radius: 15px;
+            font-family: 'Plus Jakarta';
+            font-weight: 500;
+            font-size: 17px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.3px;
+        }
+
+        .login {
+            background: transparent;
+            border: 2px solid #fff !important;
+            color: #fff;
+        }
+
+        .login:hover {
+            background-color: white; 
+            color: black; 
+            transform: translateY(-2px); 
+            font-weight: 600; 
+        }
+
+        .create-account {
+            background: #1ED760;
+            color: #000;
+            border: 2px solid #1ED760;
+        }
+
+        .create-account:hover {
+            background: #15b34e;
+            border-color: #15b34e;
+            transform: translateY(-2px);
+            font-weight: 600;
+        }
+
+        .dynamic-word {
+            display: inline-block;
+            min-width: 650px;
+            text-align: left;
+            vertical-align: middle;
+            position: relative;
+            height: 1.2em;
+            line-height: 0.5;
+            overflow: hidden;
+            color: #1ED760;
+        }
+
+        .word-slider {
+            display: flex;
+            flex-direction: column;
+            animation: slide-vertical 8s infinite ease-in-out;
+            transform: translateY(0);
+        }
+
+        .word-slider span {
+            display: block;
+            height: 1.2em;
+            line-height: 1;
+            color: #1ED760;
+            font-weight: 800;
+        }
+
+        @keyframes slide-vertical {
+            0%, 15% { transform: translateY(0); }              /* transparency */
+            20%, 35% { transform: translateY(-1.2em); }        /* protection */
+            40%, 55% { transform: translateY(-2.4em); }        /* integrity */
+            60%, 75% { transform: translateY(-3.6em); }        /* intelligence */
+            80%, 95% { transform: translateY(-4.8em); }        /* back to transparency (optional extra) */
+            100% { transform: translateY(0); }
+        }
+
+/* -- AI Company Intelligence Card -- */
+
+        .ai-intelligence-card {
+            flex: 0 0 340px;              
+            background: rgba(20, 20, 20, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 2rem 1.8rem;
+            border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+            overflow: hidden;                
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
+            transition: transform 0.2s ease;
+            margin-top: -80px;
+        }
+
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 0px;
+        }
+
+        .ai-badge {
+            background: #1ED760;
+            color: black;
+            font-weight: 700;
+            font-size: 0.9rem;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        .ai-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 0 0 1.5rem 0;
+            letter-spacing: -0.02em;
+        }
+
+        .ai-title span {
+            color: #1ED760;
+            display: block;
+            font-size: 2rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 2rem 0 0 0;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+            margin-bottom: 1.2rem;
+            font-weight: 400;
+            color: #e0e0e0;
+        }
+
+        .check-icon {
+            width: 24px;
+            height: 24px;
+            background: #1ED760;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            font-weight: 800;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .check-icon svg {
+            width: 16px;
+            height: 16px;
+            fill: black;
+        }
+
+        .free-tag {
+            margin-top: 1.8rem;
+            font-size: 1rem;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-top: 1px solid #2a2a2a;
+            padding-top: 1.5rem;
+        }
+
+        .free-tag strong {
+            color: #1ED760;
+            font-weight: 600;
+        }
+
+        .ai-intelligence-card {
+            --mouse-x: 50%;
+            --mouse-y: 50%;
+        }
+
+        .partner-section {
+            width: 100%;
+            max-width: 1400px;
+            margin: 3rem auto 0;
+            margin-top: -140px;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .serves-image {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .serves-image img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            opacity: 0.9;
+        }
+
+/* -- INFINITE CAROUSEL  -- */
+
+        .carousel-container {
+            width: 100%;
+            overflow: hidden;
+            padding: 1.5rem 0;
+            position: relative;
+            background: transparent;
+            margin-top: -30px;
+        }
+
+        .carousel-container::before,
+        .carousel-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 100px;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .carousel-container::before {
+            left: 0;
+        }
+
+        .carousel-container::after {
+            right: 0;
+        }
+
+        .carousel-track {
+            display: flex;
+            gap: 5rem;
+            align-items: center;
+            width: fit-content;
+            will-change: transform;
+        }
+
+        .carousel-item {
+            flex: 0 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .carousel-item img {
+            height: 60px;
+            width: auto;
+            max-width: 150px;
+            object-fit: contain;
+            filter: invert(1) brightness(1.2);
+            transition: filter 0.2s, transform 0.2s;
+            opacity: 1;
+        }
+
+        .partner-words-row {
+            display: none;
+        }
+
+/* -- Problem Hero -- */
+
+        .problem-hero {
+            margin-top: -20px;
+            position: relative;
+            z-index: 1;
+            padding: 1rem 5%;
+            background: transparent;
+            border-radius: 3rem 3rem 0 0;
+        }
+
+        .hero-content h2 {
+            font-family: 'Plus Jakarta', sans-serif;
+            font-size: 48px;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .hero-content span {
+            color: #1ED760;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            font-family: 'Plus Jakarta', sans-serif;
+            color: #ffffff;
+            margin: 1rem 0 3rem;
+            text-align: center;
+            margin-top: -40px;
+        }
+
+        .visual-area { 
+            display: flex; 
+            gap: 1.5rem; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            margin: 2rem 0; 
+        }
+
+        .visual-area span { 
+            font-size: 12px;
+            color:#ffffff;
+        }
+
+        .floating-card-good, .floating-card-bad { 
+            background: rgba(20, 20, 20, 0.7);
+            padding: 1rem; 
+            border-radius: 12px; 
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-top: -20px;
+        }
+
+.floating-card-bad:hover {
+    transform: translateY(-5px) scale(1);
+    border-color: #ff0000;
+    box-shadow: 0 20px 30px rgba(255, 68, 68, 0.3);
+}
+
+
+.floating-card-good:hover  { 
+    transform: translateY(-5px) scale(1);
+    background: #1a1a1a; 
+    padding: 1rem; 
+    border-radius: 12px; 
+    border: 1px solid #1ED760;
+    box-shadow: 0 20px 30px rgba(30, 215, 96, 0.3);
+    transition: 
+        transform 0.35s ease,
+        border-color 0.35s ease,
+        box-shadow 0.35s ease;
+}
+
+.floating-card-bad:hover  { 
+    transform: translateY(-5px) scale(1);
+    background: #1a1a1a; 
+    padding: 1rem; 
+    border-radius: 12px; 
+    border: 1px solid #ff0000;
+    box-shadow: 0 20px 30px rgba(255, 68, 68, 0.3);
+    transition: 
+        transform 0.35s ease,
+        border-color 0.35s ease,
+        box-shadow 0.35s ease;
+}
+
+        .floating-card-good small, .floating-card-bad small {
+            color: #888;
+        }
+
+        .insights {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            max-width: 1300px;
+            margin: 4rem auto 0;
+        }
+
+        .insight-box {
+            background: rgba(20, 20, 20, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 28px;
+            padding: 2rem 2rem 2rem 2rem;
+            flex: 1 1 260px;
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 20px 40px -12px black;
+            transition: 0.2s;
+            position: relative;
+            overflow: hidden;
+            margin-top: -20px;
+        }
+
+        .insight-box::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 32px;
+            padding: 2px;
+            mask-composite: exclude;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        .insight-icon {
+            display: inline-flex;
+            background: #1ED76020;
+            border-radius: 60px;
+            padding: 12px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #1ED76030;
+        }
+        .insight-icon svg {
+            width: 36px;
+            height: 36px;
+            stroke: #1ED760;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .insight-box h3 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin: 0 0 1rem 0;
+            color: white;
+        }
+
+        .insight-box p {
+            color: #888;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .insight-box p strong {
+            color: #1ED760;
+            font-weight: 500;
+        }
+
+/* -- Who we serve -- */
+
+.who-we-serve {
+    position: relative;
+    z-index: 1;
+    padding: 5rem 5%;
+    margin-top: 20px;
+}
+
+.section-title {
+    font-size: 48px;
+    font-weight: 800;
+    font-family: 'Plus Jakarta', sans-serif;
+    text-align: center;
+    margin: 0 0 3rem;
+}
+
+.section-title span{
+color:#1ED760
+}
+
+.serve-rows {
+    margin: 3.5rem 0 4rem;
+}
+
+.serve-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start; 
+    gap: 10px 2rem;
+    padding: 2.2rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.serve-row:first-of-type {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.serve-audience {
+    flex: 0 0 240px; 
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; 
+    color: #ffffff;
+    font-family: 'Plus Jakarta', sans-serif;
+}
+
+.serve-audience h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: white;
+    margin: 0;
+    padding: 0;
+    line-height: 1.2;
+}
+
+.serve-audience span {
+    color: #1ED760;
+    display: inline-block;
+    padding-bottom: 2px;
+}
+
+.serve-description {
+    flex: 1 1 0; 
+}
+
+.serve-description pre {
+    color: #ffffff;
+    font-family: 'Plus Jakarta', sans-serif;
+    line-height: 1.5;
+    margin: 0;
+    white-space: pre-wrap; 
+}
+
+        .market-title {
+            font-family: 'Plus Jakarta', sans-serif;
+            font-size: 48px;
+            font-weight: 800;
+            text-align: center;
+            margin-top: 120px;
+        }
+
+        .market-title span {
+            color: #1ED760;
+        }
+
+
+                .stats-line-container {
+            margin: 3rem 0 4rem 0;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 2.5rem 0;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem 3rem;
+        }
+
+        .stat-block {
+            flex: 1 1 160px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #888;
+            letter-spacing: 0.02em;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            padding-left: 0.8rem;
+        }
+
+        .stat-figure {
+            font-size: 2.6rem;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.1;
+            border-left: 2px solid #1ED760;
+            padding-left: 0.8rem;
+        }
+
+        .stat-figure small {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #888;
+            margin-left: 0.2rem;
+        }
+
+        .stats-footnote {
+            text-align: right;
+            font-size: 1rem;
+            color: #1ED760;
+            border-bottom: 1px solid #1ED76030;
+            padding-bottom: 0.5rem;
+            width: fit-content;
+            margin-left: auto;
+            margin-top: 0.5rem;
+            font-weight: 400;
+        }
+
+                .ai-forensics {
+            background: rgba(20, 20, 20, 0.7);
+            border: 2px solid rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin: 4rem 0;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 2rem;
+            margin-top: -10px;
+        }
+
+        .ai-badges {
+            flex: 1 1 300px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .ai-badges h2 pre{
+            font-size: 1.8rem;
+            font-family: 'Plus Jakarta', sans-serif;
+            font-weight: 700;
+            color: #1ED760;
+            margin-left: 30px;
+        }
+
+        .ai-description {
+            flex: 2 1 400px;
+            font-size: 1rem;
+            font-family: 'Plus Jakarta', sans-serif;
+            line-height: 1.8;
+            color: #888;
+            border-left: 2px solid #1ED760;
+            padding-left: 2rem;
+        }
+
+/* Subscription Title */
+
+.subscription {
+    margin-top: 120px;
+}
+
+.subscription-title {
+    font-size: 48px;
+    font-weight: 800;
+    font-family: 'Plus Jakarta', sans-serif;
+    text-align: center;
+    margin: 10px 0 3rem;
+}
+
+.subscription-title span {
+    color: #1ED760;
+}
+
+.pricing-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
+}
+
+.card {
+            background: rgba(20, 20, 20, 0.7);
+            border: 2px solid rgba(255,255,255,0.05);
+    border-radius: 32px;
+    padding: 1.2rem 1.2rem;
+    flex: 1 1 220px;
+    max-width: 260px;
+    color: white;
+    height: max-content;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+        .card.featured {
+            background: rgba(20, 20, 20, 0.7);
+            border: 2px solid rgba(255,255,255,0.05);
+    border-radius: 32px;
+    padding: 1.2rem 1.2rem;
+    flex: 1 1 220px;
+    max-width: 260px;
+    color: white;
+    height: max-content;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+        }
+
+.card:hover,
+.card.featured:hover {
+    transform: translateY(-10px);
+    border-color: #1ED760;
+    box-shadow: 0 0 40px rgba(30, 215, 96, 0.5);
+}
+
+.card img.plan-img,
+.card img.plan-imgs,
+.card img.plan-imgss {
+    filter: invert(1);
+    margin-bottom: -10px;
+}
+
+.card img.plan-img {
+    width: 30px;
+    height: auto;
+}
+
+.card img.plan-imgs,
+.card img.plan-imgss {
+    width: 90px;
+    height: auto;
+}
+
+.card h3 {
+    color: #1ED760;
+    font-size: 1.4rem;
+    font-weight: 800;
+    font-family: 'Plus Jakarta', sans-serif;
+    margin-bottom: 0.5rem;
+}
+
+.card h1 {
+    color: white;
+    font-size: 2rem;
+    font-weight: 800;
+    font-family: 'Plus Jakarta', sans-serif;
+    margin: 0.3rem 0 1rem;
+}
+
+.card h1 span {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: white;
+}
+
+.card p {
+    color: white;
+    font-family: 'Plus Jakarta', sans-serif;
+    margin-bottom: 0.5rem;
+        margin-top: -5px;
+}
+
+.card ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0 0 1.5rem 0;
+}
+
+.card li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.8rem 0;
+    font-family: 'Plus Jakarta', sans-serif;
+    color: white;
+}
+
+.card li img.checks-icon {
+    width: 18px;
+    filter: invert(1);
+    margin: 0;
+}
+
+.card li span {
+color: #888;
+}
+
+
+.prism-section {
+    background: #1ED760;
+    color: #000;
+    padding: 0;
+    position: relative;
+    z-index: 1;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    left: 0;
+    right: 0;
+}
+        .prism-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 5%;
+        }
+
+        .prism-left h2 {
+            font-size: 2rem;
+            font-weight: 900;
+            font-family: 'Valonik', sans-serif;
+        }
+
+        .prism-left span {
+            font-size: 2rem;
+            font-weight: 300;
+            font-family: 'Plus Jakarta', sans-serif;
+        }
+
+        .prism-left pre {
+            font-family: 'Plus Jakarta';
+            white-space: pre-wrap;
+            max-width: 500px;
+            color: #000000;
+            margin-top: -20px;
+        }
+
+        .agency {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            list-style: none;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .agency img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            filter: brightness(0.9);
+            transition: all 0.3s ease;
+        }
+
+/* Footer */
+
+        .footer {
+            background: #1ED760;
+            margin-top: -20px;
+        }
+
+        .footer .prism-container {
+            border-top: 1px solid rgba(0,0,0,0.2);
+            padding-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-left, .footer-right pre{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            align-items: center;
+            font-family: 'Plus Jakarta', sans-serif;
+        }
+
+        .footer-left a {
+            color: #000;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer-right pre {
+            color: #000;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer-left a:hover {
+            text-decoration: underline;
+        }
+
+
+    </style>
+</head>
+
+<body>
+
+<!-- New Background instead of Stars -->
+
+<div class="bg-accent">
+    <div class="bg-accent-1"></div>
+    <div class="bg-accent-2"></div>
+    <div class="bg-accent-3"></div>
+</div>
+<div class="bg-grid"></div>
+
+<!-- Navbar -->
+
+<nav class="navbar">
+    <div class="logo">
+        <img src="/images/prism.logo.png" alt="PRISM Logo" class="img-logo">
+    </div>
+    <ul class="nav-links" id="navLinks">
+        <li><a href="/web/home-page/hjome-page.html"><span>Home</span></a></li>
+        <li><a href="/web/product-scanner/product.scanner.html"><span>Product Scanner</span></a></li>
+        <li><a href="/web/dashboard/dashboard.html"><span>Dashboard</span></a></li>
+        <li><a href="/web/marketplace/marketplace.html"><span>Marketplace</span></a></li>
+        <li><a href="/web/admin-panel/admin-panel.html"><span>Admin Panel</span></a></li>
+    </ul>
+</nav>
+
+<!-- Home Page -->
+
+<section class="home-page" id="home">
+    <div class="home-content">
+
+        <div class="home-text">
+            <h1 class="animated-headline">
+                Bringing
+                <span class="dynamic-word">
+                        <span class="word-slider">
+                            <span>Transparency</span>
+                            <span>Protection</span>
+                            <span>Integrity</span>
+                            <span>Intelligence</span>
+                            <span>Transparency</span> 
+                        </span>
+                    </span>
+            </h1>
+            <h1>to Every Price in the Philippines</h1>
+
+            <pre class="home-description">
+PRISM uses advanced AI-powered analysis of real transaction data to detect unfair pricing and anti-corruption 
+behavior, monitor market health in real time, and protect consumers by ensuring fair and transparent market.
+            </pre>
+            <div class="home-buttons">
+                <button class="login" onclick="window.location.href='/web/login/login.html'">Login</button>
+                <button class="create-account" onclick="window.location.href='/web/create-account/create-account.html'">Get Started. It's FREE!</button>
+            </div>
+        </div>
+
+<!-- AI Company Intelligence card -->
+
+        <div class="ai-intelligence-card" id="aiCard">
+            <div class="ai-header">
+                <span class="ai-badge">New!</span>
+                <span style="color:#ccc; font-size:0.9rem;">AI Price Intelligence</span>
+            </div>
+
+            <br>
+
+            <div class="ai-title">
+                <span>Reveal market</span> price instantly
+            </div>
+
+            <ul class="feature-list">
+                <li>
+                    <span class="check-icon">
+                        <svg viewBox="0 0 24 24" width="16" height="16">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                        </svg>
+                    </span>
+                    Detect unfair pricing
+                </li>
+                <li>
+                    <span class="check-icon">
+                        <svg viewBox="0 0 24 24" width="16" height="16">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                        </svg>
+                    </span>
+                    Monitor market trends
+                </li>
+                <li>
+                    <span class="check-icon">
+                        <svg viewBox="0 0 24 24" width="16" height="16">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                        </svg>
+                    </span>
+                    Drive fair competition
+                </li>
+            </ul>
+
+            <div class="free-tag">
+                <span> </span> <strong>Free forever</strong> -  No credit card
+            </div>
+
+            <div style="font-size:0.8rem; color:#888; margin-top:1rem; border-left: 2px solid #1ED760; padding-left: 0.8rem;">
+                Built for Transparency. Powered by AI.
+            </div>
+        </div>
+    </div>
+</section>
+
+    <div class="partner-section">
+        <div class="serves-image">
+            <img src="/images/home-page.png" alt="Serves">
+        </div>
+
+<!-- INFINITE CAROUSEL -->
+
+        <div class="carousel-container">
+            <div class="carousel-track" id="carouselTrack">
+
+                <!-- first set -->
+                <div class="carousel-item"><img src="/images/da.logo.png" alt="DOA"></div>
+                <div class="carousel-item"><img src="/images/coa.logo.png" alt="COA"></div>
+                <div class="carousel-item"><img src="/images/psa.logo.png" alt="PSA"></div>
+                <div class="carousel-item"><img src="/images/dti.logos.png" alt="DTI"></div>
+                <div class="carousel-item"><img src="/images/ibon.logo.png" alt="IBON"></div>
+
+                <!-- second set -->
+                <div class="carousel-item"><img src="/images/da.logo.png" alt="DOA"></div>
+                <div class="carousel-item"><img src="/images/coa.logo.png" alt="COA"></div>
+                <div class="carousel-item"><img src="/images/psa.logo.png" alt="PSA"></div>
+                <div class="carousel-item"><img src="/images/dti.logos.png" alt="DTI"></div>
+                <div class="carousel-item"><img src="/images/ibon.logo.png" alt="IBON"></div>
+        </div>
+    </div>
+
+<!-- Problem Hero -->
+
+    <section class="problem-hero">
+        <div class="hero-content">
+            <pre> <h2>
+82% of consumers overpay 
+due to <span>hidden price distortions</span> </h2> </pre>
+            <p class="subtitle"> 
+Not because prices are higher, but because pricing lacks transparency </p>
+        </div>
+
+        <div class="visual-area">
+            <div class="floating-card-good">PHP 50 <span>per/kg</span><br><small>Rice - Fair Price</small></div>
+            <div class="floating-card-bad">PHP 280 <span>per/tray</span><br><small>Eggs - Overprice</small></div>
+            <div class="floating-card-good">PHP 150 <span>per/liter</span><br><small>Milk - Fair Price </small></div>
+            <div class="floating-card-bad">PHP 250 <span>per/kg</span><br><small>Chicken - Overprice </small></div>
+            <div class="floating-card-good">PHP 40 <span>per/loaf</span><br><small>Bread - Overprice</small></div>
+            <div class="floating-card-bad">PHP 200 <span>per/liter</span><br><small>Cooking Oil - Fair Price</small></div>
+        </div>
+
+    <div class="insights">
+        <div class="insight-box" id="insight1">
+            <div class="insight-icon">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+            </div>
+            <h3>Price Confusion</h3>
+            <p>Consumers lack live visibility into fair market value. <strong>Leaving them unsure</strong> if prices are competitively aligned with market rates.</p>
+        </div>
+        <div class="insight-box" id="insight2">
+            <div class="insight-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M3 3v18h18M7 15l3-3 3 3 5-6" stroke-width="2"/>
+                </svg>
+            </div>
+            <h3>Market Fragmentation</h3>
+            <p>Regional price variations create imbalances. This results in <strong>distorted supply-demand</strong> across interconnected local markets.</p>
+        </div>
+        <div class="insight-box" id="insight3">
+            <div class="insight-icon">
+                <svg viewBox="0 0 24 24" stroke="currentColor">
+                    <rect x="2" y="3" width="20" height="18" rx="2" ry="2"/>
+                    <line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/>
+                </svg>
+            </div>
+            <h3>Monitoring Gaps</h3>
+            <p>Manual price checking wastes time, allowing <strong>anomalies pass undetected</strong>. This result in revenue lost and inconsistent pricing. </p>
+        </div>
+    </div>
+    </section>
+
+        <section class="who-we-serve">
+            <div class="container">
+                <h1 class="section-title"> 
+                    Solution that works for <span>everyone </span> </h1>
+
+                        <div class="serve-rows">
+
+<!-- row 1 -->
+
+        <div class="serve-row">
+            <div class="serve-audience">
+                <h3> <span>
+Individuals</span> </h3>
+<h3>and families </h3>
+            </div>
+            <div class="serve-description">  <pre>Before you buy, make sure the price is truly fair. Our real-time fairness score helps Filipino individuals and 
+families instantly detect overpricing on everyday essentials. Protect your hard-earned money and make smarter 
+choices for your household every time you shop. </pre>
+                </div>
+            </div>
+
+<!-- row 2 -->
+        <div class="serve-row">
+            <div class="serve-audience">
+                <h3><span>Government</span> and agencies</h3>
+            </div>
+    <div class="serve-description">
+        <pre>
+Strengthen market oversight with real-time regional price monitoring and analytics. Detect price manipulation, 
+cartel behavior, and supply distortions using verified data insights. Integration-ready with DTI, PSA, and COA 
+systems to support faster, evidence-based enforcement and policy decisions.
+        </pre>
+    </div>
+</div>
+
+<!-- row 3 -->
+
+        <div class="serve-row">
+            <div class="serve-audience">
+                <h3><span>Local Palengke</span> and MSMEs</h3>
+            </div>
+            <div class="serve-description"> <pre>See how your supplier prices compare across your region and connect instantly with suppliers. Our AI provides 
+data-backed margin optimization and pricing guidance based on local market trends. Turn real-time intelligence 
+into a stronger competitive advantage. </pre>
+                </div>
+            </div>
+
+
+<!-- Market Impact -->
+
+<section class="market-impact">
+    <div class="container">
+        <pre class="market-title">
+<span> Smart AI </span> that watches 
+the market for you</pre>
+
+        <div class="stats-line-container">
+            <div class="stat-block">
+                <div class="stat-label">Items Monitored</div>
+                <div class="stat-figure" id="shopsCount">0</div>
+            </div>
+            <div class="stat-block">
+                <div class="stat-label">Average fairness score</div>
+                <div class="stat-figure" id="fairnessCount">0 </div>
+            </div>
+            <div class="stat-block">
+                <div class="stat-label">Anomalies flagged</div>
+                <div class="stat-figure" id="anomaliesCount">0</div>
+            </div>
+            <div class="stat-block">
+                <div class="stat-label">Active partners</div>
+                <div class="stat-figure" id="partnersCount">0</div>
+            </div>
+        </div>
+    </div>
+
+                   <div class="ai-forensics">
+                    <div class="ai-badges">
+                        <h2> <pre>Powered by AI 
+and Data Forensics </pre> </h2>
+                    </div>
+                    <p class="ai-description">
+                        Combines supervised and unsupervised anomaly clustering, and real-time API monitoring to build a secure and scalable national price intelligence network. It turns complex market data into actionable insights, helping consumers make smarter and financially sound decisions in real time.
+                    </p>
+                </div>
+</section>
+
+
+<section class="subscription">
+    <div class="subscription-container">
+        <pre class="subscription-title">
+Everything you need in
+one<span> innovative market</span> tool</pre> </div>
+
+            <div class="pricing-container">
+                <div class="card" onclick="showNotification('Selected Basic plan')">
+                    <img src="/images/basic.png" alt="Basic" class="plan-img">
+                    <h3>Basic</h3>
+                    <h1>FREE</h1>
+                    <p>Free access to basic features</p>
+                    <ul>
+                        <li><img src="/images/check.png" alt="check" class="checks-icon"> Limited price searches</li>
+                        <li><img src="/images/check.png" alt="check" class="checks-icon"> Basic trend data</li>
+                        <li><img src="/images/check.png" alt="check" class="checks-icon"> Community support</li>
+                        <li> <span>and many more... </span> </li>
+                    </ul>
+                </div>
+                
+                <div class="card featured" onclick="showNotification('Selected Enterprise plan')">
+                    <img src="/images/enterprise.svg" alt="Enterprise" class="plan-imgss">
+                    <h3>Enterprise</h3>
+                    <h1>PHP 999<span>/month</span></h1>
+                    <p>Advanced analytics + API access</p>
+                    <ul>
+                        <li><img src="/images/check.png" alt="check" class="checks-icon"> Real-time monitoring</li>
+                        <li><img src="/images/check.png" alt="check" class="checks-icon"> API access</li>
+                        <li><img src="/images/check.png" alt="check" class="checks-icon"> Team dashboard</li>
+                        <li><img src="/images/check.png" alt="check" class="checks-icon"> Dedicated support</li>
+                        <li><img src="/images/check.png" alt="check" class="checks-icon"> Custom thresholds</li>
+                        <li> <span>and many more... </span> </li>
+                    </ul>
+                </div>
+                
+                <div class="card" onclick="showNotification('Selected Premium plan')">
+                    <img src="/images/premium.png" alt="Premium" class="plan-imgs">
+                    <h3>Premium</h3>
+                    <h1>PHP 199<span>/month</span></h1>
+                    <p>Premium access to features</p>
+                    <ul>
+                        <li><img src="/images/check.png" alt="check" class="checks-icon"> Unlimited searches</li>
+                        <li><img src="/images/check.png" alt="check" class="checks-icon"> Advanced analytics</li>
+                        <li><img src="/images/check.png" alt="check" class="checks-icon"> Priority support</li>
+                        <li> <span>and many more... </span> </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+</section>
+
+<!-- Agency Section -->
+ 
+        <section class="prism-section">
+            <div class="prism-container">
+                <div class="prism-left">
+                    <h2>PRISM <span>by SRPeak</span></h2>
+                    <pre class="description">
+The next generation platform for price intelligence. 
+Built to empower Filipino individuals and organizations. 
+                    </pre>
+                </div>
+                <div class="prism-right">
+                    <ul class="agency">
+                        <li><a href="https://www.da.gov.ph/" target="_blank"><img src="/images/da.logo.png" alt="DA"></a></li>
+                        <li><a href="https://www.coa.gov.ph/" target="_blank"><img src="/images/coa.logo.png" alt="COA"></a></li>
+                        <li><a href="https://www.psa.gov.ph/" target="_blank"><img src="/images/psa.logo.png" alt="PSA"></a></li>
+                        <li><a href="https://www.dti.gov.ph/" target="_blank"><img src="/images/dti.logos.png" alt="DTI"></a></li>
+                        <li><a href="https://www.ibon.org/" target="_blank"><img src="/images/ibon.logo.png" alt="IBON"></a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+<!-- Footer -->
+
+        <footer class="prism-section footer">
+            <div class="prism-container footer-container">
+                <div class="footer-left">
+                    <span>© PRISM 2026</span>
+                    <span>|</span>
+                            <a href="/web/terms/terms.html">Terms</a>
+                    <span>|</span>
+                      <a href="/web/privacy/privacy.html">Privacy</a>
+                    <span>|</span>
+                      <a href="/web/faqs/faqs.html">FAQs</a>
+                    <span>|</span>
+                      <a href="/web/about/about.html">About</a>
+                </div>
+                <div class="footer-right">
+                    <pre>Transparency    |    Protection    |    Integrity    |    Intelligence</pre>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+<script>
+    (function() {
+        const track = document.getElementById('carouselTrack');
+        if (!track) return;
+        
+        function setupInfiniteCarousel() {
+            const originalItems = Array.from(track.children);
+            const itemCount = originalItems.length;
+            
+            if (itemCount < 20) {
+                const originalHTML = track.innerHTML;
+
+                let repeatedHTML = '';
+                for (let i = 0; i < 10; i++) {
+                    repeatedHTML += originalHTML;
+                }
+                
+                track.innerHTML = repeatedHTML;
+            }
+        }
+        
+        setupInfiniteCarousel();
+        
+        let position = 0;
+        const speed = 0.8; 
+        let animationId = null;
+        let isPaused = false;
+        
+        function animate() {
+            if (!isPaused) {
+                position -= speed;
+                
+                track.style.transform = `translateX(${position}px)`;
+                
+                if (Math.abs(position) > 10000) {
+                    position = 0;
+                }
+            }
+            
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        setTimeout(() => {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            animationId = requestAnimationFrame(animate);
+        }, 100);
+        
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+            }, 100);
+        });
+        
+        window.addEventListener('load', () => {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            animationId = requestAnimationFrame(animate);
+        });
+    })();
+</script>
+
+<script>
+
+function initCounterAnimation() {
+    const shopsElement = document.getElementById('shopsCount');
+    const fairnessElement = document.getElementById('fairnessCount');
+    const anomaliesElement = document.getElementById('anomaliesCount');
+    const partnersElement = document.getElementById('partnersCount');
+
+    if (!shopsElement || !fairnessElement || !anomaliesElement || !partnersElement) return;
+
+    function animateCounter(element, target, suffix = '') {
+        let current = 0;
+        const increment = target / 60; 
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                element.innerHTML = target.toLocaleString() + suffix;
+                clearInterval(timer);
+            } else {
+                element.innerHTML = Math.floor(current).toLocaleString() + suffix;
+            }
+        }, 33);
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCounter(shopsElement, 1240, '<small>+12% this week </small>');
+                animateCounter(fairnessElement, 82, '<small>%  ↑ 5% last quarter</small>');
+                animateCounter(anomaliesElement, 3214, '<small>12 high priority</small>');
+                animateCounter(partnersElement, 32, '<small>gov & priv</small>');
+                observer.disconnect();
+            }
+        });
+    }, { threshold: 0.5 });
+
+    const impactSection = document.querySelector('.market-impact');
+    if (impactSection) observer.observe(impactSection);
+}
+
+document.addEventListener('DOMContentLoaded', initCounterAnimation);
+
+</script>
+
+</body>
+</html>
+
+

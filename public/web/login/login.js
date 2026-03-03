@@ -93,7 +93,7 @@
             saveSession(email);
             showNotification('Login successful. Redirecting...');
             setTimeout(() => {
-                window.location.href = '/web/home-page/home-page.html';
+                window.location.href = '/web/home-page/hjome-page.html';
             }, 700);
         }
 
@@ -133,3 +133,4 @@
         wireLogin();
     });
 })();
+

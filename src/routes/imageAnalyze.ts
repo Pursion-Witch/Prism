@@ -5,7 +5,7 @@ import { extractPriceFromSentence, extractPrimaryItemName } from '../services/it
 import { extractTextFromImageBuffer } from '../services/ocrService';
 import { analyzePrice } from '../services/priceService';
 import { inferPriceNormalization } from '../services/unitNormalizationService';
-import { detectFromImage, type VisionDetection } from '../services/visionService';
+import { detectFromImage, extractImageTextFromDeepseek, type VisionDetection } from '../services/visionService';
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
@@ -44,12 +44,23 @@ const router = Router();
 
 type RatioLevel = 'OVERPRICED' | 'FAIR' | 'GREAT DEAL' | 'STEAL';
 
+type VisionSource = 'deepseek-vl' | 'deepseek-ocr' | 'deepseek-vl+ocr' | 'ocr-fallback' | 'ai-vision-fallback';
+
 interface RatioAssessment {
   level: RatioLevel;
   ratio: number | null;
   difference_percent: number | null;
   color: string;
   note: string;
+}
+
+function clampConfidence(value: number, minimum: number): number {
+  if (!Number.isFinite(value)) {
+    return minimum;
+  }
+
+  const clamped = Math.max(minimum, Math.min(1, value));
+  return Number(clamped.toFixed(2));
 }
 
 function buildRatioAssessment(scannedPrice: number, fairPrice: number): RatioAssessment {
@@ -198,44 +209,61 @@ router.post('/analyze-image', (req: Request, res: Response, next: NextFunction) 
 
       const prompt = typeof req.body?.prompt === 'string' ? req.body.prompt.trim() : '';
       const displayPrice = shouldShowPrice(prompt, req.body?.show_price);
+      const base64Image = req.file.buffer.toString('base64');
+
       let vision: VisionDetection | null = null;
-      let ocrText = '';
-      let visionSource: 'ai-vision' | 'ocr-fallback' = 'ai-vision';
+      let imageText = '';
+      let textConfidence = 0;
+      let visionSource: VisionSource = 'deepseek-vl';
 
       try {
-        vision = await detectFromImage(req.file.buffer.toString('base64'), mimeType);
+        const textExtraction = await extractImageTextFromDeepseek(base64Image, mimeType);
+        imageText = textExtraction.text;
+        textConfidence = textExtraction.confidence;
+        visionSource = textExtraction.source;
       } catch {
-        vision = null;
+        imageText = '';
       }
 
-      if (!vision || !vision.detected_name || vision.confidence < MINIMUM_CONFIDENCE || isGenericItemName(vision.detected_name)) {
+      if (!imageText) {
         try {
-          ocrText = await extractTextFromImageBuffer(req.file.buffer);
+          imageText = await extractTextFromImageBuffer(req.file.buffer);
+          if (imageText) {
+            textConfidence = 0.28;
+            visionSource = 'ocr-fallback';
+          }
+        } catch {
+          imageText = '';
+        }
+      }
+
+      if (imageText) {
+        const extractedFromText = await extractPrimaryItemName(imageText);
+        const extractedName = extractedFromText.item_name || '';
+        if (extractedName && !isGenericItemName(extractedName)) {
+          vision = {
+            detected_name: extractedName,
+            detected_price: extractPriceFromSentence(imageText),
+            region_guess: DEFAULT_REGION,
+            confidence: clampConfidence(textConfidence, 0.35)
+          };
+        }
+      }
+
+      if (!vision) {
+        try {
+          vision = await detectFromImage(base64Image, mimeType);
+          visionSource = 'ai-vision-fallback';
         } catch {
           return imageCannotBeAnalyzedResponse(res);
         }
+      }
 
-        if (!ocrText) {
-          return imageCannotBeAnalyzedResponse(res);
-        }
-
-        const ocrExtractedItem = await extractPrimaryItemName(ocrText);
-        const ocrName = ocrExtractedItem.item_name || '';
-        if (!ocrName || isGenericItemName(ocrName)) {
-          return imageCannotBeAnalyzedResponse(res);
-        }
-
-        vision = {
-          detected_name: ocrName,
-          detected_price: extractPriceFromSentence(ocrText),
-          region_guess: DEFAULT_REGION,
-          confidence: 0.35
-        };
-        visionSource = 'ocr-fallback';
+      if (!vision || !vision.detected_name || vision.confidence < MINIMUM_CONFIDENCE || isGenericItemName(vision.detected_name)) {
+        return imageCannotBeAnalyzedResponse(res);
       }
 
       const detectedVision = vision;
-
       const extractedItem = await extractPrimaryItemName(detectedVision.detected_name);
       const analysisName = extractedItem.item_name || detectedVision.detected_name;
       if (!analysisName || isGenericItemName(analysisName)) {
@@ -244,7 +272,7 @@ router.post('/analyze-image', (req: Request, res: Response, next: NextFunction) 
 
       const region = detectedVision.region_guess || DEFAULT_REGION;
       const scannedPrice = detectedVision.detected_price ?? null;
-      const rawScanText = ocrText || detectedVision.detected_name;
+      const rawScanText = imageText || detectedVision.detected_name;
       const quantityNormalization =
         scannedPrice !== null ? inferPriceNormalization(rawScanText, analysisName, scannedPrice) : null;
       const marketAnalysis = await analyzePrice({
@@ -278,7 +306,7 @@ router.post('/analyze-image', (req: Request, res: Response, next: NextFunction) 
         display: {
           show_price: displayPrice
         },
-        ...(ocrText ? { ocr_text: ocrText } : {}),
+        ...(imageText ? { ocr_text: imageText, image_text_source: visionSource } : {}),
         ...(detectedVision.confidence < 0.4 ? { low_confidence: true } : {})
       });
     } catch (error) {

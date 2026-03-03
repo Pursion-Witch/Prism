@@ -1,4 +1,5 @@
-﻿import axios, { isAxiosError } from 'axios';
+import axios, { isAxiosError } from 'axios';
+import { getDeepseekTextModelCandidates } from './deepseekModelService';
 import { parseJsonResponse, requireEnv, sanitizeText } from './serviceUtils';
 
 export type DeepseekVerdict = 'OVERPRICED' | 'FAIR' | 'GREAT DEAL' | 'STEAL';
@@ -59,63 +60,85 @@ function buildSystemPrompt(): string {
   ].join('\n');
 }
 
+async function requestDeepseekAnalysis(
+  input: DeepseekRequestInput,
+  apiKey: string,
+  model: string
+): Promise<DeepseekAnalysis> {
+  const response = await axios.post(
+    'https://api.deepseek.com/v1/chat/completions',
+    {
+      model,
+      temperature: 0.1,
+      response_format: { type: 'json_object' },
+      messages: [
+        {
+          role: 'system',
+          content: buildSystemPrompt()
+        },
+        {
+          role: 'user',
+          content: JSON.stringify({
+            name: input.name,
+            price: input.price,
+            region: input.region,
+            srp_price: input.srp_price ?? null
+          })
+        }
+      ]
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      timeout: 20000
+    }
+  );
+
+  const rawContent = response.data?.choices?.[0]?.message?.content;
+  if (typeof rawContent !== 'string' || !rawContent.trim()) {
+    throw new Error('AI response content is empty.');
+  }
+
+  const parsed = parseJsonResponse(rawContent);
+  return validateDeepseekOutput(parsed);
+}
+
+function formatModelFailure(error: unknown): string {
+  if (isAxiosError(error)) {
+    const status = error.response?.status;
+    const details = status ? `status ${status}` : 'network failure';
+    return `service unavailable (${details})`;
+  }
+
+  if (error instanceof SyntaxError) {
+    return 'service returned malformed JSON';
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return 'unknown error';
+}
+
 export async function analyzeWithDeepseek(input: DeepseekRequestInput): Promise<DeepseekAnalysis> {
   const apiKey = requireEnv('DEEPSEEK_API_KEY');
+  const modelCandidates = getDeepseekTextModelCandidates();
+  const failures: string[] = [];
 
-  try {
-    const response = await axios.post(
-      'https://api.deepseek.com/v1/chat/completions',
-      {
-        model: process.env.DEEPSEEK_MODEL ?? 'deepseek-chat',
-        temperature: 0.1,
-        response_format: { type: 'json_object' },
-        messages: [
-          {
-            role: 'system',
-            content: buildSystemPrompt()
-          },
-          {
-            role: 'user',
-            content: JSON.stringify({
-              name: input.name,
-              price: input.price,
-              region: input.region,
-              srp_price: input.srp_price ?? null
-            })
-          }
-        ]
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 20000
-      }
-    );
-
-    const rawContent = response.data?.choices?.[0]?.message?.content;
-    if (typeof rawContent !== 'string' || !rawContent.trim()) {
-      throw new Error('AI response content is empty.');
+  for (const model of modelCandidates) {
+    try {
+      return await requestDeepseekAnalysis(input, apiKey, model);
+    } catch (error) {
+      failures.push(`${model}: ${formatModelFailure(error)}`);
     }
-
-    const parsed = parseJsonResponse(rawContent);
-    return validateDeepseekOutput(parsed);
-  } catch (error) {
-    if (isAxiosError(error)) {
-      const status = error.response?.status;
-      const details = status ? `status ${status}` : 'network failure';
-      throw new Error(`AI service unavailable (${details}).`);
-    }
-
-    if (error instanceof SyntaxError) {
-      throw new Error('AI service returned malformed JSON.');
-    }
-
-    if (error instanceof Error) {
-      throw new Error(`AI analysis failed: ${error.message}`);
-    }
-
-    throw new Error('AI analysis failed due to an unknown error.');
   }
+
+  if (!failures.length) {
+    throw new Error('AI analysis failed: no DeepSeek text model is configured.');
+  }
+
+  throw new Error(`AI analysis failed across configured models. ${failures.join(' | ')}`);
 }

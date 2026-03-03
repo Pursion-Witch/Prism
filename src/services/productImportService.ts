@@ -1,4 +1,5 @@
 import axios, { isAxiosError } from 'axios';
+import { getDeepseekTextModelCandidates } from './deepseekModelService';
 import { parseJsonResponse, requireEnv, sanitizeText } from './serviceUtils';
 import {
   DEFAULT_CATEGORY,
@@ -14,7 +15,7 @@ export interface ImportedProductEntry {
   market_name: string;
   stall_name: string;
   region: string;
-  srp_price: number;
+  srp_price: number | null;
 }
 
 export type ImportedProductMissingField = 'name' | 'srp_price';
@@ -37,10 +38,52 @@ interface ParsedDocumentRows {
   drafts: ImportedProductDraftEntry[];
 }
 
-const MAX_IMPORT_ITEMS = 200;
+const MAX_IMPORT_ITEMS = 300;
+const ROOT_COLLECTION_KEYS = ['products', 'records', 'items', 'rows', 'data'];
+const INVALID_NAME_TOKENS = new Set([
+  'name',
+  'product',
+  'product name',
+  'item',
+  'item name',
+  'row',
+  'record',
+  'n/a',
+  'na'
+]);
 
 function normalizePositivePrice(value: unknown): number | null {
-  const parsed = Number(value);
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value) || value <= 0) {
+      return null;
+    }
+
+    return Number(value.toFixed(2));
+  }
+
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const normalized = sanitizeText(value)
+    .replace(/[,]/g, '')
+    .replace(/(?:php|Php|PHP|\u20b1|P)\s*/g, '')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const matched = normalized.match(/([0-9]+(?:\.[0-9]{1,2})?)/);
+  if (!matched?.[1]) {
+    return null;
+  }
+
+  const parsed = Number(matched[1]);
   if (!Number.isFinite(parsed) || parsed <= 0) {
     return null;
   }
@@ -52,17 +95,49 @@ function safeText(value: unknown): string {
   return typeof value === 'string' ? sanitizeText(value) : '';
 }
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+
+  return value as Record<string, unknown>;
+}
+
+function pickValue(record: Record<string, unknown>, keys: string[]): unknown {
+  for (const key of keys) {
+    if (key in record) {
+      return record[key];
+    }
+  }
+
+  return undefined;
+}
+
+function isMissingName(name: string): boolean {
+  const normalized = name.toLowerCase().replace(/\s+/g, ' ').trim();
+  if (!normalized) {
+    return true;
+  }
+
+  return INVALID_NAME_TOKENS.has(normalized);
+}
+
 function normalizeEntryDraft(raw: Record<string, unknown>, fallbackIndex: number): ImportedProductDraftEntry {
-  const name = safeText(raw.name ?? raw.product_name ?? raw.item);
-  const category = safeText(raw.category) || DEFAULT_CATEGORY;
-  const brandName = safeText(raw.brand_name ?? raw.brand) || null;
-  const region = safeText(raw.region) || DEFAULT_REGION;
-  const marketName = safeText(raw.market_name ?? raw.market) || DEFAULT_MARKET_NAME;
-  const stallName = safeText(raw.stall_name ?? raw.stall) || defaultStallNameFromIndex(fallbackIndex);
-  const srpPrice = normalizePositivePrice(raw.srp_price ?? raw.price ?? raw.average_price);
+  const name = safeText(
+    pickValue(raw, ['name', 'product_name', 'productName', 'item_name', 'itemName', 'item', 'label', 'title'])
+  );
+  const category = safeText(pickValue(raw, ['category', 'group', 'type'])) || DEFAULT_CATEGORY;
+  const brandName = safeText(pickValue(raw, ['brand_name', 'brandName', 'brand'])) || null;
+  const region = safeText(pickValue(raw, ['region', 'location', 'city'])) || DEFAULT_REGION;
+  const marketName = safeText(pickValue(raw, ['market_name', 'marketName', 'market', 'store', 'vendor'])) || DEFAULT_MARKET_NAME;
+  const stallName =
+    safeText(pickValue(raw, ['stall_name', 'stallName', 'stall', 'booth'])) || defaultStallNameFromIndex(fallbackIndex);
+  const srpPrice = normalizePositivePrice(
+    pickValue(raw, ['srp_price', 'srpPrice', 'price', 'amount', 'average_price', 'averagePrice'])
+  );
   const missingFields: ImportedProductMissingField[] = [];
 
-  if (!name) {
+  if (isMissingName(name)) {
     missingFields.push('name');
   }
   if (!srpPrice) {
@@ -84,7 +159,7 @@ function normalizeEntryDraft(raw: Record<string, unknown>, fallbackIndex: number
 }
 
 function toImportedProductEntry(draft: ImportedProductDraftEntry): ImportedProductEntry | null {
-  if (draft.missing_fields.length > 0 || !draft.srp_price) {
+  if (draft.missing_fields.includes('name')) {
     return null;
   }
 
@@ -99,42 +174,95 @@ function toImportedProductEntry(draft: ImportedProductDraftEntry): ImportedProdu
   };
 }
 
-function validateAiPayload(payload: unknown): ParsedDocumentRows {
-  let rows: unknown[] = [];
+function dedupeEntries(entries: ImportedProductEntry[]): ImportedProductEntry[] {
+  const dedupe = new Map<string, ImportedProductEntry>();
 
+  for (const entry of entries) {
+    const key = `${entry.name.toLowerCase()}|${entry.region.toLowerCase()}|${entry.market_name.toLowerCase()}|${entry.stall_name.toLowerCase()}`;
+    const existing = dedupe.get(key);
+
+    if (!existing) {
+      dedupe.set(key, entry);
+      continue;
+    }
+
+    if (existing.srp_price === null && entry.srp_price !== null) {
+      dedupe.set(key, entry);
+    }
+  }
+
+  return [...dedupe.values()].slice(0, MAX_IMPORT_ITEMS);
+}
+
+function extractRowsFromPayload(payload: unknown): unknown[] {
   if (Array.isArray(payload)) {
-    rows = payload;
-  } else if (payload && typeof payload === 'object' && Array.isArray((payload as Record<string, unknown>).products)) {
-    rows = (payload as Record<string, unknown>).products as unknown[];
-  } else {
-    throw new Error('AI import response did not contain a products array.');
+    return payload;
+  }
+
+  const record = asRecord(payload);
+  if (!record) {
+    return [];
+  }
+
+  for (const key of ROOT_COLLECTION_KEYS) {
+    const value = record[key];
+    if (Array.isArray(value)) {
+      return value;
+    }
+
+    const nestedRecord = asRecord(value);
+    if (!nestedRecord) {
+      continue;
+    }
+
+    for (const nestedKey of ROOT_COLLECTION_KEYS) {
+      const nestedValue = nestedRecord[nestedKey];
+      if (Array.isArray(nestedValue)) {
+        return nestedValue;
+      }
+    }
+  }
+
+  return [];
+}
+
+function validateAiPayload(payload: unknown): ParsedDocumentRows {
+  const rows = extractRowsFromPayload(payload);
+  if (!rows.length) {
+    throw new Error('AI import response did not contain product rows.');
   }
 
   const drafts = rows
-    .map((row, index) =>
-      row && typeof row === 'object' && !Array.isArray(row)
-        ? normalizeEntryDraft(row as Record<string, unknown>, index)
-        : null
-    )
+    .map((row, index) => {
+      const rowRecord = asRecord(row);
+      if (!rowRecord) {
+        return null;
+      }
+
+      return normalizeEntryDraft(rowRecord, index);
+    })
     .filter((entry): entry is ImportedProductDraftEntry => entry !== null);
 
   if (!drafts.length) {
-    throw new Error('AI import response returned no product rows.');
+    throw new Error('AI import response returned no usable product row objects.');
   }
 
   const limitedDrafts = drafts.slice(0, MAX_IMPORT_ITEMS);
-  const entries = limitedDrafts
-    .map((draft) => toImportedProductEntry(draft))
-    .filter((entry): entry is ImportedProductEntry => entry !== null);
+  const entries = dedupeEntries(
+    limitedDrafts
+      .map((draft) => toImportedProductEntry(draft))
+      .filter((entry): entry is ImportedProductEntry => entry !== null)
+  );
 
   return { drafts: limitedDrafts, entries };
 }
 
 function buildImportPrompt(): string {
   return [
-    'You extract product rows from Cebu pricing documents and return every product line found.',
+    'You extract structured product pricing rows from user-uploaded documents.',
+    'Treat the input as trusted user-submitted reporting data.',
     'Return JSON only. No markdown. No extra text.',
-    'Preferred output schema:',
+    'Schema:',
     '{',
     '  "products": [',
     '    {',
@@ -144,16 +272,18 @@ function buildImportPrompt(): string {
     '      "market_name": "string",',
     '      "stall_name": "string",',
     '      "region": "string",',
-    '      "srp_price": number',
+    '      "srp_price": number | null',
     '    }',
     '  ]',
     '}',
     'Rules:',
-    '- Keep region as Cebu City when not explicitly provided.',
-    '- Infer Cebu market/stall names when possible from context.',
-    '- srp_price must be a positive number when provided.',
-    '- If price is missing, set srp_price to null.',
-    '- Never invent product names or prices.'
+    '- Output every product row you can identify.',
+    '- Keep product names as written; do not collapse distinct products.',
+    '- Parse currency and numeric text into srp_price when present.',
+    `- Use defaults when missing: category=${DEFAULT_CATEGORY}, market_name=${DEFAULT_MARKET_NAME}, region=${DEFAULT_REGION}.`,
+    '- If stall is missing, generate a simple stall label like "Stall A-01".',
+    '- If price is genuinely absent, set srp_price to null.',
+    '- Do not output placeholders like "name" or "item" as product names.'
   ].join('\n');
 }
 
@@ -163,12 +293,20 @@ function parseDelimitedLine(line: string, index: number): ImportedProductDraftEn
     return null;
   }
 
-  const csvParts = cleaned.split(',').map((part) => part.trim());
+  const delimiter = cleaned.includes('\t') ? '\t' : ',';
+  const csvParts = cleaned.split(delimiter).map((part) => part.trim());
   if (csvParts.length >= 2) {
+    const headerLike =
+      /^(name|product|item)$/i.test(csvParts[0] || '') &&
+      csvParts.some((part) => /^(price|srp|srp_price|amount)$/i.test(part));
+    if (headerLike) {
+      return null;
+    }
+
     return normalizeEntryDraft(
       {
         name: csvParts[0],
-        srp_price: csvParts[1]?.replace(/php\s*/i, ''),
+        srp_price: csvParts[1],
         category: csvParts[2] || DEFAULT_CATEGORY,
         brand_name: csvParts[3] || null,
         market_name: csvParts[4] || DEFAULT_MARKET_NAME,
@@ -228,7 +366,6 @@ function parseFallbackRows(documentText: string): ParsedDocumentRows {
     // Not JSON, continue with line parsing.
   }
 
-  const dedupe = new Map<string, ImportedProductEntry>();
   const drafts: ImportedProductDraftEntry[] = [];
 
   const lines = normalizedText.split(/\r?\n/);
@@ -239,19 +376,56 @@ function parseFallbackRows(documentText: string): ParsedDocumentRows {
     }
 
     drafts.push(draft);
-    const entry = toImportedProductEntry(draft);
-    if (!entry) {
-      return;
-    }
-
-    const key = `${entry.name.toLowerCase()}|${entry.region.toLowerCase()}|${entry.market_name.toLowerCase()}|${entry.stall_name.toLowerCase()}`;
-    dedupe.set(key, entry);
   });
 
+  const entries = dedupeEntries(
+    drafts
+      .map((draft) => toImportedProductEntry(draft))
+      .filter((entry): entry is ImportedProductEntry => entry !== null)
+  );
+
   return {
-    entries: [...dedupe.values()].slice(0, MAX_IMPORT_ITEMS),
+    entries,
     drafts: drafts.slice(0, MAX_IMPORT_ITEMS)
   };
+}
+
+function tryParseAiJson(raw: string): unknown | null {
+  try {
+    return parseJsonResponse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function parseAiPayloadContent(rawContent: string): unknown {
+  const direct = tryParseAiJson(rawContent);
+  if (direct !== null) {
+    return direct;
+  }
+
+  const starts = [rawContent.indexOf('{'), rawContent.indexOf('[')]
+    .filter((value) => value >= 0)
+    .sort((left, right) => left - right);
+  const ends = [rawContent.lastIndexOf('}'), rawContent.lastIndexOf(']')]
+    .filter((value) => value >= 0)
+    .sort((left, right) => right - left);
+
+  for (const start of starts) {
+    for (const end of ends) {
+      if (end <= start) {
+        continue;
+      }
+
+      const candidate = rawContent.slice(start, end + 1);
+      const parsedCandidate = tryParseAiJson(candidate);
+      if (parsedCandidate !== null) {
+        return parsedCandidate;
+      }
+    }
+  }
+
+  throw new SyntaxError('AI import response is not valid JSON content.');
 }
 
 export async function extractProductsFromDocument(
@@ -262,72 +436,84 @@ export async function extractProductsFromDocument(
     throw new Error('Document content is empty.');
   }
 
-  try {
-    const response = await axios.post(
-      'https://api.deepseek.com/v1/chat/completions',
-      {
-        model: process.env.DEEPSEEK_MODEL ?? 'deepseek-chat',
-        temperature: 0,
-        response_format: { type: 'json_object' },
-        messages: [
-          {
-            role: 'system',
-            content: buildImportPrompt()
-          },
-          {
-            role: 'user',
-            content: JSON.stringify({
-              region_hint: DEFAULT_REGION,
-              document_text: trimmed.slice(0, 15000)
-            })
-          }
-        ]
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${requireEnv('DEEPSEEK_API_KEY')}`,
-          'Content-Type': 'application/json'
+  const modelCandidates = getDeepseekTextModelCandidates();
+  let lastError: unknown = null;
+
+  for (const model of modelCandidates) {
+    try {
+      const response = await axios.post(
+        'https://api.deepseek.com/v1/chat/completions',
+        {
+          model,
+          temperature: 0,
+          response_format: { type: 'json_object' },
+          messages: [
+            {
+              role: 'system',
+              content: buildImportPrompt()
+            },
+            {
+              role: 'user',
+              content: JSON.stringify({
+                region_hint: DEFAULT_REGION,
+                trusted_user_report: true,
+                document_text: trimmed.slice(0, 28000)
+              })
+            }
+          ]
         },
-        timeout: 30000
+        {
+          headers: {
+            Authorization: `Bearer ${requireEnv('DEEPSEEK_API_KEY')}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 40000
+        }
+      );
+
+      const content = response.data?.choices?.[0]?.message?.content;
+      if (typeof content !== 'string' || !content.trim()) {
+        throw new Error('AI import response is empty.');
       }
-    );
 
-    const content = response.data?.choices?.[0]?.message?.content;
-    if (typeof content !== 'string' || !content.trim()) {
-      throw new Error('AI import response is empty.');
-    }
+      const parsed = parseAiPayloadContent(content);
+      const validated = validateAiPayload(parsed);
+      if (!validated.entries.length) {
+        throw new Error('AI returned rows but no importable product names were found.');
+      }
 
-    const parsed = parseJsonResponse(content);
-    const validated = validateAiPayload(parsed);
-    return {
-      entries: validated.entries,
-      drafts: validated.drafts,
-      source: 'ai'
-    };
-  } catch (error) {
-    const fallbackRows = parseFallbackRows(trimmed);
-    if (fallbackRows.entries.length > 0 || fallbackRows.drafts.length > 0) {
       return {
-        entries: fallbackRows.entries,
-        drafts: fallbackRows.drafts,
-        source: 'fallback'
+        entries: validated.entries,
+        drafts: validated.drafts,
+        source: 'ai'
       };
+    } catch (error) {
+      lastError = error;
     }
-
-    if (isAxiosError(error)) {
-      const status = error.response?.status;
-      const details = status ? `status ${status}` : 'network failure';
-      throw new Error(`Product import service unavailable (${details}).`);
-    }
-
-    if (error instanceof SyntaxError) {
-      throw new Error('Product import AI returned malformed JSON.');
-    }
-
-    if (error instanceof Error) {
-      throw new Error(`Product import failed: ${error.message}`);
-    }
-
-    throw new Error('Product import failed due to an unknown error.');
   }
+
+  const fallbackRows = parseFallbackRows(trimmed);
+  if (fallbackRows.entries.length > 0) {
+    return {
+      entries: fallbackRows.entries,
+      drafts: fallbackRows.drafts,
+      source: 'fallback'
+    };
+  }
+
+  if (isAxiosError(lastError)) {
+    const status = lastError.response?.status;
+    const details = status ? `status ${status}` : 'network failure';
+    throw new Error(`Product import service unavailable (${details}).`);
+  }
+
+  if (lastError instanceof SyntaxError) {
+    throw new Error('Product import AI returned malformed JSON.');
+  }
+
+  if (lastError instanceof Error) {
+    throw new Error(`Product import failed: ${lastError.message}`);
+  }
+
+  throw new Error('Product import failed. No valid product rows were extracted from the document.');
 }

@@ -1,4 +1,5 @@
 import axios, { isAxiosError } from 'axios';
+import { getDeepseekTextModelCandidates } from './deepseekModelService';
 import { parseJsonResponse, requireEnv, sanitizeText } from './serviceUtils';
 
 type ItemExtractionSource = 'raw' | 'rules' | 'ai' | 'rules+ai';
@@ -300,61 +301,65 @@ function buildItemExtractionPrompt(): string {
 }
 
 async function extractItemWithAi(rawText: string): Promise<string | null> {
-  try {
-    const response = await axios.post(
-      'https://api.deepseek.com/v1/chat/completions',
-      {
-        model: process.env.DEEPSEEK_MODEL ?? 'deepseek-chat',
-        temperature: 0,
-        response_format: { type: 'json_object' },
-        messages: [
-          {
-            role: 'system',
-            content: buildItemExtractionPrompt()
-          },
-          {
-            role: 'user',
-            content: rawText
-          }
-        ]
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${requireEnv('DEEPSEEK_API_KEY')}`,
-          'Content-Type': 'application/json'
+  const modelCandidates = getDeepseekTextModelCandidates();
+
+  for (const model of modelCandidates) {
+    try {
+      const response = await axios.post(
+        'https://api.deepseek.com/v1/chat/completions',
+        {
+          model,
+          temperature: 0,
+          response_format: { type: 'json_object' },
+          messages: [
+            {
+              role: 'system',
+              content: buildItemExtractionPrompt()
+            },
+            {
+              role: 'user',
+              content: rawText
+            }
+          ]
         },
-        timeout: AI_TIMEOUT_MS
+        {
+          headers: {
+            Authorization: `Bearer ${requireEnv('DEEPSEEK_API_KEY')}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: AI_TIMEOUT_MS
+        }
+      );
+
+      const content = response.data?.choices?.[0]?.message?.content;
+      if (typeof content !== 'string' || !content.trim()) {
+        continue;
       }
-    );
 
-    const content = response.data?.choices?.[0]?.message?.content;
-    if (typeof content !== 'string' || !content.trim()) {
-      return null;
+      const parsed = parseJsonResponse(content);
+      if (!parsed || typeof parsed !== 'object') {
+        continue;
+      }
+
+      const itemName = (parsed as Record<string, unknown>).item_name;
+      if (typeof itemName !== 'string') {
+        continue;
+      }
+
+      const cleaned = sanitizeText(itemName);
+      if (!cleaned) {
+        continue;
+      }
+
+      return toTitleCase(cleaned);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        continue;
+      }
     }
-
-    const parsed = parseJsonResponse(content);
-    if (!parsed || typeof parsed !== 'object') {
-      return null;
-    }
-
-    const itemName = (parsed as Record<string, unknown>).item_name;
-    if (typeof itemName !== 'string') {
-      return null;
-    }
-
-    const cleaned = sanitizeText(itemName);
-    if (!cleaned) {
-      return null;
-    }
-
-    return toTitleCase(cleaned);
-  } catch (error) {
-    if (isAxiosError(error)) {
-      return null;
-    }
-
-    return null;
   }
+
+  return null;
 }
 
 export async function extractPrimaryItemName(rawText: string): Promise<ItemNameExtractionResult> {

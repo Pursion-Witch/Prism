@@ -45,7 +45,7 @@ export interface AnalysisResult {
   productName: string;
   inputPrice: number;
   fairValue: number;
-  srp?: number | null;
+  srp?: number;
   status: MarketStatus;
   confidenceScore: number;
   reasoning: string;
@@ -57,9 +57,8 @@ export interface AnalysisResult {
   compliance: {
     isVatInclusive: boolean;
     withinSrp: boolean;
-    priceCeiling?: number | null;
+    priceCeiling?: number;
   };
-  priceLines?: string[];
 }
 
 export interface ProductInput {
@@ -75,4 +74,75 @@ export interface ProductInput {
 export interface BasicInput {
   text: string;
   image?: string;
+}
+
+export interface Alert {
+  id: string;
+  productId: string;
+  targetPrice: number;
+  currentPrice: number;
+  status: 'active' | 'triggered';
+  createdAt: string;
+}
+
+export interface Anomaly {
+  id: string;
+  product: string;
+  region: string;
+  deviation: number;
+  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
+  detectedAt: string;
+}
+
+export type ViewState = 'consumer' | 'dashboard' | 'admin';
+
+export type VoiceLanguage = 'en' | 'tl' | 'ceb';
+
+export type CaptureSource = 'text' | 'voice' | 'image' | 'mixed';
+
+export interface PriceLineExtractionResponse {
+  input_text?: string;
+  normalized_text?: string;
+  translation_source?: string;
+  canonical_source?: string;
+  price_lines?: string[];
+  raw_output?: string;
+  model?: string;
+}
+
+export interface TranscribeAudioResponse {
+  transcribed_text?: string;
+  translated_text?: string;
+  canonical_text?: string;
+  source?: string;
+  canonical_source?: string;
+  price_lines?: string[];
+  price_line_model?: string;
+}
+
+export interface AudioTranscriptResult {
+  text: string;
+  translatedText?: string;
+  canonicalText?: string;
+  source: 'browser-speech' | 'backend-transcribe';
+  priceLines?: string[];
+}
+
+export interface ImageRecognitionResult {
+  label: string;
+  rawLabel: string;
+  region: string;
+  confidence: number;
+  priceLines: string[];
+  priceLineModel?: string | null;
+  imageText?: string;
+  visionSource?: string;
+}
+
+export interface LatestResult {
+  source: CaptureSource;
+  timestamp: number;
+  textInput: string;
+  productLabel: string;
+  priceLines: string[];
 }

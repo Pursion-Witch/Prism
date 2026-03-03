@@ -18,13 +18,21 @@ AI-powered price checker and regulator backend for PRISM PH.
 `/api/analyze-image` now uses a text-first pipeline:
 
 1. Extract image text with DeepSeek VL and/or DeepSeek OCR.
-2. Classify item name and price from extracted text.
-3. Send text-derived item/price to the existing market analysis flow.
+2. Classify the item name from extracted text while ignoring image-tag prices.
+3. Scour market sources for fair price of the single item; package listings are normalized to per-unit before averaging.
+4. Send item + market-derived price to the existing analysis flow.
+
+Pricing normalization defaults:
+
+- If quantity/unit is not specified, PRISM assumes a singular `piece` price.
+- If only USD market prices are found, PRISM selects the lowest USD per-item/pack quote, converts to PHP, and uses that as fallback fair value.
 
 Voice input flow:
 
 - Product Scanner mic can record audio and send it to `/api/analyze/transcribe-audio`.
-- The backend transcribes audio, then normalizes text to English and runs the DeepSeek master price-line extraction prompt.
+- Backend transcription is now **DeepSeek-first** (configurable model), with OpenAI fallback.
+- Transcribed text is normalized to English and sent to the DeepSeek master price-line extraction prompt.
+- Frontend voice capture is manual control: user explicitly presses `Start Recording` and `Stop Recording` (no auto-stop).
 
 Master extraction prompt:
 
@@ -82,11 +90,11 @@ API will be available at `http://localhost:3000`.
 
 ## React Scanner (Optional Frontend)
 
-A standalone React app was added without changing the legacy HTML scanner:
+A standalone React app was added without changing the legacy HTML scanner.
+It supports typed text, voice transcription, and image capture in one scanner flow.
 
 - root: `frontend-react/`
 - main app: `frontend-react/src/App.tsx`
-- analyzer form: `frontend-react/src/components/AnalyzerForm.tsx`
 - camera modal: `frontend-react/src/components/ImageCapture.tsx`
 - audio modal: `frontend-react/src/components/AudioCapture.tsx`
 
@@ -97,3 +105,14 @@ cd frontend-react
 npm install
 npm run dev
 ```
+
+## Admin Data Controls
+
+- New endpoint: `DELETE /api/admin/data/user-uploaded`
+- Purpose: wipe user-uploaded data while preserving protected sample catalog rows.
+- Removed data includes:
+  - non-system/user price logs
+  - document ingestion records/history
+  - non-protected user-added products
+- Preserved data:
+  - products marked as protected sample records (`products.is_protected = true`)

@@ -110,7 +110,8 @@ export async function ingestDocument(
             region: entry.region,
             marketName: entry.market_name,
             stallName: entry.stall_name,
-            srpPrice: entry.srp_price
+            srpPrice: entry.srp_price,
+            isProtected: false
           },
           { updateExisting: true }
         );

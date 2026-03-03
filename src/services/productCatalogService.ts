@@ -17,6 +17,7 @@ export interface ProductCatalogInput {
   marketName?: string | null;
   stallName?: string | null;
   srpPrice?: number | null;
+  isProtected?: boolean | null;
 }
 
 export interface NormalizedProductCatalogInput {
@@ -28,6 +29,7 @@ export interface NormalizedProductCatalogInput {
   marketName: string;
   stallName: string;
   srpPrice: number | null;
+  isProtected: boolean;
 }
 
 export interface UpsertCatalogProductOptions {
@@ -42,6 +44,7 @@ export interface UpsertCatalogProductResult {
 
 interface ProductIdRow {
   id: string;
+  is_protected?: boolean;
 }
 
 const CATEGORY_CODE_BY_NAME: Record<string, string> = {
@@ -68,6 +71,19 @@ const CATEGORY_CODE_BY_NAME: Record<string, string> = {
   HOUSEHOLD: 'HSD',
   GENERAL: 'GEN'
 };
+
+let productCatalogSchemaReadyPromise: Promise<void> | null = null;
+
+export async function ensureProductCatalogSchema(client: QueryClient): Promise<void> {
+  if (!productCatalogSchemaReadyPromise) {
+    productCatalogSchemaReadyPromise = (async () => {
+      await client.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS is_protected BOOLEAN NOT NULL DEFAULT TRUE`);
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_products_is_protected ON products (is_protected)`);
+    })();
+  }
+
+  await productCatalogSchemaReadyPromise;
+}
 
 function normalizeRequiredText(value: string, fieldName: string): string {
   const normalized = value.trim();
@@ -161,7 +177,8 @@ export function normalizeCatalogInput(input: ProductCatalogInput): NormalizedPro
     region: normalizeOptionalText(input.region, DEFAULT_REGION),
     marketName: normalizeOptionalText(input.marketName, DEFAULT_MARKET_NAME),
     stallName: normalizeOptionalText(input.stallName, DEFAULT_STALL_NAME),
-    srpPrice: normalizeOptionalPrice(input.srpPrice)
+    srpPrice: normalizeOptionalPrice(input.srpPrice),
+    isProtected: input.isProtected === true
   };
 }
 
@@ -170,12 +187,14 @@ export async function upsertCatalogProduct(
   input: ProductCatalogInput,
   options: UpsertCatalogProductOptions = {}
 ): Promise<UpsertCatalogProductResult> {
+  await ensureProductCatalogSchema(client);
   const normalized = normalizeCatalogInput(input);
   const shouldUpdate = options.updateExisting !== false;
 
   const existingResult = await client.query<ProductIdRow>(
     `
       SELECT id
+           , is_protected
       FROM products
       WHERE LOWER(name) = LOWER($1)
         AND LOWER(COALESCE(region, '')) = LOWER($2)
@@ -197,7 +216,8 @@ export async function upsertCatalogProduct(
               region = $3,
               market_name = $4,
               stall_name = $5,
-              srp_price = COALESCE($6, srp_price)
+              srp_price = COALESCE($6, srp_price),
+              is_protected = COALESCE(products.is_protected, FALSE) OR $8
           WHERE id = $7
         `,
         [
@@ -207,7 +227,8 @@ export async function upsertCatalogProduct(
           normalized.marketName,
           normalized.stallName,
           normalized.srpPrice,
-          existingResult.rows[0].id
+          existingResult.rows[0].id,
+          normalized.isProtected
         ]
       );
 
@@ -227,8 +248,8 @@ export async function upsertCatalogProduct(
 
   const insertResult = await client.query<ProductIdRow>(
     `
-      INSERT INTO products (name, category, brand_name, region, market_name, stall_name, srp_price)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO products (name, category, brand_name, region, market_name, stall_name, srp_price, is_protected)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING id
     `,
     [
@@ -238,7 +259,8 @@ export async function upsertCatalogProduct(
       normalized.region,
       normalized.marketName,
       normalized.stallName,
-      normalized.srpPrice
+      normalized.srpPrice,
+      normalized.isProtected
     ]
   );
 

@@ -1,10 +1,11 @@
 import { useRef, useState } from 'react';
 import { transcribeAudio } from '../services/prismService';
+import type { AudioTranscriptResult, VoiceLanguage } from '../types';
 
 interface AudioCaptureProps {
-  onTranscribe: (text: string) => void;
+  onTranscribe: (result: AudioTranscriptResult) => void;
   onClose: () => void;
-  language: string;
+  language: VoiceLanguage;
 }
 
 export function AudioCapture({ onTranscribe, onClose, language }: AudioCaptureProps) {
@@ -32,16 +33,26 @@ export function AudioCapture({ onTranscribe, onClose, language }: AudioCapturePr
 
       recorder.onstop = async () => {
         setIsProcessing(true);
-        const audioBlob = new Blob(audioChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        const mimeType = recorder.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+
         try {
           const base64 = await toBase64(audioBlob);
-          const payload = await transcribeAudio(base64, recorder.mimeType || 'audio/webm', language);
+          const payload = await transcribeAudio(base64, mimeType, language);
           const text = String(payload.canonical_text || payload.translated_text || payload.transcribed_text || '').trim();
-          if (text) {
-            onTranscribe(text);
-          } else {
-            setError('No speech detected.');
+
+          if (!text) {
+            setError('No speech detected. Please try again.');
+            return;
           }
+
+          onTranscribe({
+            text,
+            translatedText: payload.translated_text,
+            canonicalText: payload.canonical_text,
+            priceLines: payload.price_lines || [],
+            source: 'backend-transcribe'
+          });
         } catch (err) {
           setError(err instanceof Error ? err.message : 'Failed to transcribe audio.');
         } finally {
@@ -53,16 +64,27 @@ export function AudioCapture({ onTranscribe, onClose, language }: AudioCapturePr
 
       recorder.start();
       setIsRecording(true);
-    } catch (err) {
-      setError('Could not access microphone.');
+    } catch {
+      setError('Could not access microphone. Please allow permission and retry.');
     }
   }
 
   function stopRecording() {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
+    if (!mediaRecorderRef.current || !isRecording) {
+      return;
     }
+
+    mediaRecorderRef.current.stop();
+    setIsRecording(false);
+  }
+
+  function closeModal() {
+    if (isRecording && mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+    }
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    onClose();
   }
 
   return (
@@ -70,12 +92,21 @@ export function AudioCapture({ onTranscribe, onClose, language }: AudioCapturePr
       <div className="audio-modal">
         <div className="modal-header">
           <h3>Voice Input</h3>
-          <button type="button" className="ghost-btn" onClick={() => { stopRecording(); onClose(); }} disabled={isProcessing}>
+          <button type="button" className="ghost-btn" onClick={closeModal} disabled={isProcessing}>
             Close
           </button>
         </div>
+
+        <div className="audio-state">
+          {isProcessing
+            ? 'Transcribing audio...'
+            : isRecording
+              ? 'Recording... Press Stop when finished.'
+              : 'Press Start to begin recording. Press Stop when done.'}
+        </div>
+
         {error && <p className="error-text">{error}</p>}
-        <div className="audio-state">{isProcessing ? 'Transcribing audio...' : isRecording ? 'Recording...' : 'Tap to start'}</div>
+
         {!isProcessing && (
           <button type="button" className="primary-btn" onClick={isRecording ? stopRecording : () => void startRecording()}>
             {isRecording ? 'Stop Recording' : 'Start Recording'}
@@ -102,4 +133,3 @@ function toBase64(blob: Blob): Promise<string> {
     reader.readAsDataURL(blob);
   });
 }
-

@@ -88,6 +88,19 @@
         return body;
     }
 
+    async function sendJson(url, method, payload) {
+        const response = await fetch(url, {
+            method,
+            headers: payload ? { 'Content-Type': 'application/json' } : undefined,
+            body: payload ? JSON.stringify(payload) : undefined
+        });
+        const body = parseJsonSafe(await response.text());
+        if (!response.ok) {
+            throw new Error(body.message || `Failed request: ${method} ${url}`);
+        }
+        return body;
+    }
+
     function formatMoney(value) {
         const amount = Number(value);
         if (!Number.isFinite(amount) || amount <= 0) return 'Not available';
@@ -417,6 +430,38 @@
         }
     }
 
+    async function wipeUserUploadedData() {
+        const approved = window.confirm(
+            'This will permanently remove user-uploaded products, ingestion data, and non-system price logs. Protected sample catalog rows will stay intact. Continue?'
+        );
+        if (!approved) {
+            return;
+        }
+
+        const wipeButton = byId('wipeUserDataBtn');
+        if (wipeButton) {
+            wipeButton.disabled = true;
+            wipeButton.textContent = 'Wiping...';
+        }
+
+        try {
+            const result = await sendJson('/api/admin/data/user-uploaded', 'DELETE');
+            state.resolvedAlerts.clear();
+            await refreshAdminData();
+
+            showNotification(
+                `Wiped user data: ${Number(result.deleted_user_products || 0)} products, ${Number(result.deleted_price_logs || 0)} logs, ${Number(result.deleted_document_ingestions || 0)} ingestions.`
+            );
+        } catch (error) {
+            showNotification(error instanceof Error ? error.message : 'Failed to wipe user-uploaded data.');
+        } finally {
+            if (wipeButton) {
+                wipeButton.disabled = false;
+                wipeButton.textContent = 'Wipe User Uploaded Data';
+            }
+        }
+    }
+
     function exportMonthlyReport() {
         const rows = Array.isArray(state.analytics?.monthly_report) ? state.analytics.monthly_report : [];
         if (!rows.length) {
@@ -461,6 +506,7 @@
     function bindEvents() {
         const refreshButton = byId('refreshAdminDataBtn');
         const runMonitoringButton = byId('runMonitoringBtn');
+        const wipeUserDataButton = byId('wipeUserDataBtn');
         const clearResolvedButton = byId('clearResolvedAlertsBtn');
         const downloadReportButton = byId('downloadReportBtn');
         const productSearch = byId('productSearchInput');
@@ -475,6 +521,12 @@
         if (runMonitoringButton) {
             runMonitoringButton.addEventListener('click', () => {
                 refreshAdminData();
+            });
+        }
+
+        if (wipeUserDataButton) {
+            wipeUserDataButton.addEventListener('click', () => {
+                wipeUserUploadedData();
             });
         }
 

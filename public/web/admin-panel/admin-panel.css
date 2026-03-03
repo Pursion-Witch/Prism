@@ -289,6 +289,12 @@
             flex-wrap: wrap;
             gap: 1rem;
         }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            flex-wrap: wrap;
+        }
         .section-header h2 {
             font-size: 1.8rem;
         }
@@ -311,6 +317,30 @@
         .btn-primary:hover {
             background: #15b34e;
             transform: scale(1.02);
+        }
+        .btn-danger {
+            display: inline-block;
+            background: #2a1212;
+            color: #ff8e8e;
+            border: 1px solid #5d2a2a;
+            padding: 0.7rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: 'Plus Jakarta', sans-serif;
+            text-decoration: none;
+        }
+        .btn-danger:hover {
+            background: #3a1818;
+            border-color: #804040;
+            transform: scale(1.01);
+        }
+        .btn-danger:disabled,
+        .btn-primary:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            transform: none;
         }
         .btn-secondary {
             background: transparent;

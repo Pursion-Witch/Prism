@@ -9,7 +9,7 @@ import {
 } from '../constants/cebuDefaults';
 import { ingestDocument } from '../services/documentIngestionService';
 import { getAdminAnalytics, getAdminStats, getAllTrackedProducts } from '../services/priceService';
-import { upsertCatalogProductWithDb } from '../services/productCatalogService';
+import { ensureProductCatalogSchema, upsertCatalogProductWithDb } from '../services/productCatalogService';
 
 interface OverrideRequestBody {
   name?: unknown;
@@ -116,7 +116,8 @@ router.post('/override', async (req: Request, res: Response, next: NextFunction)
         region: DEFAULT_REGION,
         marketName: DEFAULT_MARKET_NAME,
         stallName: DEFAULT_STALL_NAME,
-        srpPrice: parsedPrice
+        srpPrice: parsedPrice,
+        isProtected: false
       },
       { updateExisting: true }
     );
@@ -143,7 +144,8 @@ router.post('/products/manual', async (req: Request, res: Response, next: NextFu
         region: normalizeOptionalText(body.region, DEFAULT_REGION),
         marketName: normalizeOptionalText(body.market_name, DEFAULT_MARKET_NAME),
         stallName: normalizeOptionalText(body.stall_name, DEFAULT_STALL_NAME),
-        srpPrice: parsePositivePrice(body.srp_price ?? body.price)
+        srpPrice: parsePositivePrice(body.srp_price ?? body.price),
+        isProtected: false
       },
       { updateExisting: true }
     );
@@ -222,6 +224,61 @@ router.delete('/products/prices', async (_req: Request, res: Response, next: Nex
 
     return res.json({
       message: 'All uploaded prices were cleared.',
+      ...result
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.delete('/data/user-uploaded', async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const result = await withDbClient(async (client) => {
+      await client.query('BEGIN');
+
+      try {
+        await ensureProductCatalogSchema(client);
+
+        const protectedProductsResult = await client.query<{ count: string }>(
+          `SELECT COUNT(*)::text AS count FROM products WHERE COALESCE(is_protected, TRUE) = TRUE`
+        );
+
+        const ingestedRecordsResult = await client.query<{ count: string }>(`SELECT COUNT(*)::text AS count FROM ingested_records`);
+
+        const deletedPriceLogsResult = await client.query(
+          `
+            DELETE FROM price_logs
+            WHERE COALESCE(source, 'system') <> 'system'
+               OR product_id IN (
+                 SELECT id
+                 FROM products
+                 WHERE COALESCE(is_protected, TRUE) = FALSE
+               )
+          `
+        );
+
+        const deletedIngestionsResult = await client.query(`DELETE FROM document_ingestions`);
+        const deletedUserProductsResult = await client.query(
+          `DELETE FROM products WHERE COALESCE(is_protected, TRUE) = FALSE`
+        );
+
+        await client.query('COMMIT');
+
+        return {
+          protected_products: Number(protectedProductsResult.rows[0]?.count ?? 0),
+          deleted_user_products: deletedUserProductsResult.rowCount ?? 0,
+          deleted_price_logs: deletedPriceLogsResult.rowCount ?? 0,
+          deleted_document_ingestions: deletedIngestionsResult.rowCount ?? 0,
+          deleted_ingested_records: Number(ingestedRecordsResult.rows[0]?.count ?? 0)
+        };
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      }
+    });
+
+    return res.json({
+      message: 'User-uploaded data wiped. Protected sample catalog records were preserved.',
       ...result
     });
   } catch (error) {

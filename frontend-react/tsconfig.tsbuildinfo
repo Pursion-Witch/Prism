@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/types.ts","./src/components/analysisresultcard.tsx","./src/components/analyzerform.tsx","./src/components/audiocapture.tsx","./src/components/imagecapture.tsx","./src/services/prismservice.ts"],"version":"5.9.3"}
+{"root":["./src/app.tsx","./src/main.tsx","./src/types.ts","./src/components/audiocapture.tsx","./src/components/imagecapture.tsx","./src/services/prismservice.ts"],"version":"5.9.3"}

@@ -1,7 +1,7 @@
 import multer, { MulterError } from 'multer';
 import { Router, type NextFunction, type Request, type Response } from 'express';
 import { DEFAULT_REGION } from '../constants/cebuDefaults';
-import { extractPriceFromSentence, extractPrimaryItemName } from '../services/itemNameService';
+import { extractPrimaryItemName } from '../services/itemNameService';
 import { extractTextFromImageBuffer } from '../services/ocrService';
 import { analyzePrice } from '../services/priceService';
 import { extractPriceLinesFromText, type PriceExtractionLine } from '../services/priceExtractionService';
@@ -266,18 +266,17 @@ router.post('/analyze-image', (req: Request, res: Response, next: NextFunction) 
         const extractedFromText = await extractPrimaryItemName(imageText);
         const extractedName = extractedFromText.item_name || '';
         const fallbackName = extractedPriceBest?.product_name || '';
-        const fallbackPrice = extractedPriceBest && extractedPriceBest.price > 0 ? extractedPriceBest.price : null;
         if (extractedName && !isGenericItemName(extractedName)) {
           vision = {
             detected_name: extractedName,
-            detected_price: extractPriceFromSentence(imageText) ?? fallbackPrice,
+            detected_price: null,
             region_guess: DEFAULT_REGION,
             confidence: clampConfidence(textConfidence, 0.35)
           };
         } else if (fallbackName && !isGenericItemName(fallbackName)) {
           vision = {
             detected_name: fallbackName,
-            detected_price: fallbackPrice,
+            detected_price: null,
             region_guess: DEFAULT_REGION,
             confidence: clampConfidence(textConfidence, 0.3)
           };
@@ -297,7 +296,10 @@ router.post('/analyze-image', (req: Request, res: Response, next: NextFunction) 
         return imageCannotBeAnalyzedResponse(res);
       }
 
-      const detectedVision = vision;
+      const detectedVision: VisionDetection = {
+        ...vision,
+        detected_price: null
+      };
       const extractedItem = await extractPrimaryItemName(detectedVision.detected_name);
       const analysisName = extractedItem.item_name || detectedVision.detected_name;
       if (!analysisName || isGenericItemName(analysisName)) {
@@ -305,7 +307,7 @@ router.post('/analyze-image', (req: Request, res: Response, next: NextFunction) 
       }
 
       const region = detectedVision.region_guess || DEFAULT_REGION;
-      const scannedPrice = detectedVision.detected_price ?? null;
+      const scannedPrice = null;
       const rawScanText = imageText || detectedVision.detected_name;
       const quantityNormalization =
         scannedPrice !== null ? inferPriceNormalization(rawScanText, analysisName, scannedPrice) : null;
@@ -323,6 +325,19 @@ router.post('/analyze-image', (req: Request, res: Response, next: NextFunction) 
         Number(marketAnalysis.scanned_price ?? scannedPrice ?? 0),
         Number(marketAnalysis.fair_market_value ?? 0)
       );
+      const marketPriceNormalization =
+        marketAnalysis.fair_market_value > 0
+          ? inferPriceNormalization(`${analysisName} ${rawScanText}`, analysisName, marketAnalysis.fair_market_value)
+          : null;
+      const marketUnit = marketPriceNormalization?.normalized_unit || 'piece';
+      const marketPriceLines =
+        marketAnalysis.fair_market_value > 0
+          ? [
+              `${analysisName}|${Number(marketAnalysis.fair_market_value).toFixed(
+                2
+              )}|PHP|${marketUnit}|estimate|market average`
+            ]
+          : [];
 
       return res.json({
         vision: detectedVision,
@@ -340,8 +355,9 @@ router.post('/analyze-image', (req: Request, res: Response, next: NextFunction) 
         display: {
           show_price: displayPrice
         },
-        price_lines: extractedPriceLines,
-        price_line_model: extractedPriceModel,
+        price_lines: marketPriceLines,
+        price_line_model: marketPriceLines.length ? 'market-derived' : extractedPriceModel,
+        image_price_ignored: true,
         ...(imageText ? { ocr_text: imageText, image_text_source: visionSource } : {}),
         ...(detectedVision.confidence < 0.4 ? { low_confidence: true } : {})
       });

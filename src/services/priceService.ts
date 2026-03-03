@@ -193,9 +193,9 @@ async function ensurePriceLogSchema(): Promise<void> {
       await query(`ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT 'system'`);
       await query(`ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS raw_input TEXT`);
       await query(`ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS submitted_quantity NUMERIC NOT NULL DEFAULT 1`);
-      await query(`ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS submitted_unit TEXT NOT NULL DEFAULT 'item'`);
+      await query(`ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS submitted_unit TEXT NOT NULL DEFAULT 'piece'`);
       await query(`ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS normalized_quantity NUMERIC NOT NULL DEFAULT 1`);
-      await query(`ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS normalized_unit TEXT NOT NULL DEFAULT 'item'`);
+      await query(`ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS normalized_unit TEXT NOT NULL DEFAULT 'piece'`);
       await query(`ALTER TABLE price_logs ADD COLUMN IF NOT EXISTS normalized_price NUMERIC`);
     })();
   }
@@ -288,9 +288,9 @@ async function insertPriceLog(
   const source = typeof input.source === 'string' && input.source.trim() ? input.source.trim() : 'system';
   const rawInput = typeof input.raw_input === 'string' && input.raw_input.trim() ? input.raw_input.trim() : null;
   const submittedQuantity = normalization?.submitted_quantity ?? 1;
-  const submittedUnit = normalization?.submitted_unit ?? 'item';
+  const submittedUnit = normalization?.submitted_unit ?? 'piece';
   const normalizedQuantity = normalization?.normalized_quantity ?? 1;
-  const normalizedUnit = normalization?.normalized_unit ?? 'item';
+  const normalizedUnit = normalization?.normalized_unit ?? 'piece';
   const normalizedPrice = normalization?.normalized_price ?? scannedPrice;
 
   await query(
@@ -383,7 +383,8 @@ async function persistSubmissionAsProduct(
       region: input.region,
       marketName: input.market_name ?? DEFAULT_MARKET_NAME,
       stallName: input.stall_name ?? DEFAULT_STALL_NAME,
-      srpPrice: fairMarketValue
+      srpPrice: fairMarketValue,
+      isProtected: false
     },
     { updateExisting: false }
   );
@@ -415,7 +416,8 @@ async function enrichMissingSrpFromOnline(
       region,
       marketName: 'Cebu Online Listings',
       stallName: 'Stall O-01',
-      srpPrice: lookup.average_price
+      srpPrice: lookup.average_price,
+      isProtected: false
     },
     { updateExisting: true }
   );
@@ -852,7 +854,7 @@ export async function getAdminAnalytics(): Promise<AdminAnalyticsResponse> {
           ROUND(AVG(COALESCE(pl.normalized_price, pl.scanned_price))::numeric, 2)::text AS avg_normalized_price,
           COALESCE(
             NULLIF(MAX(CASE WHEN pl.normalized_unit IS NOT NULL AND pl.normalized_unit <> '' THEN pl.normalized_unit END), ''),
-            'item'
+            'piece'
           ) AS normalized_unit,
           ROUND(
             AVG(
@@ -922,7 +924,7 @@ export async function getAdminAnalytics(): Promise<AdminAnalyticsResponse> {
     reported_count: Number(row.reported_count),
     avg_scanned_price: toOptionalNumber(row.avg_scanned_price),
     avg_normalized_price: toOptionalNumber(row.avg_normalized_price),
-    normalized_unit: row.normalized_unit || 'item',
+    normalized_unit: row.normalized_unit || 'piece',
     avg_diff_percent: toOptionalNumber(row.avg_diff_percent),
     overpriced_count: Number(row.overpriced_count),
     great_deal_count: Number(row.great_deal_count)

@@ -94,6 +94,26 @@ function inferMetricQuantity(text: string): { quantity: number; unit: string; no
     }
   }
 
+  const packagedCountTrailingMatch = text.match(
+    /\b(?:pack|packs|bundle|bundles|box|boxes|carton|cartons|bottle|bottles|can|cans|sachet|sachets)\s*(?:of\s*)?([0-9]{1,4})\b/i
+  );
+  if (packagedCountTrailingMatch?.[1]) {
+    const parsed = parseNumber(packagedCountTrailingMatch[1]);
+    if (parsed) {
+      return { quantity: parsed, unit: 'piece', normalizedUnit: 'piece' };
+    }
+  }
+
+  const packagedCountLeadingMatch = text.match(
+    /\b([0-9]{1,4})\s*(?:pack|packs|bundle|bundles|box|boxes|carton|cartons|bottle|bottles|can|cans|sachet|sachets)\b/i
+  );
+  if (packagedCountLeadingMatch?.[1]) {
+    const parsed = parseNumber(packagedCountLeadingMatch[1]);
+    if (parsed) {
+      return { quantity: parsed, unit: 'piece', normalizedUnit: 'piece' };
+    }
+  }
+
   const piecesMatch = text.match(/\b([0-9]{1,4})\s*(pcs?|pieces?|pack|packs)\b/i);
   if (piecesMatch?.[1]) {
     const parsed = parseNumber(piecesMatch[1]);
@@ -151,9 +171,9 @@ export function inferPriceNormalization(rawText: string, itemName: string, submi
   if (safePrice <= 0) {
     return {
       submitted_quantity: 1,
-      submitted_unit: 'item',
+      submitted_unit: 'piece',
       normalized_quantity: 1,
-      normalized_unit: 'item',
+      normalized_unit: 'piece',
       normalized_price: 0,
       note: 'Price not available for quantity normalization.'
     };
@@ -192,11 +212,10 @@ export function inferPriceNormalization(rawText: string, itemName: string, submi
 
   return {
     submitted_quantity: 1,
-    submitted_unit: 'item',
+    submitted_unit: 'piece',
     normalized_quantity: 1,
-    normalized_unit: 'item',
+    normalized_unit: 'piece',
     normalized_price: safePrice,
-    note: 'No quantity marker found. Price treated as per item.'
+    note: 'No quantity marker found. Price treated as per singular piece.'
   };
 }
-

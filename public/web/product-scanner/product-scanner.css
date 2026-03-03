@@ -647,8 +647,7 @@
             background: #050505;
             border: 1px solid #262626;
             border-radius: 18px;
-            min-height: 170px;
-            max-height: 210px;
+            min-height: 220px;
             overflow: hidden;
         }
         .capture-preview video,
@@ -1067,7 +1066,6 @@
                 margin: 0;
             }
             .capture-preview {
-                min-height: 145px;
-                max-height: 175px;
+                min-height: 190px;
             }
         }

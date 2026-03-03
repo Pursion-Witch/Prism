@@ -43,6 +43,14 @@
             line-height: 1.2;
         }
 
+/*Body*/
+
+        @media (max-width: 768px) {
+            html, body {width: 100%; overflow-x: hidden;}
+            
+            * {max-width: 100%;}
+        }
+
 /* ----- Stars Background ----- */
 
         .stars-container {
@@ -430,6 +438,17 @@
         .footer-left a:hover {
             text-decoration: underline;
         }
+        
+/*----Footer: Mobile view----*/
+
+        @media (max-width: 768px) {
+            .footer-right{
+                font-size: 14px;
+                text-align: center;
+                overflow-wrap: break-word;
+                word-wrap: break-word;
+            }
+        }
 
 /* Notification */
 
@@ -446,6 +465,20 @@
             box-shadow: 0 10px 30px black;
             animation: slideIn 0.2s;
         }
+
+/*  Notification mobile  */
+
+        @media (max-width: 768px) {
+            .notification{
+                position: fixed;
+                text-align: center;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 50%;
+                z-index: 1000;
+            }
+        }
+
         @keyframes slideIn { from { opacity:0; transform:translateX(40px); } }
         @keyframes slideOut { to { opacity:0; transform:translateX(40px); } }
 

@@ -482,6 +482,17 @@
             text-decoration: underline;
         }
 
+/*  Footer Mobile  */
+
+        @media (max-width: 768px) {
+            .footer-right{
+                font-size: 14px;
+                text-align: center;
+                overflow-wrap: break-word;
+                word-wrap: break-word;
+            }
+        }
+
 /* Notification */
 
         .notification {
@@ -506,4 +517,14 @@
         @media (max-width: 600px) {
             .faq-card { padding: 1.5rem; }
             .faq-question h3 { font-size: 1rem; }
+        }
+
+/*---Mobile view*/
+
+/*Body*/
+
+        @media (max-width: 768px) {
+            html, body {width: 100%; overflow-x: hidden;}
+            
+            * {max-width: 100%;}
         }

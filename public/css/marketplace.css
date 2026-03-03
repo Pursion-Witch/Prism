@@ -73,7 +73,6 @@
 /* ----- Navbar ----- */
 
         .navbar {
-<<<<<<<< HEAD:public/web/marketplace/marketplace.css
             position: relative; 
             display: flex; 
             justify-content: space-between; 
@@ -81,16 +80,6 @@
             padding: 1.5rem 5%; 
             background-color: #000; 
             z-index: 100; 
-========
-            position: sticky;
-            top: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.5rem 5%;
-            background-color: #000000;
-            z-index: 100;
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/marketplace.css
             backdrop-filter: blur(10px);
             border-bottom: 1px solid #1a1a1a;
         }
@@ -235,17 +224,6 @@
             cursor: pointer;
         }
 
-<<<<<<<< HEAD:public/web/marketplace/marketplace.css
-========
-        /*  search btn mobile  */
-        @media (max-width: 768px) {
-            .search-wrapper button{
-                padding: 0.8rem 1rem;
-                cursor: pointer;
-            }
-        }
-
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/marketplace.css
         .category-section { 
             max-width: 1300px; 
             margin: 2rem auto 1.5rem; 
@@ -528,18 +506,10 @@
         .chat-preview { 
             color: #888; 
             font-size: 0.8rem; 
-<<<<<<<< HEAD:public/web/marketplace/marketplace.css
-            white-space: normal;
-            overflow: visible;
-            text-overflow: clip;
-            overflow-wrap: anywhere;
-            max-width: 100%;
-========
             white-space: nowrap; 
             overflow: hidden; 
             text-overflow: ellipsis; 
             max-width: 150px; 
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/marketplace.css
         }
 
         .unread-badge { 
@@ -661,47 +631,6 @@
 
 /* Footer */
 
-        .prism-section { 
-            background: #1ED760; 
-            color: #000; 
-            padding: 2rem 5%; 
-            margin-top: 4rem; 
-        }
-
-        .prism-container { 
-            display: flex; 
-            flex-wrap: wrap; 
-            justify-content: space-between; 
-            align-items: center; 
-            gap: 2rem; 
-            max-width: 1300px; 
-            margin: 0 auto; 
-        }
-
-<<<<<<<< HEAD:public/web/marketplace/marketplace.css
-        .footer { 
-            background: #15b34e; 
-        }
-
-        .footer-left, .footer-right pre{
-             display: flex; 
-             flex-wrap: wrap; 
-             gap: 0.5rem 1rem; 
-             align-items: center; 
-             font-family: 'Plus Jakarta', sans-serif; 
-        }
-
-        .footer-left a { 
-            color: #000; 
-            text-decoration: none; 
-            font-weight: 500; 
-        }
-
-        .footer-left a:hover { 
-            text-decoration: underline; 
-========
-/* Footer */
-
         .prism-section {
             background: #1ED760;
             color: #000;
@@ -746,7 +675,6 @@
                 overflow-wrap: break-word;
                 word-wrap: break-word;
             }
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/marketplace.css
         }
 
         .notification {
@@ -763,8 +691,6 @@
             animation: slideIn 0.2s;
         }
 
-<<<<<<<< HEAD:public/web/marketplace/marketplace.css
-========
 /*  Notification: mobile  */
 
         @media (max-width: 768px) {
@@ -777,7 +703,6 @@
                 z-index: 1000;
             }
         }
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/marketplace.css
         @keyframes slideIn { from { opacity:0; transform:translateX(40px); } }
         @keyframes slideOut { to { opacity:0; transform:translateX(40px); } }
 
@@ -789,8 +714,4 @@
         @media (max-width: 800px) {
             .marketplace-layout { grid-template-columns: 1fr; }
             .left-sidebar { display: none; }
-<<<<<<<< HEAD:public/web/marketplace/marketplace.css
         }       
-========
-        }       
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/marketplace.css

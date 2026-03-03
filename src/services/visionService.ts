@@ -1,5 +1,6 @@
 import axios, { isAxiosError } from 'axios';
 import { DEFAULT_REGION } from '../constants/cebuDefaults';
+import { loadBaselineProducts } from './baselineMatchService';
 import { parseJsonResponse, requireEnv, sanitizeText } from './serviceUtils';
 
 export interface VisionDetection {
@@ -7,6 +8,7 @@ export interface VisionDetection {
   detected_price: number | null;
   region_guess: string;
   confidence: number;
+  alternatives?: Array<{ name: string; confidence: number }>;
 }
 
 export type DeepseekImageTextSource = 'deepseek-vl' | 'deepseek-ocr' | 'deepseek-vl+ocr';
@@ -27,45 +29,77 @@ type ImageTextMode = 'both' | 'vl-first' | 'ocr-first' | 'vl-only' | 'ocr-only';
 const DEFAULT_MODEL = process.env.DEEPSEEK_VISION_MODEL ?? 'deepseek-vl2';
 const DEEPSEEK_VL_MODEL = process.env.DEEPSEEK_VL_MODEL ?? DEFAULT_MODEL;
 const DEEPSEEK_OCR_MODEL = process.env.DEEPSEEK_OCR_MODEL ?? 'deepseek-ocr';
-const DEFAULT_TIMEOUT_MS = Number(process.env.DEEPSEEK_VISION_TIMEOUT_MS ?? 20000);
+const DEFAULT_TIMEOUT_MS = Number(process.env.DEEPSEEK_VISION_TIMEOUT_MS ?? 40000); // Increased from 20s
 const IMAGE_TEXT_TIMEOUT_MS = Number(process.env.DEEPSEEK_IMAGE_TEXT_TIMEOUT_MS ?? DEFAULT_TIMEOUT_MS);
 const OPENAI_VISION_MODEL = process.env.OPENAI_VISION_MODEL ?? 'gpt-4o-mini';
 const VISION_PROVIDER = String(process.env.VISION_PROVIDER ?? 'auto').toLowerCase();
+const VISION_TEMPERATURE = Number(process.env.VISION_TEMPERATURE ?? 0.2); // Slightly increase for better reasoning
 
-const PROMPT = [
-  'You are a strict product and price extractor from a single image.',
-  'Focus on the single closest visible item to the camera.',
-  'Prefer the largest clear object near the center as the primary item.',
-  'Return JSON only. Do not return markdown.',
-  'Output schema:',
-  '{',
-  '  "detected_name": "string",',
-  '  "detected_price": number | null,',
-  '  "region_guess": "string",',
-  '  "confidence": number',
-  '}',
-  'Rules:',
-  '- If no visible price, set detected_price to null.',
-  '- detected_name must be a real item name, not generic words like item or object.',
-  '- If no clear item is visible, set detected_name to "unknown" and confidence below 0.2.',
-  '- If uncertain, set confidence to less than 0.5.',
-  '- Confidence must be between 0 and 1.',
-  '- Keep detected_name concise and specific.'
-].join('\n');
+function buildVisionPrompt(): string {
+  const baselineProducts = loadBaselineProducts(50);
+  const productList = baselineProducts.length > 0 ? baselineProducts.join(', ') : 'various retail products';
+
+  return [
+    'You are a product recognition system for a Cebu, Philippines retail market.',
+    'Your task is to identify product items from images for price comparison.',
+    '',
+    'KNOWN PRODUCTS IN DATABASE:',
+    productList,
+    '',
+    'IMPORTANT: Be lenient with brand/variant recognition.',
+    'If you see something that LOOKS like a food, drink, or retail item, identify it.',
+    'Do not reject items as "unknown" too quickly.',
+    '',
+    'Return JSON only. Do not return markdown.',
+    '',
+    'Output schema:',
+    '{',
+    '  "detected_name": "string",      // primary name',
+    '  "detected_price": number | null,',
+    '  "region_guess": "string",',
+    '  "confidence": number,',
+    '  "alternatives": [             // optional list of other plausible names',
+    '     {"name": "string", "confidence": number}',
+    '  ]',
+    '}',
+    '',
+    'Rules:',
+    '- Focus on the LARGEST, MOST CENTERED item in the image.',
+    '- Prefer readable brand names or distinctive product shapes.',
+    '- If you see a logo or packaging, use that brand name.',
+    '- If you see text/label, use the primary product name from that text.',
+    '- If no visible price, set detected_price to null.',
+    '- If uncertain, return "unknown" and keep confidence <= 0.4.',
+    '- Do not guess a specific brand when evidence is weak.',
+    '- Include variant info when visible (e.g., "Coke Zero" not just "Coke").',
+    '- Confidence must be between 0 and 1.',
+    '- If uncertain about exact name, provide alternatives with confidence scores.'
+  ].join('\n');
+}
+
+const PROMPT = buildVisionPrompt();
 
 const IMAGE_TEXT_PROMPT = [
   'You convert a product photo to text for downstream text-only analysis.',
+  'You are analyzing images for a retail price checker in the Cebu, Philippines market.',
+  '',
   'Return JSON only. No markdown.',
+  '',
   'Output schema:',
   '{',
   '  "text": "string",',
   '  "confidence": number',
   '}',
+  '',
   'Rules:',
   '- Capture visible text from the nearest centered product and nearby price labels.',
-  '- Keep the text concise but include important brand, variant, and size words when visible.',
-  '- If no readable text exists, return an empty string and confidence below 0.2.',
-  '- Confidence must be between 0 and 1.'
+  '- Include brand name, product type, variant, size, and quantity information.',
+  '- Extract price information visible in the image (PHP currency).',
+  '- Be comprehensive but keep it readable for downstream processing.',
+  '- If no readable text exists, return empty string and confidence below 0.2.',
+  '- Confidence must be between 0 and 1.',
+  '- Higher confidence for clearly readable, multi-line text.',
+  '- Lower confidence (0.3-0.6) for partially visible or unclear text that you can partially make out.'
 ].join('\n');
 
 function clampConfidence(value: number): number {
@@ -82,19 +116,21 @@ function inferTextConfidence(text: string): number {
     return 0;
   }
 
-  if (text.length >= 120) {
-    return 0.85;
-  }
+  const tokens = text.split(/\s+/).filter(Boolean);
+  const hasNumeric = /\d/.test(text);
+  const hasCurrency = /(?:\u20b1|php|peso)/i.test(text);
+  const avgTokenLength =
+    tokens.length > 0 ? tokens.reduce((sum, token) => sum + token.length, 0) / tokens.length : 0;
 
-  if (text.length >= 60) {
-    return 0.7;
-  }
+  let score = 0.2;
+  if (tokens.length >= 3) score += 0.15;
+  if (tokens.length >= 8) score += 0.15;
+  if (avgTokenLength >= 4) score += 0.1;
+  if (hasNumeric) score += 0.1;
+  if (hasCurrency) score += 0.1;
+  if (text.length >= 120) score += 0.1;
 
-  if (text.length >= 24) {
-    return 0.55;
-  }
-
-  return 0.4;
+  return clampConfidence(score);
 }
 
 function validateVisionPayload(payload: unknown): VisionDetection {
@@ -116,6 +152,22 @@ function validateVisionPayload(payload: unknown): VisionDetection {
     detectedPrice = Number(parsedPrice.toFixed(2));
   }
 
+  let alternatives: Array<{ name: string; confidence: number }> | undefined;
+  if (Array.isArray(record.alternatives)) {
+    alternatives = record.alternatives
+      .map((alt) => {
+        if (alt && typeof alt === 'object') {
+          const name = typeof (alt as any).name === 'string' ? sanitizeText((alt as any).name) : '';
+          const conf = Number((alt as any).confidence);
+          if (name && Number.isFinite(conf) && conf >= 0 && conf <= 1) {
+            return { name, confidence: Number(conf.toFixed(2)) };
+          }
+        }
+        return null;
+      })
+      .filter((x): x is { name: string; confidence: number } => x !== null);
+  }
+
   if (!detectedName) {
     throw new Error('Vision response missing detected_name.');
   }
@@ -124,12 +176,17 @@ function validateVisionPayload(payload: unknown): VisionDetection {
     throw new Error('Vision response has invalid confidence.');
   }
 
-  return {
+  const result: VisionDetection = {
     detected_name: detectedName,
     detected_price: detectedPrice,
     region_guess: regionGuess || DEFAULT_REGION,
     confidence: Number(confidence.toFixed(2))
   };
+  if (alternatives && alternatives.length) {
+    result.alternatives = alternatives;
+  }
+
+  return result;
 }
 
 function validateImageTextPayload(payload: unknown): ImageTextModelResult {
@@ -199,6 +256,15 @@ function extractAxiosErrorMessage(error: unknown): string {
   }
 
   return status ? `status ${status}` : 'network failure';
+}
+
+function isDeepseekImageFormatError(error: unknown): boolean {
+  if (!isAxiosError(error)) {
+    return false;
+  }
+
+  const message = extractAxiosErrorMessage(error).toLowerCase();
+  return message.includes('unknown variant `image_url`') || message.includes('expected `text`');
 }
 
 function parseVisionContent(rawText: unknown): VisionDetection {
@@ -303,26 +369,27 @@ function buildImageTextAttempts(mode: ImageTextMode): ImageTextAttempt[] {
 
 async function requestDeepseekImageText(imageDataUrl: string, model: string): Promise<ImageTextModelResult> {
   try {
+    const requestBody = {
+      model,
+      temperature: 0.1,
+      response_format: { type: 'json_object' },
+      messages: [
+        {
+          role: 'system',
+          content: IMAGE_TEXT_PROMPT
+        },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Extract product text from this image and return strict JSON.' },
+            { type: 'image_url', image_url: { url: imageDataUrl } }
+          ]
+        }
+      ]
+    };
     const requestPromise = axios.post(
       'https://api.deepseek.com/v1/chat/completions',
-      {
-        model,
-        temperature: 0,
-        response_format: { type: 'json_object' },
-        messages: [
-          {
-            role: 'system',
-            content: IMAGE_TEXT_PROMPT
-          },
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: 'Extract product text from this image and return strict JSON.' },
-              { type: 'image_url', image_url: { url: imageDataUrl } }
-            ]
-          }
-        ]
-      },
+      requestBody,
       {
         headers: {
           Authorization: `Bearer ${requireEnv('DEEPSEEK_API_KEY')}`,
@@ -335,6 +402,47 @@ async function requestDeepseekImageText(imageDataUrl: string, model: string): Pr
     const response = await withTimeout(requestPromise, IMAGE_TEXT_TIMEOUT_MS);
     return parseImageTextContent(response.data?.choices?.[0]?.message?.content);
   } catch (error) {
+    if (isDeepseekImageFormatError(error)) {
+      const fallbackBody = {
+        model,
+        temperature: 0.1,
+        response_format: { type: 'json_object' },
+        messages: [
+          {
+            role: 'system',
+            content: IMAGE_TEXT_PROMPT
+          },
+          {
+            role: 'user',
+            content: 'Extract product text from this image and return strict JSON.',
+            images: [imageDataUrl]
+          }
+        ]
+      };
+
+      try {
+        const fallbackResponse = await withTimeout(
+          axios.post('https://api.deepseek.com/v1/chat/completions', fallbackBody, {
+            headers: {
+              Authorization: `Bearer ${requireEnv('DEEPSEEK_API_KEY')}`,
+              'Content-Type': 'application/json'
+            },
+            timeout: IMAGE_TEXT_TIMEOUT_MS
+          }),
+          IMAGE_TEXT_TIMEOUT_MS
+        );
+        return parseImageTextContent(fallbackResponse.data?.choices?.[0]?.message?.content);
+      } catch (fallbackError) {
+        if (isAxiosError(fallbackError)) {
+          throw new Error(`DeepSeek image text unavailable (${extractAxiosErrorMessage(fallbackError)}).`);
+        }
+        if (fallbackError instanceof Error) {
+          throw new Error(`DeepSeek image text failed: ${fallbackError.message}`);
+        }
+        throw new Error('DeepSeek image text failed due to an unknown error.');
+      }
+    }
+
     if (isAxiosError(error)) {
       throw new Error(`DeepSeek image text unavailable (${extractAxiosErrorMessage(error)}).`);
     }
@@ -415,26 +523,27 @@ export async function extractImageTextFromDeepseek(base64Image: string, mimeType
 
 async function requestDeepseekVision(imageDataUrl: string): Promise<VisionDetection> {
   try {
+    const requestBody = {
+      model: DEFAULT_MODEL,
+      temperature: VISION_TEMPERATURE,
+      response_format: { type: 'json_object' },
+      messages: [
+        {
+          role: 'system',
+          content: PROMPT
+        },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Analyze this image and return strict JSON.' },
+            { type: 'image_url', image_url: { url: imageDataUrl } }
+          ]
+        }
+      ]
+    };
     const requestPromise = axios.post(
       'https://api.deepseek.com/v1/chat/completions',
-      {
-        model: DEFAULT_MODEL,
-        temperature: 0,
-        response_format: { type: 'json_object' },
-        messages: [
-          {
-            role: 'system',
-            content: PROMPT
-          },
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: 'Analyze this image and return strict JSON.' },
-              { type: 'image_url', image_url: { url: imageDataUrl } }
-            ]
-          }
-        ]
-      },
+      requestBody,
       {
         headers: {
           Authorization: `Bearer ${requireEnv('DEEPSEEK_API_KEY')}`,
@@ -447,6 +556,50 @@ async function requestDeepseekVision(imageDataUrl: string): Promise<VisionDetect
     const response = await withTimeout(requestPromise, DEFAULT_TIMEOUT_MS);
     return parseVisionContent(response.data?.choices?.[0]?.message?.content);
   } catch (error) {
+    if (isDeepseekImageFormatError(error)) {
+      const fallbackBody = {
+        model: DEFAULT_MODEL,
+        temperature: VISION_TEMPERATURE,
+        response_format: { type: 'json_object' },
+        messages: [
+          {
+            role: 'system',
+            content: PROMPT
+          },
+          {
+            role: 'user',
+            content: 'Analyze this image and return strict JSON.',
+            images: [imageDataUrl]
+          }
+        ]
+      };
+
+      try {
+        const fallbackResponse = await withTimeout(
+          axios.post('https://api.deepseek.com/v1/chat/completions', fallbackBody, {
+            headers: {
+              Authorization: `Bearer ${requireEnv('DEEPSEEK_API_KEY')}`,
+              'Content-Type': 'application/json'
+            },
+            timeout: DEFAULT_TIMEOUT_MS
+          }),
+          DEFAULT_TIMEOUT_MS
+        );
+        return parseVisionContent(fallbackResponse.data?.choices?.[0]?.message?.content);
+      } catch (fallbackError) {
+        if (isAxiosError(fallbackError)) {
+          throw new Error(`DeepSeek vision unavailable (${extractAxiosErrorMessage(fallbackError)}).`);
+        }
+        if (fallbackError instanceof SyntaxError) {
+          throw new Error('DeepSeek vision returned malformed JSON.');
+        }
+        if (fallbackError instanceof Error) {
+          throw new Error(`DeepSeek vision failed: ${fallbackError.message}`);
+        }
+        throw new Error('DeepSeek vision failed due to an unknown error.');
+      }
+    }
+
     if (isAxiosError(error)) {
       throw new Error(`DeepSeek vision unavailable (${extractAxiosErrorMessage(error)}).`);
     }
@@ -469,7 +622,7 @@ async function requestOpenAiVision(imageDataUrl: string): Promise<VisionDetectio
       'https://api.openai.com/v1/chat/completions',
       {
         model: OPENAI_VISION_MODEL,
-        temperature: 0,
+        temperature: VISION_TEMPERATURE,
         response_format: { type: 'json_object' },
         messages: [
           {

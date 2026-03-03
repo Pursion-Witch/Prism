@@ -43,6 +43,13 @@
             line-height: 1.2;
         }
 
+/*Body*/
+
+        @media (max-width: 768px) {
+            html, body {width: 100%; overflow-x: hidden;}
+            
+            * {max-width: 100%;}
+        }
 /* ----- Stars Background ----- */
 
         .stars-container {
@@ -383,10 +390,6 @@
             max-width: 1300px;
             margin: 0 auto;
         }
-<<<<<<<< HEAD:public/web/terms/terms.css
-========
-        
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/terms.css
         .footer {
             background: #15b34e;
         }
@@ -406,8 +409,6 @@
             text-decoration: underline;
         }
 
-<<<<<<<< HEAD:public/web/terms/terms.css
-========
 /*  Footer Mobile  */
 
         @media (max-width: 768px) {
@@ -419,7 +420,6 @@
             }
         }
 
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/terms.css
 /* Notification */
 
         .notification {

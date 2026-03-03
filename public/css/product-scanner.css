@@ -42,6 +42,14 @@
             letter-spacing: -0.02em;
             line-height: 1.2;
         }
+        
+/*Body*/
+
+        @media (max-width: 768px) {
+            html, body {width: 100%; overflow-x: hidden;}
+            
+            * {max-width: 100%;}
+        }
 
 /* ----- Stars Background ----- */
 
@@ -191,10 +199,7 @@
             font-size: 1.3rem;
             color: #ffffff;
             font-weight: 400;
-<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
-            overflow-wrap: anywhere;
-========
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
+
         }
         .scanner-header .subhead span {
             color: #1ED760;
@@ -246,8 +251,6 @@
             transition: 0.3s;
         }
 
-<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
-========
 /*----Scanner Card: Mobile view*/
 
         @media (max-width: 768px) {
@@ -257,8 +260,6 @@
                 border-radius: 30px;
             }
          }
-
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
 /* Mode Badge */
 
         .mode-badge {
@@ -321,10 +322,6 @@
             font-size: 1rem;
             font-family: 'Plus Jakarta', sans-serif;
             outline: none;
-<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
-            min-width: 0;
-========
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
 
         .input-wrapper input::placeholder {
@@ -344,17 +341,14 @@
             transition: 0.2s;
             font-family: 'Plus Jakarta', sans-serif;
             margin-right: 0.3rem;
-<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
-            white-space: nowrap;
-========
         }
 
         @media (max-width: 768px) {
             .input-wrapper button{
                 padding: 0.7rem 1.3rem;
             }
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
+
         .input-wrapper button:hover {
             background: #15b34e;
             transform: scale(1.02);
@@ -430,12 +424,9 @@
             color: #bbb;
             cursor: pointer;
             transition: 0.2s;
-<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
             line-height: 1.35;
             white-space: normal;
             overflow-wrap: anywhere;
-========
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
         .example-chip:hover {
             border-color: #1ED760;
@@ -462,10 +453,6 @@
             gap: 0.5rem;
             color: #ccc;
             font-size: 0.95rem;
-<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
-            overflow-wrap: anywhere;
-========
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
         .detect-item .label {
             color: #888;
@@ -509,10 +496,6 @@
         }
         .results-header h3 {
             color: #1ED760;
-<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
-            overflow-wrap: anywhere;
-========
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
         .fairness-score {
             background: #1ED76020;
@@ -544,11 +527,8 @@
             font-weight: 700;
             color: #1ED760;
             margin: 0.5rem 0;
-<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
             overflow-wrap: anywhere;
             word-break: break-word;
-========
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
         .price-note {
             color: #aaa;
@@ -559,7 +539,6 @@
             padding: 1rem;
             border-radius: 16px;
             margin: 1rem 0;
-<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
             overflow-wrap: anywhere;
         }
 
@@ -753,8 +732,6 @@
             color: #8f8f8f;
             font-size: 0.88rem;
             overflow-wrap: anywhere;
-========
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
 
 /* Price Index Section with Graph */
@@ -867,14 +844,11 @@
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 600;
-<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
             white-space: normal;
             text-align: center;
             max-width: 140px;
             overflow-wrap: anywhere;
-========
             white-space: nowrap;
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
             z-index: 10;
         }
         .graph-label {
@@ -883,13 +857,10 @@
             color: #888;
             transform: rotate(-45deg);
             transform-origin: top left;
-<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
             white-space: normal;
             overflow-wrap: anywhere;
             max-width: 90px;
-========
             white-space: nowrap;
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
 
 /* Multi-line Graph */
@@ -952,14 +923,11 @@
             padding: 0.2rem 0.5rem;
             border-radius: 12px;
             font-size: 0.7rem;
-<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
             white-space: normal;
             text-align: center;
             max-width: 140px;
             overflow-wrap: anywhere;
-========
             white-space: nowrap;
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
         .point-rice { background: #1ED760; }
         .point-fuel { background: #ff6b6b; }
@@ -1059,8 +1027,6 @@
         .footer-left a:hover {
             text-decoration: underline;
         }
-<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
-========
         
 /*----Footer: Mobile view----*/
 
@@ -1072,7 +1038,6 @@
                 word-wrap: break-word;
             }
         }
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
 
 /* Notification & Back to Top */
 
@@ -1089,8 +1054,6 @@
             box-shadow: 0 10px 30px black;
             animation: slideIn 0.2s;
         }
-<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
-========
 
 /*----Notification: mobile view----*/
 
@@ -1105,7 +1068,6 @@
             }
         }
 
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         @keyframes slideIn { from { opacity:0; transform:translateX(40px); } }
         @keyframes slideOut { to { opacity:0; transform:translateX(40px); } }
 
@@ -1135,7 +1097,6 @@
             .pinoy-badge { margin-left: 0; }
             .graph-legend { flex-wrap: wrap; }
             .graph-label { transform: rotate(-90deg); margin-top: 1.5rem; }
-<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
             .scanner-tools {
                 grid-template-columns: 1fr;
             }
@@ -1156,6 +1117,3 @@
                 min-height: 190px;
             }
         }
-========
-        }
->>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css

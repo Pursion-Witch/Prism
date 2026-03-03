@@ -191,6 +191,10 @@
             font-size: 1.3rem;
             color: #ffffff;
             font-weight: 400;
+<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
+            overflow-wrap: anywhere;
+========
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
         .scanner-header .subhead span {
             color: #1ED760;
@@ -242,6 +246,8 @@
             transition: 0.3s;
         }
 
+<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
+========
 /*----Scanner Card: Mobile view*/
 
         @media (max-width: 768px) {
@@ -252,6 +258,7 @@
             }
          }
 
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
 /* Mode Badge */
 
         .mode-badge {
@@ -314,6 +321,10 @@
             font-size: 1rem;
             font-family: 'Plus Jakarta', sans-serif;
             outline: none;
+<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
+            min-width: 0;
+========
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
 
         .input-wrapper input::placeholder {
@@ -333,12 +344,16 @@
             transition: 0.2s;
             font-family: 'Plus Jakarta', sans-serif;
             margin-right: 0.3rem;
+<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
+            white-space: nowrap;
+========
         }
 
         @media (max-width: 768px) {
             .input-wrapper button{
                 padding: 0.7rem 1.3rem;
             }
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
         .input-wrapper button:hover {
             background: #15b34e;
@@ -415,6 +430,12 @@
             color: #bbb;
             cursor: pointer;
             transition: 0.2s;
+<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
+            line-height: 1.35;
+            white-space: normal;
+            overflow-wrap: anywhere;
+========
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
         .example-chip:hover {
             border-color: #1ED760;
@@ -441,6 +462,10 @@
             gap: 0.5rem;
             color: #ccc;
             font-size: 0.95rem;
+<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
+            overflow-wrap: anywhere;
+========
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
         .detect-item .label {
             color: #888;
@@ -484,6 +509,10 @@
         }
         .results-header h3 {
             color: #1ED760;
+<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
+            overflow-wrap: anywhere;
+========
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
         .fairness-score {
             background: #1ED76020;
@@ -515,6 +544,11 @@
             font-weight: 700;
             color: #1ED760;
             margin: 0.5rem 0;
+<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
+            overflow-wrap: anywhere;
+            word-break: break-word;
+========
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
         .price-note {
             color: #aaa;
@@ -525,6 +559,202 @@
             padding: 1rem;
             border-radius: 16px;
             margin: 1rem 0;
+<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
+            overflow-wrap: anywhere;
+        }
+
+        .scanner-tools {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1rem;
+            align-items: end;
+        }
+        .tool-input {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+        .tool-input input {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 0.8rem 1rem;
+            color: #fff;
+            font-family: 'Plus Jakarta', sans-serif;
+            outline: none;
+        }
+        .tool-input select {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 0.8rem 1rem;
+            color: #fff;
+            font-family: 'Plus Jakarta', sans-serif;
+            outline: none;
+        }
+        .tool-input input:focus {
+            border-color: #1ED760;
+        }
+        .tool-input select:focus {
+            border-color: #1ED760;
+        }
+        .tool-checkbox {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            color: #ccc;
+            font-size: 0.92rem;
+            background: #0f0f0f;
+            border: 1px solid #262626;
+            border-radius: 16px;
+            padding: 0.8rem 1rem;
+            min-height: 47px;
+        }
+        .tool-checkbox input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
+            accent-color: #1ED760;
+        }
+        .voice-tools {
+            display: grid;
+            grid-template-columns: 2fr auto 1fr;
+            gap: 1rem;
+            align-items: end;
+        }
+        .voice-btn {
+            background: #111;
+            color: #1ED760;
+            border: 1px solid #1ED76055;
+            border-radius: 999px;
+            padding: 0.75rem 1rem;
+            font-family: 'Plus Jakarta', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            min-height: 47px;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .voice-btn:hover {
+            border-color: #1ED760;
+            background: #1ED76018;
+        }
+        .voice-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .voice-btn.recording {
+            color: #000;
+            background: #1ED760;
+            border-color: #1ED760;
+        }
+        .voice-btn.processing {
+            color: #111;
+            background: #ffaa33;
+            border-color: #ffaa33;
+        }
+        .voice-status {
+            display: inline-flex;
+            align-items: center;
+            background: #0f0f0f;
+            border: 1px solid #262626;
+            border-radius: 16px;
+            padding: 0.8rem 1rem;
+            min-height: 47px;
+            color: #a9a9a9;
+            font-size: 0.9rem;
+        }
+        .voice-status.recording {
+            color: #1ED760;
+            border-color: #1ED76055;
+        }
+        .voice-status.processing {
+            color: #ffaa33;
+            border-color: #ffaa3355;
+        }
+
+        .capture-panel {
+            background: #0c0c0c;
+            border: 1px solid #262626;
+            border-radius: 24px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+        .capture-preview {
+            position: relative;
+            background: #050505;
+            border: 1px solid #262626;
+            border-radius: 18px;
+            min-height: 220px;
+            overflow: hidden;
+        }
+        .capture-preview video,
+        .capture-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+        .capture-preview video.show,
+        .capture-preview img.show {
+            display: block;
+        }
+        .capture-preview::after {
+            content: 'Camera preview';
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 0.95rem;
+            pointer-events: none;
+        }
+        .capture-preview.has-media::after {
+            display: none;
+        }
+        #captureCanvas {
+            display: none;
+        }
+        .capture-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+        .capture-controls button,
+        .upload-image-label {
+            background: #111;
+            color: #fff;
+            border: 1px solid #333;
+            border-radius: 999px;
+            padding: 0.58rem 1rem;
+            font-family: 'Plus Jakarta', sans-serif;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+        .capture-controls button:hover,
+        .upload-image-label:hover {
+            border-color: #1ED760;
+            color: #1ED760;
+        }
+        .capture-controls button:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+        #imageUploadInput {
+            display: none;
+        }
+        .capture-note {
+            color: #8f8f8f;
+            font-size: 0.88rem;
+            overflow-wrap: anywhere;
+========
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
 
 /* Price Index Section with Graph */
@@ -637,7 +867,14 @@
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 600;
+<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
+            white-space: normal;
+            text-align: center;
+            max-width: 140px;
+            overflow-wrap: anywhere;
+========
             white-space: nowrap;
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
             z-index: 10;
         }
         .graph-label {
@@ -646,7 +883,13 @@
             color: #888;
             transform: rotate(-45deg);
             transform-origin: top left;
+<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
+            white-space: normal;
+            overflow-wrap: anywhere;
+            max-width: 90px;
+========
             white-space: nowrap;
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
 
 /* Multi-line Graph */
@@ -709,7 +952,14 @@
             padding: 0.2rem 0.5rem;
             border-radius: 12px;
             font-size: 0.7rem;
+<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
+            white-space: normal;
+            text-align: center;
+            max-width: 140px;
+            overflow-wrap: anywhere;
+========
             white-space: nowrap;
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         }
         .point-rice { background: #1ED760; }
         .point-fuel { background: #ff6b6b; }
@@ -809,6 +1059,8 @@
         .footer-left a:hover {
             text-decoration: underline;
         }
+<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
+========
         
 /*----Footer: Mobile view----*/
 
@@ -820,6 +1072,7 @@
                 word-wrap: break-word;
             }
         }
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
 
 /* Notification & Back to Top */
 
@@ -836,6 +1089,8 @@
             box-shadow: 0 10px 30px black;
             animation: slideIn 0.2s;
         }
+<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
+========
 
 /*----Notification: mobile view----*/
 
@@ -850,6 +1105,7 @@
             }
         }
 
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css
         @keyframes slideIn { from { opacity:0; transform:translateX(40px); } }
         @keyframes slideOut { to { opacity:0; transform:translateX(40px); } }
 
@@ -879,4 +1135,27 @@
             .pinoy-badge { margin-left: 0; }
             .graph-legend { flex-wrap: wrap; }
             .graph-label { transform: rotate(-90deg); margin-top: 1.5rem; }
+<<<<<<<< HEAD:public/web/product-scanner/product-scanner.css
+            .scanner-tools {
+                grid-template-columns: 1fr;
+            }
+            .voice-tools {
+                grid-template-columns: 1fr;
+            }
+            .input-wrapper {
+                flex-direction: column;
+                border-radius: 24px;
+                padding: 0.8rem;
+                align-items: stretch;
+            }
+            .input-wrapper button {
+                width: 100%;
+                margin: 0;
+            }
+            .capture-preview {
+                min-height: 190px;
+            }
         }
+========
+        }
+>>>>>>>> f6ce2851c01e2f47844ab24091c10b286b9d168d:public/web/home-page/product-scanner.css

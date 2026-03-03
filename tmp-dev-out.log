@@ -1,0 +1,16 @@
+
+> prism@1.0.0 dev
+> nodemon --watch src --ext ts --exec "ts-node" src/server.ts
+
+[33m[nodemon] 3.1.14[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): src\**\*[39m
+[33m[nodemon] watching extensions: ts[39m
+[32m[nodemon] starting `ts-node src/server.ts`[39m
+PRISM server running on http://localhost:3001
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `ts-node src/server.ts`[39m
+PRISM server running on http://localhost:3001
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `ts-node src/server.ts`[39m
+PRISM server running on http://localhost:3001

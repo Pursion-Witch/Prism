@@ -1,0 +1,283 @@
+import type { PoolClient } from 'pg';
+import { withDbClient } from '../db';
+import {
+  DEFAULT_CATEGORY,
+  DEFAULT_MARKET_NAME,
+  DEFAULT_REGION,
+  DEFAULT_STALL_NAME
+} from '../constants/cebuDefaults';
+
+type QueryClient = Pick<PoolClient, 'query'>;
+
+export interface ProductCatalogInput {
+  name: string;
+  category?: string | null;
+  brandName?: string | null;
+  region?: string | null;
+  marketName?: string | null;
+  stallName?: string | null;
+  srpPrice?: number | null;
+  isProtected?: boolean | null;
+}
+
+export interface NormalizedProductCatalogInput {
+  name: string;
+  category: string;
+  catalogCode: string;
+  brandName: string | null;
+  region: string;
+  marketName: string;
+  stallName: string;
+  srpPrice: number | null;
+  isProtected: boolean;
+}
+
+export interface UpsertCatalogProductOptions {
+  updateExisting?: boolean;
+}
+
+export interface UpsertCatalogProductResult {
+  id: string;
+  action: 'inserted' | 'updated' | 'unchanged';
+  product: NormalizedProductCatalogInput;
+}
+
+interface ProductIdRow {
+  id: string;
+  is_protected?: boolean;
+}
+
+const CATEGORY_CODE_BY_NAME: Record<string, string> = {
+  FOOD: 'FOD',
+  VEGETABLE: 'VEG',
+  VEGETABLES: 'VEG',
+  FRUIT: 'FRT',
+  FRUITS: 'FRT',
+  GADGET: 'GDT',
+  GADGETS: 'GDT',
+  ELECTRONICS: 'GDT',
+  RICE: 'RIC',
+  GRAINS: 'GRN',
+  FISH: 'FSH',
+  SEAFOOD: 'SFD',
+  MEAT: 'MET',
+  POULTRY: 'PLT',
+  EGGS: 'EGG',
+  PANTRY: 'PNT',
+  CANNED: 'CND',
+  BEVERAGES: 'BEV',
+  COFFEE: 'COF',
+  DAIRY: 'DAR',
+  HOUSEHOLD: 'HSD',
+  GENERAL: 'GEN'
+};
+
+let productCatalogSchemaReadyPromise: Promise<void> | null = null;
+
+export async function ensureProductCatalogSchema(client: QueryClient): Promise<void> {
+  if (!productCatalogSchemaReadyPromise) {
+    productCatalogSchemaReadyPromise = (async () => {
+      await client.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS is_protected BOOLEAN NOT NULL DEFAULT TRUE`);
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_products_is_protected ON products (is_protected)`);
+    })();
+  }
+
+  await productCatalogSchemaReadyPromise;
+}
+
+function normalizeRequiredText(value: string, fieldName: string): string {
+  const normalized = value.trim();
+  if (!normalized) {
+    throw new Error(`${fieldName} is required.`);
+  }
+
+  return normalized;
+}
+
+function normalizeOptionalText(value: string | null | undefined, fallbackValue: string): string {
+  const normalized = typeof value === 'string' ? value.trim() : '';
+  return normalized || fallbackValue;
+}
+
+function normalizeOptionalNullableText(value: string | null | undefined): string | null {
+  const normalized = typeof value === 'string' ? value.trim() : '';
+  return normalized || null;
+}
+
+function normalizeOptionalPrice(value: number | null | undefined): number | null {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return null;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error('Please provide a valid positive price.');
+  }
+
+  return Number(parsed.toFixed(2));
+}
+
+function normalizeCategoryKey(category: string): string {
+  return category
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+function getCategoryCode(category: string): string {
+  const normalized = normalizeCategoryKey(category);
+  if (CATEGORY_CODE_BY_NAME[normalized]) {
+    return CATEGORY_CODE_BY_NAME[normalized];
+  }
+
+  const stripped = normalized.replace(/[^A-Z]/g, '');
+  if (stripped.length >= 3) {
+    return stripped.slice(0, 3);
+  }
+
+  return 'GEN';
+}
+
+function getNameCode(name: string): string {
+  const normalized = name
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, ' ')
+    .split(' ')
+    .filter(Boolean);
+
+  if (!normalized.length) {
+    return 'ITEM';
+  }
+
+  const compact = normalized.join('');
+  if (compact.length >= 10) {
+    return compact.slice(0, 10);
+  }
+
+  return compact.padEnd(4, 'X');
+}
+
+export function buildCatalogCode(name: string, category: string): string {
+  const categoryCode = getCategoryCode(category);
+  const nameCode = getNameCode(name);
+  return `${categoryCode}-${nameCode}`;
+}
+
+export function normalizeCatalogInput(input: ProductCatalogInput): NormalizedProductCatalogInput {
+  const normalizedName = normalizeRequiredText(input.name, 'Product name');
+  const normalizedCategory = normalizeOptionalText(input.category, DEFAULT_CATEGORY);
+
+  return {
+    name: normalizedName,
+    category: normalizedCategory,
+    catalogCode: buildCatalogCode(normalizedName, normalizedCategory),
+    brandName: normalizeOptionalNullableText(input.brandName),
+    region: normalizeOptionalText(input.region, DEFAULT_REGION),
+    marketName: normalizeOptionalText(input.marketName, DEFAULT_MARKET_NAME),
+    stallName: normalizeOptionalText(input.stallName, DEFAULT_STALL_NAME),
+    srpPrice: normalizeOptionalPrice(input.srpPrice),
+    isProtected: input.isProtected === true
+  };
+}
+
+export async function upsertCatalogProduct(
+  client: QueryClient,
+  input: ProductCatalogInput,
+  options: UpsertCatalogProductOptions = {}
+): Promise<UpsertCatalogProductResult> {
+  await ensureProductCatalogSchema(client);
+  const normalized = normalizeCatalogInput(input);
+  const shouldUpdate = options.updateExisting !== false;
+
+  const existingResult = await client.query<ProductIdRow>(
+    `
+      SELECT id
+           , is_protected
+      FROM products
+      WHERE LOWER(name) = LOWER($1)
+        AND LOWER(COALESCE(region, '')) = LOWER($2)
+        AND LOWER(COALESCE(market_name, '')) = LOWER($3)
+        AND LOWER(COALESCE(stall_name, '')) = LOWER($4)
+      ORDER BY created_at DESC
+      LIMIT 1
+    `,
+    [normalized.name, normalized.region, normalized.marketName, normalized.stallName]
+  );
+
+  if (existingResult.rowCount && existingResult.rows[0]) {
+    if (shouldUpdate) {
+      await client.query(
+        `
+          UPDATE products
+          SET category = $1,
+              brand_name = $2,
+              region = $3,
+              market_name = $4,
+              stall_name = $5,
+              srp_price = COALESCE($6, srp_price),
+              is_protected = COALESCE(products.is_protected, FALSE) OR $8
+          WHERE id = $7
+        `,
+        [
+          normalized.category,
+          normalized.brandName,
+          normalized.region,
+          normalized.marketName,
+          normalized.stallName,
+          normalized.srpPrice,
+          existingResult.rows[0].id,
+          normalized.isProtected
+        ]
+      );
+
+      return {
+        id: existingResult.rows[0].id,
+        action: 'updated',
+        product: normalized
+      };
+    }
+
+    return {
+      id: existingResult.rows[0].id,
+      action: 'unchanged',
+      product: normalized
+    };
+  }
+
+  const insertResult = await client.query<ProductIdRow>(
+    `
+      INSERT INTO products (name, category, brand_name, region, market_name, stall_name, srp_price, is_protected)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id
+    `,
+    [
+      normalized.name,
+      normalized.category,
+      normalized.brandName,
+      normalized.region,
+      normalized.marketName,
+      normalized.stallName,
+      normalized.srpPrice,
+      normalized.isProtected
+    ]
+  );
+
+  if (!insertResult.rows[0]) {
+    throw new Error('Failed to insert product.');
+  }
+
+  return {
+    id: insertResult.rows[0].id,
+    action: 'inserted',
+    product: normalized
+  };
+}
+
+export async function upsertCatalogProductWithDb(
+  input: ProductCatalogInput,
+  options: UpsertCatalogProductOptions = {}
+): Promise<UpsertCatalogProductResult> {
+  return withDbClient(async (client) => upsertCatalogProduct(client, input, options));
+}

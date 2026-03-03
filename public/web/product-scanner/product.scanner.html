@@ -75,6 +75,19 @@
                         Show price in result
                     </label>
                 </div>
+                <div class="voice-tools">
+                    <label class="tool-input">
+                        Voice language
+                        <select id="voiceLanguage">
+                            <option value="en-PH">English (Philippines)</option>
+                            <option value="fil-PH">Filipino / Tagalog</option>
+                            <option value="ceb-PH">Cebuano</option>
+                            <option value="en-US">English (US)</option>
+                        </select>
+                    </label>
+                    <button type="button" id="voiceInputBtn" class="voice-btn">START MIC</button>
+                    <div id="voiceStatus" class="voice-status">Voice idle</div>
+                </div>
 
                 <div class="capture-panel">
                     <div class="capture-preview">
@@ -86,6 +99,7 @@
                         <button type="button" id="startCameraBtn">START CAMERA</button>
                         <button type="button" id="captureBtn" disabled>CAPTURE IMAGE</button>
                         <button type="button" id="scanCaptureBtn" disabled>SCAN CAPTURE</button>
+                        <button type="button" id="clearCaptureBtn" disabled>CLEAR IMAGE</button>
                         <label class="upload-image-label" for="imageUploadInput">UPLOAD IMAGE</label>
                         <input type="file" id="imageUploadInput" name="image" accept="image/jpeg,image/jpg,image/png,image/webp">
                     </div>

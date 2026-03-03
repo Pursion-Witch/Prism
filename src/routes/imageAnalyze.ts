@@ -4,6 +4,7 @@ import { DEFAULT_REGION } from '../constants/cebuDefaults';
 import { extractPriceFromSentence, extractPrimaryItemName } from '../services/itemNameService';
 import { extractTextFromImageBuffer } from '../services/ocrService';
 import { analyzePrice } from '../services/priceService';
+import { extractPriceLinesFromText, type PriceExtractionLine } from '../services/priceExtractionService';
 import { inferPriceNormalization } from '../services/unitNormalizationService';
 import { detectFromImage, extractImageTextFromDeepseek, type VisionDetection } from '../services/visionService';
 
@@ -52,6 +53,22 @@ interface RatioAssessment {
   difference_percent: number | null;
   color: string;
   note: string;
+}
+
+function getBestExtractedLine(lines: PriceExtractionLine[]): PriceExtractionLine | null {
+  if (!lines.length) {
+    return null;
+  }
+
+  const sorted = lines
+    .slice()
+    .sort((left, right) => {
+      const leftScore = (left.product_name.toLowerCase() === 'unknown' ? 0 : 1) + (left.price > 0 ? 2 : 0);
+      const rightScore = (right.product_name.toLowerCase() === 'unknown' ? 0 : 1) + (right.price > 0 ? 2 : 0);
+      return rightScore - leftScore;
+    });
+
+  return sorted[0] ?? null;
 }
 
 function clampConfidence(value: number, minimum: number): number {
@@ -215,6 +232,9 @@ router.post('/analyze-image', (req: Request, res: Response, next: NextFunction) 
       let imageText = '';
       let textConfidence = 0;
       let visionSource: VisionSource = 'deepseek-vl';
+      let extractedPriceLines: string[] = [];
+      let extractedPriceModel: string | null = null;
+      let extractedPriceBest: PriceExtractionLine | null = null;
 
       try {
         const textExtraction = await extractImageTextFromDeepseek(base64Image, mimeType);
@@ -238,14 +258,28 @@ router.post('/analyze-image', (req: Request, res: Response, next: NextFunction) 
       }
 
       if (imageText) {
+        const extractedFromPrompt = await extractPriceLinesFromText(imageText);
+        extractedPriceLines = extractedFromPrompt.lines;
+        extractedPriceModel = extractedFromPrompt.model;
+        extractedPriceBest = getBestExtractedLine(extractedFromPrompt.parsed);
+
         const extractedFromText = await extractPrimaryItemName(imageText);
         const extractedName = extractedFromText.item_name || '';
+        const fallbackName = extractedPriceBest?.product_name || '';
+        const fallbackPrice = extractedPriceBest && extractedPriceBest.price > 0 ? extractedPriceBest.price : null;
         if (extractedName && !isGenericItemName(extractedName)) {
           vision = {
             detected_name: extractedName,
-            detected_price: extractPriceFromSentence(imageText),
+            detected_price: extractPriceFromSentence(imageText) ?? fallbackPrice,
             region_guess: DEFAULT_REGION,
             confidence: clampConfidence(textConfidence, 0.35)
+          };
+        } else if (fallbackName && !isGenericItemName(fallbackName)) {
+          vision = {
+            detected_name: fallbackName,
+            detected_price: fallbackPrice,
+            region_guess: DEFAULT_REGION,
+            confidence: clampConfidence(textConfidence, 0.3)
           };
         }
       }
@@ -306,6 +340,8 @@ router.post('/analyze-image', (req: Request, res: Response, next: NextFunction) 
         display: {
           show_price: displayPrice
         },
+        price_lines: extractedPriceLines,
+        price_line_model: extractedPriceModel,
         ...(imageText ? { ocr_text: imageText, image_text_source: visionSource } : {}),
         ...(detectedVision.confidence < 0.4 ? { low_confidence: true } : {})
       });

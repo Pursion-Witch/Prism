@@ -1,0 +1,301 @@
+:root {
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+  color: #f5f5f5;
+  background: #050505;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #12311c 0%, #060606 42%, #020202 100%);
+  min-height: 100vh;
+}
+
+.app-shell {
+  width: min(980px, 92vw);
+  margin: 24px auto 56px;
+}
+
+.app-header h1 {
+  margin: 0 0 8px;
+  font-size: 2rem;
+}
+
+.app-header p {
+  margin: 0 0 20px;
+  color: #9ea7a1;
+}
+
+.form-card {
+  border: 1px solid #2a2a2a;
+  background: #0c0c0c;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.tab {
+  border: 0;
+  background: #101010;
+  color: #9ea7a1;
+  font-weight: 700;
+  padding: 13px 12px;
+  cursor: pointer;
+}
+
+.tab.active {
+  color: #1ed760;
+  background: #0d1b12;
+}
+
+.form-body {
+  padding: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.label {
+  font-size: 0.8rem;
+  color: #9ea7a1;
+}
+
+.input {
+  width: 100%;
+  border: 1px solid #2a2a2a;
+  background: #121212;
+  color: #f5f5f5;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.textarea {
+  min-height: 95px;
+  resize: vertical;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.row-end {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.select-inline {
+  width: auto;
+  min-width: 132px;
+}
+
+.primary-btn,
+.ghost-btn,
+.danger-btn {
+  border-radius: 999px;
+  padding: 9px 14px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.primary-btn {
+  background: #1ed760;
+  color: #06120b;
+}
+
+.primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.primary-btn.full {
+  width: 100%;
+}
+
+.ghost-btn {
+  background: #111;
+  color: #e7e7e7;
+  border-color: #2a2a2a;
+}
+
+.danger-btn {
+  background: #231010;
+  color: #ff7d7d;
+  border-color: #5d2525;
+}
+
+.file-label input {
+  display: none;
+}
+
+.small-note {
+  font-size: 0.8rem;
+  color: #1ed760;
+}
+
+.image-preview {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.image-preview img {
+  width: 84px;
+  height: 84px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid #2a2a2a;
+}
+
+.error-banner,
+.error-text {
+  color: #ff8e8e;
+}
+
+.error-banner {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #241414;
+  border: 1px solid #5d2525;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 90;
+}
+
+.capture-modal,
+.audio-modal {
+  width: min(360px, 100%);
+  border-radius: 14px;
+  border: 1px solid #2a2a2a;
+  background: #0f0f0f;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.capture-frame-small {
+  border-radius: 10px;
+  border: 1px solid #2a2a2a;
+  background: #050505;
+  min-height: 220px;
+  max-height: 240px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.capture-frame-small video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hidden-canvas {
+  display: none;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.audio-state {
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  color: #9ea7a1;
+  background: #121212;
+}
+
+.result-card {
+  margin-top: 16px;
+  border-radius: 18px;
+  border: 1px solid #2a2a2a;
+  background: #0b0b0b;
+  padding: 16px;
+}
+
+.result-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-pill {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #2a2a2a;
+  color: #1ed760;
+  font-size: 0.8rem;
+}
+
+.result-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  color: #9ea7a1;
+}
+
+.metric-value {
+  margin-top: 4px;
+  font-weight: 700;
+}
+
+.reasoning {
+  margin-top: 14px;
+  color: #d5d5d5;
+}
+
+.price-lines {
+  margin-top: 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.price-lines code {
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 6px 8px;
+  display: block;
+  overflow-x: auto;
+}
+
+@media (max-width: 740px) {
+  .two-col,
+  .result-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

@@ -5,9 +5,20 @@
     let cameraStream = null;
     let capturedBlob = null;
     let capturedUrl = '';
+    let voiceRecognition = null;
+    let voiceListening = false;
+    let voiceStopRequested = false;
+    let voiceTranslateTimer = null;
+    let lastQueuedVoiceTranscript = '';
+    let lastAppliedVoiceTranscript = '';
+    let voiceMediaRecorder = null;
+    let voiceMediaStream = null;
+    let voiceAudioChunks = [];
+    let voiceProcessing = false;
 
     const CAMERA_FILE_NAME = 'camera-capture.jpg';
     const HIDE_PRICE_TOKENS = ['hide price', 'no price', 'without price', 'label only', 'identify only', 'name only'];
+    const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition || null;
 
     const byId = (id) => document.getElementById(id);
 
@@ -55,6 +66,455 @@
         setTimeout(() => {
             notification.style.display = 'none';
         }, 2200);
+    }
+
+    function normalizeVoiceText(value) {
+        return String(value || '')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    function formatVoicePreview(value) {
+        const text = normalizeVoiceText(value);
+        if (!text) return 'Listening...';
+        return text.length > 68 ? `${text.slice(0, 68)}...` : text;
+    }
+
+    function setVoiceStatus(message, isRecording) {
+        const status = byId('voiceStatus');
+        const button = byId('voiceInputBtn');
+
+        if (status) {
+            status.textContent = message;
+            status.classList.toggle('recording', Boolean(isRecording));
+        }
+
+        if (button) {
+            button.classList.toggle('recording', Boolean(isRecording));
+            if (!voiceProcessing) {
+                button.textContent = isRecording ? 'STOP MIC' : 'START MIC';
+            }
+        }
+    }
+
+    function setVoiceProcessingState(isProcessing) {
+        voiceProcessing = Boolean(isProcessing);
+        const button = byId('voiceInputBtn');
+        const status = byId('voiceStatus');
+
+        if (button) {
+            button.disabled = voiceProcessing;
+            button.classList.toggle('processing', voiceProcessing);
+            if (voiceProcessing) {
+                button.textContent = 'TRANSCRIBING...';
+            } else if (!voiceListening) {
+                button.textContent = 'START MIC';
+            }
+        }
+
+        if (status) {
+            status.classList.toggle('processing', voiceProcessing);
+        }
+    }
+
+    function supportsAudioCapture() {
+        return typeof window.MediaRecorder !== 'undefined' && Boolean(navigator.mediaDevices?.getUserMedia);
+    }
+
+    function getAudioLanguageHint() {
+        const language = String(getVoiceLanguage() || '').toLowerCase();
+        if (language.startsWith('en')) return 'en';
+        if (language.startsWith('fil') || language.startsWith('tl')) return 'tl';
+        if (language.startsWith('ceb')) return 'ceb';
+        return '';
+    }
+
+    function clearVoiceMediaStream() {
+        if (voiceMediaStream) {
+            voiceMediaStream.getTracks().forEach((track) => track.stop());
+            voiceMediaStream = null;
+        }
+    }
+
+    function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const result = typeof reader.result === 'string' ? reader.result : '';
+                if (!result) {
+                    reject(new Error('Failed to read audio recording.'));
+                    return;
+                }
+                const commaIndex = result.indexOf(',');
+                resolve(commaIndex >= 0 ? result.substring(commaIndex + 1) : result);
+            };
+            reader.onerror = () => reject(new Error('Failed to read audio recording.'));
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    async function transcribeAudioBlob(blob, mimeType) {
+        if (!blob || !blob.size) {
+            setVoiceStatus('No speech captured. Try again.', false);
+            return;
+        }
+
+        setVoiceProcessingState(true);
+        setVoiceStatus('Transcribing audio...', false);
+
+        try {
+            const audioBase64 = await blobToBase64(blob);
+            const response = await fetch('/api/analyze/transcribe-audio', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    audio_base64: audioBase64,
+                    mime_type: mimeType || 'audio/webm',
+                    language: getAudioLanguageHint()
+                })
+            });
+
+            const payload = parseJsonSafe(await response.text());
+            if (!response.ok) {
+                throw new Error(payload.message || 'Audio transcription failed.');
+            }
+
+            const transcribedText = normalizeVoiceText(
+                payload.canonical_text || payload.translated_text || payload.transcribed_text || ''
+            );
+
+            if (!transcribedText) {
+                setVoiceStatus('No speech detected. Try again.', false);
+                showNotification('No speech detected from microphone.');
+                return;
+            }
+
+            const input = byId('productInput');
+            if (input) {
+                input.value = transcribedText;
+            }
+            updateMetadata(transcribedText);
+            syncCheckButtonState();
+
+            if (
+                payload.translated_text &&
+                payload.transcribed_text &&
+                String(payload.translated_text).toLowerCase() !== String(payload.transcribed_text).toLowerCase()
+            ) {
+                setVoiceStatus('Voice captured and translated.', false);
+            } else {
+                setVoiceStatus('Voice captured.', false);
+            }
+
+            showNotification('Voice transcription complete.');
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Audio transcription failed.';
+            setVoiceStatus('Transcription failed. Try again.', false);
+            showNotification(message);
+        } finally {
+            setVoiceProcessingState(false);
+        }
+    }
+
+    async function startAudioRecording() {
+        if (voiceProcessing || voiceListening) {
+            return;
+        }
+
+        if (!supportsAudioCapture()) {
+            startVoiceInput();
+            return;
+        }
+
+        if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+            showNotification('Microphone requires HTTPS or localhost.');
+            setVoiceStatus('Microphone requires HTTPS.', false);
+            return;
+        }
+
+        try {
+            voiceAudioChunks = [];
+            voiceMediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            const mimeCandidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
+            let recorderOptions = undefined;
+            if (typeof window.MediaRecorder.isTypeSupported === 'function') {
+                for (const candidate of mimeCandidates) {
+                    if (window.MediaRecorder.isTypeSupported(candidate)) {
+                        recorderOptions = { mimeType: candidate };
+                        break;
+                    }
+                }
+            }
+
+            voiceMediaRecorder = recorderOptions
+                ? new MediaRecorder(voiceMediaStream, recorderOptions)
+                : new MediaRecorder(voiceMediaStream);
+
+            const activeRecorder = voiceMediaRecorder;
+            activeRecorder.ondataavailable = (event) => {
+                if (event.data && event.data.size > 0) {
+                    voiceAudioChunks.push(event.data);
+                }
+            };
+
+            activeRecorder.onerror = () => {
+                voiceListening = false;
+                clearVoiceMediaStream();
+                setVoiceStatus('Recording failed. Try again.', false);
+            };
+
+            activeRecorder.onstop = async () => {
+                const capturedChunks = voiceAudioChunks.slice();
+                const mimeType = activeRecorder.mimeType || 'audio/webm';
+                voiceAudioChunks = [];
+                voiceListening = false;
+                voiceMediaRecorder = null;
+                clearVoiceMediaStream();
+                setVoiceStatus('Preparing audio...', false);
+                const audioBlob = new Blob(capturedChunks, { type: mimeType });
+                await transcribeAudioBlob(audioBlob, mimeType);
+            };
+
+            voiceStopRequested = false;
+            activeRecorder.start(220);
+            voiceListening = true;
+            setVoiceStatus('Recording... tap STOP MIC when done.', true);
+        } catch (error) {
+            clearVoiceMediaStream();
+            setVoiceStatus('Microphone permission denied.', false);
+            showNotification('Microphone permission is required for voice input.');
+        }
+    }
+
+    function stopAudioRecording() {
+        voiceStopRequested = true;
+
+        if (voiceMediaRecorder && voiceMediaRecorder.state !== 'inactive') {
+            try {
+                voiceMediaRecorder.stop();
+                setVoiceStatus('Processing recording...', false);
+                return;
+            } catch {
+                // fall through to cleanup
+            }
+        }
+
+        voiceListening = false;
+        clearVoiceMediaStream();
+        setVoiceStatus('Voice idle', false);
+    }
+
+    function clearVoiceTranslateTimer() {
+        if (voiceTranslateTimer) {
+            clearTimeout(voiceTranslateTimer);
+            voiceTranslateTimer = null;
+        }
+    }
+
+    async function translateVoiceTranscript(rawTranscript) {
+        const transcript = normalizeVoiceText(rawTranscript);
+        if (!transcript || transcript === lastAppliedVoiceTranscript) {
+            return;
+        }
+
+        const input = byId('productInput');
+        if (!input) return;
+
+        setVoiceStatus('Translating speech to text...', voiceListening);
+        let translatedText = transcript;
+
+        try {
+            const response = await fetch('/api/analyze/translate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: transcript })
+            });
+            const payload = parseJsonSafe(await response.text());
+            if (!response.ok) {
+                throw new Error(payload.message || 'Translation failed.');
+            }
+            translatedText = normalizeVoiceText(payload.canonical_text || payload.translated_text || transcript) || transcript;
+        } catch (error) {
+            translatedText = transcript;
+        }
+
+        input.value = translatedText;
+        updateMetadata(translatedText);
+        syncCheckButtonState();
+        lastAppliedVoiceTranscript = transcript;
+        if (translatedText.toLowerCase() !== transcript.toLowerCase()) {
+            setVoiceStatus('Voice captured and translated.', voiceListening);
+        } else {
+            setVoiceStatus('Voice captured.', voiceListening);
+        }
+    }
+
+    function scheduleVoiceTranslation(rawTranscript) {
+        const transcript = normalizeVoiceText(rawTranscript);
+        if (!transcript || transcript === lastQueuedVoiceTranscript) {
+            return;
+        }
+
+        lastQueuedVoiceTranscript = transcript;
+        clearVoiceTranslateTimer();
+        voiceTranslateTimer = setTimeout(() => {
+            voiceTranslateTimer = null;
+            translateVoiceTranscript(transcript).catch(() => {
+                setVoiceStatus('Voice captured (translation unavailable).', voiceListening);
+            });
+        }, 420);
+    }
+
+    function getVoiceLanguage() {
+        const languageSelect = byId('voiceLanguage');
+        if (!languageSelect || typeof languageSelect.value !== 'string') {
+            return 'en-PH';
+        }
+        return languageSelect.value || 'en-PH';
+    }
+
+    function ensureVoiceRecognition() {
+        if (voiceRecognition) return voiceRecognition;
+        if (!SpeechRecognitionCtor) return null;
+
+        const recognition = new SpeechRecognitionCtor();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => {
+            voiceListening = true;
+            voiceStopRequested = false;
+            setVoiceStatus('Listening...', true);
+        };
+
+        recognition.onresult = (event) => {
+            const finalSegments = [];
+            const interimSegments = [];
+
+            for (let index = 0; index < event.results.length; index += 1) {
+                const segment = normalizeVoiceText(event.results[index][0]?.transcript || '');
+                if (!segment) continue;
+                if (event.results[index].isFinal) {
+                    finalSegments.push(segment);
+                } else {
+                    interimSegments.push(segment);
+                }
+            }
+
+            const finalTranscript = normalizeVoiceText(finalSegments.join(' '));
+            const interimTranscript = normalizeVoiceText(interimSegments.join(' '));
+            const preview = interimTranscript || finalTranscript;
+
+            if (preview) {
+                setVoiceStatus(`Listening: ${formatVoicePreview(preview)}`, true);
+            }
+
+            if (finalTranscript) {
+                scheduleVoiceTranslation(finalTranscript);
+            }
+        };
+
+        recognition.onerror = (event) => {
+            const code = String(event.error || '').toLowerCase();
+            if (code === 'not-allowed' || code === 'service-not-allowed') {
+                setVoiceStatus('Microphone permission denied.', false);
+                showNotification('Microphone permission is required for voice input.');
+                voiceStopRequested = true;
+                return;
+            }
+
+            if (code === 'language-not-supported') {
+                setVoiceStatus('Voice language is not supported by this browser.', false);
+                voiceStopRequested = true;
+                return;
+            }
+
+            if (code === 'audio-capture') {
+                setVoiceStatus('No microphone was found.', false);
+                voiceStopRequested = true;
+                return;
+            }
+
+            if (code === 'no-speech') {
+                setVoiceStatus('No speech detected. Keep speaking...', true);
+                return;
+            }
+
+            setVoiceStatus('Voice input failed. Try again.', false);
+            voiceStopRequested = true;
+        };
+
+        recognition.onend = () => {
+            clearVoiceTranslateTimer();
+
+            if (voiceListening && !voiceStopRequested) {
+                try {
+                    recognition.lang = getVoiceLanguage();
+                    recognition.start();
+                    return;
+                } catch {
+                    // fall through to reset state
+                }
+            }
+
+            voiceListening = false;
+            voiceStopRequested = false;
+            setVoiceStatus('Voice idle', false);
+        };
+
+        voiceRecognition = recognition;
+        return voiceRecognition;
+    }
+
+    function startVoiceInput() {
+        const recognition = ensureVoiceRecognition();
+        if (!recognition) {
+            setVoiceStatus('Voice input is not supported in this browser.', false);
+            showNotification('Speech recognition is not available on this browser.');
+            const button = byId('voiceInputBtn');
+            if (button) button.disabled = true;
+            return;
+        }
+
+        if (voiceListening) return;
+
+        recognition.lang = getVoiceLanguage();
+        voiceStopRequested = false;
+        lastQueuedVoiceTranscript = '';
+        lastAppliedVoiceTranscript = '';
+
+        try {
+            recognition.start();
+        } catch (error) {
+            setVoiceStatus('Unable to start microphone.', false);
+            showNotification('Unable to start microphone.');
+        }
+    }
+
+    function stopVoiceInput() {
+        voiceStopRequested = true;
+        clearVoiceTranslateTimer();
+
+        if (voiceMediaRecorder && voiceMediaRecorder.state !== 'inactive') {
+            stopAudioRecording();
+            return;
+        }
+
+        if (voiceRecognition && voiceListening) {
+            try {
+                voiceRecognition.stop();
+                setVoiceStatus('Stopping microphone...', false);
+                return;
+            } catch {
+                // fallback to idle state
+            }
+        }
+
+        voiceListening = false;
+        clearVoiceMediaStream();
+        setVoiceStatus('Voice idle', false);
     }
 
     function parseJsonSafe(raw) {
@@ -141,10 +601,24 @@
         return checked && promptAllows;
     }
 
+    function hasAnalyzeInput() {
+        const input = byId('productInput');
+        const hasText = input ? Boolean(String(input.value || '').trim()) : false;
+        return hasText || Boolean(capturedBlob);
+    }
+
+    function syncCheckButtonState() {
+        const button = byId('checkPriceBtn');
+        if (!button) return;
+        const isLoading = button.dataset.loading === 'true';
+        button.disabled = isLoading ? true : !hasAnalyzeInput();
+    }
+
     function setLoading(isLoading) {
         const button = byId('checkPriceBtn');
         if (!button) return;
-        button.disabled = isLoading;
+        button.dataset.loading = isLoading ? 'true' : 'false';
+        button.disabled = isLoading ? true : !hasAnalyzeInput();
         button.textContent = isLoading ? 'ANALYZING...' : 'CHECK PRICE NOW';
     }
 
@@ -406,6 +880,29 @@
         results.classList.add('show');
     }
 
+    async function analyzeCurrentInput() {
+        const input = byId('productInput');
+        const rawText = input ? String(input.value || '').trim() : '';
+
+        if (capturedBlob) {
+            const filename =
+                capturedBlob instanceof File && capturedBlob.name
+                    ? capturedBlob.name
+                    : CAMERA_FILE_NAME;
+            await analyzeImageBlob(capturedBlob, filename);
+            return;
+        }
+
+        if (!rawText) {
+            const message = 'Enter product text or capture/upload an image first.';
+            renderError(message);
+            showNotification(message);
+            return;
+        }
+
+        await analyzeTyped();
+    }
+
     async function analyzeTyped() {
         const input = byId('productInput');
         if (!input) return;
@@ -500,6 +997,7 @@
             if (input) {
                 input.value = shouldShowPrice && scannedPrice > 0 ? `${name} PHP ${scannedPrice.toFixed(2)}` : name;
             }
+            syncCheckButtonState();
 
             updateMetadata(name);
             renderResults({
@@ -528,6 +1026,7 @@
             showNotification(message);
         } finally {
             setLoading(false);
+            syncCheckButtonState();
         }
     }
 
@@ -537,6 +1036,33 @@
         const image = byId('captureSnapshot');
         if (!preview || !video || !image) return;
         preview.classList.toggle('has-media', video.classList.contains('show') || image.classList.contains('show'));
+
+        const clearBtn = byId('clearCaptureBtn');
+        if (clearBtn) {
+            clearBtn.disabled = !capturedBlob;
+        }
+    }
+
+    function clearCapturedImage() {
+        const image = byId('captureSnapshot');
+        const scanBtn = byId('scanCaptureBtn');
+        if (image) {
+            image.src = '';
+            image.classList.remove('show');
+        }
+        if (scanBtn) {
+            scanBtn.disabled = true;
+        }
+
+        if (capturedUrl) {
+            URL.revokeObjectURL(capturedUrl);
+            capturedUrl = '';
+        }
+
+        capturedBlob = null;
+        syncPreviewState();
+        syncCheckButtonState();
+        showNotification('Captured image cleared.');
     }
 
     async function startCamera() {
@@ -626,6 +1152,7 @@
         video.classList.remove('show');
         scanBtn.disabled = false;
         syncPreviewState();
+        syncCheckButtonState();
         showNotification('Image captured.');
     }
 
@@ -678,6 +1205,7 @@
         const input = byId('productInput');
         if (input) input.value = text;
         updateMetadata(text);
+        syncCheckButtonState();
         showNotification('Example loaded.');
     };
 
@@ -687,14 +1215,21 @@
         const startBtn = byId('startCameraBtn');
         const captureBtn = byId('captureBtn');
         const scanBtn = byId('scanCaptureBtn');
+        const clearCaptureBtn = byId('clearCaptureBtn');
         const upload = byId('imageUploadInput');
+        const voiceBtn = byId('voiceInputBtn');
+        const voiceLanguage = byId('voiceLanguage');
 
-        if (checkBtn) checkBtn.addEventListener('click', analyzeTyped);
+        if (checkBtn) checkBtn.addEventListener('click', analyzeCurrentInput);
         if (input) {
+            input.addEventListener('input', () => {
+                updateMetadata(input.value);
+                syncCheckButtonState();
+            });
             input.addEventListener('keypress', (event) => {
                 if (event.key === 'Enter') {
                     event.preventDefault();
-                    analyzeTyped();
+                    analyzeCurrentInput();
                 }
             });
         }
@@ -707,24 +1242,94 @@
                     showNotification('Capture an image first.');
                     return;
                 }
-                analyzeImageBlob(capturedBlob, CAMERA_FILE_NAME);
+                const filename =
+                    capturedBlob instanceof File && capturedBlob.name
+                        ? capturedBlob.name
+                        : CAMERA_FILE_NAME;
+                analyzeImageBlob(capturedBlob, filename);
             });
+        }
+        if (clearCaptureBtn) {
+            clearCaptureBtn.addEventListener('click', clearCapturedImage);
         }
         if (upload) {
             upload.addEventListener('change', (event) => {
                 const target = event.target;
                 if (!(target instanceof HTMLInputElement) || !target.files?.length) return;
                 const file = target.files[0];
-                analyzeImageBlob(file, file.name).finally(() => {
-                    target.value = '';
+                const snapshot = byId('captureSnapshot');
+                const video = byId('cameraPreview');
+                const scanCaptureBtn = byId('scanCaptureBtn');
+
+                capturedBlob = file;
+                if (capturedUrl) {
+                    URL.revokeObjectURL(capturedUrl);
+                }
+                capturedUrl = URL.createObjectURL(file);
+
+                if (snapshot) {
+                    snapshot.src = capturedUrl;
+                    snapshot.classList.add('show');
+                }
+                if (video) {
+                    video.classList.remove('show');
+                }
+                if (scanCaptureBtn) {
+                    scanCaptureBtn.disabled = false;
+                }
+
+                syncPreviewState();
+                syncCheckButtonState();
+                showNotification(`Image loaded: ${file.name}`);
+                target.value = '';
+            });
+        }
+
+        if (voiceBtn) {
+            const audioCaptureAvailable = supportsAudioCapture();
+            const speechRecognitionAvailable = Boolean(SpeechRecognitionCtor);
+            if (!audioCaptureAvailable && !speechRecognitionAvailable) {
+                voiceBtn.disabled = true;
+                setVoiceStatus('Voice input is not supported in this browser.', false);
+            } else {
+                setVoiceStatus('Voice idle', false);
+                voiceBtn.addEventListener('click', () => {
+                    if (voiceProcessing) return;
+
+                    if (speechRecognitionAvailable) {
+                        if (voiceListening) stopVoiceInput();
+                        else startVoiceInput();
+                        return;
+                    }
+
+                    if (voiceMediaRecorder && voiceMediaRecorder.state !== 'inactive') {
+                        stopAudioRecording();
+                    } else {
+                        startAudioRecording();
+                    }
                 });
+            }
+        }
+
+        if (voiceLanguage) {
+            voiceLanguage.addEventListener('change', () => {
+                if (voiceRecognition && voiceListening) {
+                    stopVoiceInput();
+                    setTimeout(() => {
+                        startVoiceInput();
+                    }, 180);
+                }
             });
         }
 
         window.addEventListener('beforeunload', () => {
             stopCamera();
+            stopVoiceInput();
+            clearVoiceMediaStream();
             if (capturedUrl) URL.revokeObjectURL(capturedUrl);
         });
+
+        syncCheckButtonState();
     }
 
     createStars();

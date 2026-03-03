@@ -1,0 +1,5 @@
+{
+  "name": "PRISM - Price Intelligence",
+  "description": "AI-powered price intelligence dashboard that helps consumers determine fair value and detect price manipulation using transaction analysis.",
+  "requestFramePermissions": ["camera", "microphone"]
+}

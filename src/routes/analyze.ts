@@ -2,6 +2,9 @@ import { Router, type NextFunction, type Request, type Response } from 'express'
 import { DEFAULT_REGION } from '../constants/cebuDefaults';
 import { extractPriceFromSentence, extractPrimaryItemName } from '../services/itemNameService';
 import { analyzePrice } from '../services/priceService';
+import { extractPriceLinesFromText } from '../services/priceExtractionService';
+import { transcribeAudioBase64 } from '../services/audioTranscriptionService';
+import { normalizeToEnglish } from '../services/translationService';
 import { inferPriceNormalization } from '../services/unitNormalizationService';
 
 interface AnalyzeRequestBody {
@@ -11,6 +14,20 @@ interface AnalyzeRequestBody {
   prompt?: unknown;
   show_price?: unknown;
   report_flag?: unknown;
+}
+
+interface TranslateRequestBody {
+  text?: unknown;
+}
+
+interface TranscribeAudioRequestBody {
+  audio_base64?: unknown;
+  mime_type?: unknown;
+  language?: unknown;
+}
+
+interface ExtractPriceLinesRequestBody {
+  text?: unknown;
 }
 
 const router = Router();
@@ -117,6 +134,89 @@ function buildRatioAssessment(scannedPrice: number, fairPrice: number): RatioAss
     note: 'Submitted price is far below market and may need verification.'
   };
 }
+
+router.post('/translate', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { text } = req.body as TranslateRequestBody;
+    const rawText = typeof text === 'string' ? text.trim() : '';
+
+    if (!rawText) {
+      return res.status(400).json({ message: 'Text is required for translation.' });
+    }
+
+    const translated = await normalizeToEnglish(rawText);
+    const extracted = await extractPriceLinesFromText(
+      translated.canonical_english_text || translated.english_text || rawText
+    );
+    return res.json({
+      original_text: rawText,
+      translated_text: translated.english_text || rawText,
+      source: translated.source,
+      canonical_text: translated.canonical_english_text || translated.english_text || rawText,
+      canonical_source: translated.canonical_source,
+      price_lines: extracted.lines,
+      price_line_model: extracted.model
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post('/transcribe-audio', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { audio_base64, mime_type, language } = req.body as TranscribeAudioRequestBody;
+    const rawAudio = typeof audio_base64 === 'string' ? audio_base64.trim() : '';
+
+    if (!rawAudio) {
+      return res.status(400).json({ message: 'Audio payload is required for transcription.' });
+    }
+
+    const transcribedText = await transcribeAudioBase64(rawAudio, mime_type, language);
+    const translated = await normalizeToEnglish(transcribedText);
+    const extracted = await extractPriceLinesFromText(
+      translated.canonical_english_text || translated.english_text || transcribedText
+    );
+
+    return res.json({
+      transcribed_text: transcribedText,
+      translated_text: translated.english_text || transcribedText,
+      source: translated.source,
+      canonical_text: translated.canonical_english_text || translated.english_text || transcribedText,
+      canonical_source: translated.canonical_source,
+      price_lines: extracted.lines,
+      price_line_model: extracted.model
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post('/extract-price-lines', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { text } = req.body as ExtractPriceLinesRequestBody;
+    const rawText = typeof text === 'string' ? text.trim() : '';
+
+    if (!rawText) {
+      return res.status(400).json({ message: 'Text is required for extraction.' });
+    }
+
+    const translated = await normalizeToEnglish(rawText);
+    const baseText = translated.canonical_english_text || translated.english_text || rawText;
+    const extraction = await extractPriceLinesFromText(baseText);
+
+    return res.json({
+      input_text: rawText,
+      normalized_text: baseText,
+      translation_source: translated.source,
+      canonical_source: translated.canonical_source,
+      price_lines: extraction.lines,
+      raw_output: extraction.raw_output,
+      model: extraction.model
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
 
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {

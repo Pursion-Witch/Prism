@@ -544,7 +544,19 @@
             font-family: 'Plus Jakarta', sans-serif;
             outline: none;
         }
+        .tool-input select {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 0.8rem 1rem;
+            color: #fff;
+            font-family: 'Plus Jakarta', sans-serif;
+            outline: none;
+        }
         .tool-input input:focus {
+            border-color: #1ED760;
+        }
+        .tool-input select:focus {
             border-color: #1ED760;
         }
         .tool-checkbox {
@@ -564,6 +576,62 @@
             height: 17px;
             accent-color: #1ED760;
         }
+        .voice-tools {
+            display: grid;
+            grid-template-columns: 2fr auto 1fr;
+            gap: 1rem;
+            align-items: end;
+        }
+        .voice-btn {
+            background: #111;
+            color: #1ED760;
+            border: 1px solid #1ED76055;
+            border-radius: 999px;
+            padding: 0.75rem 1rem;
+            font-family: 'Plus Jakarta', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            min-height: 47px;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .voice-btn:hover {
+            border-color: #1ED760;
+            background: #1ED76018;
+        }
+        .voice-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .voice-btn.recording {
+            color: #000;
+            background: #1ED760;
+            border-color: #1ED760;
+        }
+        .voice-btn.processing {
+            color: #111;
+            background: #ffaa33;
+            border-color: #ffaa33;
+        }
+        .voice-status {
+            display: inline-flex;
+            align-items: center;
+            background: #0f0f0f;
+            border: 1px solid #262626;
+            border-radius: 16px;
+            padding: 0.8rem 1rem;
+            min-height: 47px;
+            color: #a9a9a9;
+            font-size: 0.9rem;
+        }
+        .voice-status.recording {
+            color: #1ED760;
+            border-color: #1ED76055;
+        }
+        .voice-status.processing {
+            color: #ffaa33;
+            border-color: #ffaa3355;
+        }
 
         .capture-panel {
             background: #0c0c0c;
@@ -579,7 +647,8 @@
             background: #050505;
             border: 1px solid #262626;
             border-radius: 18px;
-            min-height: 220px;
+            min-height: 170px;
+            max-height: 210px;
             overflow: hidden;
         }
         .capture-preview video,
@@ -984,6 +1053,9 @@
             .scanner-tools {
                 grid-template-columns: 1fr;
             }
+            .voice-tools {
+                grid-template-columns: 1fr;
+            }
             .input-wrapper {
                 flex-direction: column;
                 border-radius: 24px;
@@ -995,6 +1067,7 @@
                 margin: 0;
             }
             .capture-preview {
-                min-height: 190px;
+                min-height: 145px;
+                max-height: 175px;
             }
         }

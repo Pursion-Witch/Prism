@@ -1,5 +1,5 @@
 # PRISM: Price Intelligence and Smart Monitoring 
-## An integrated solution for SGD 8: Decent Work and Economic Growth
+### An integrated solution for SGD 8: Decent Work and Economic Growth
 ### By Team SRPeak
 
 PRISM is an **AI-powered price intelligence platform** that is designed to defend against 
@@ -7,12 +7,6 @@ price manipulation, market opacity, and ineffiecient purchasing decisions in the
 Empowering Filipino consumers, MSMEs, and government agencies with fair real-time market value analysis
 and forensic pricing insights.
 
-### Team Members: SRPeak
-- Jecer Sarte Egagamao
-- Gian Marco De La Cruz
-- Jan Krishnel Abuyo
-- Dave Augustin Gadon
-- Madeleine Sophie Rapsing
 
 ### Solution Overview
 PRISM features:
@@ -27,7 +21,12 @@ Users can then input details of specific products and see:
 - Anomaly flags
 - Pricing Trend analysis
 
-
+### Team Members: SRPeak
+- Jecer Sarte Egagamao
+- Gian Marco De La Cruz
+- Jan Krishnel Abuyo
+- Dave Augustin Gadon
+- Madeleine Sophie Rapsing
 
 ## Vision of PRISM
 

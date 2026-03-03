@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" href="images/prism.favicon.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRISM – Price Transparency</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- diri refer for css jan -->
+    <link rel="stylesheet" href="css/main..css">
+
+    <style>
+
+      @font-face {
+        font-family: 'Valonik';
+        src: url(fonts/ValonikPersonalUse-Thin.ttf);
+      }
+
+      @font-face {
+        font-family: 'Neue Montreal';
+        src: url(fonts/ppneuemontreal-medium.ttf);
+      }
+
+      @font-face {
+        font-family: 'Neue Book';
+        src: url(fonts/ppneuemontreal-book.ttf);
+      }
+
+      @font-face {
+        font-family: 'PPEditorialNew';
+        src: url(fonts/PPEditorialNew-Italic.ttf);
+      }
+    </style>
+</head>
+
+
+<body class="bg-black text-white min-h-screen flex flex-col">
+
+  <!-- Navbar -->
+
+  <div class="w-full flex items-center justify-between px-[25px] py-4 bg-black text-white">
+
+    <!--logo-->
+    <div class="logo ml-10">
+      <div class="icon flex items-center gap-3 shrink-0">
+        <img src="images/prism.logo.wtext.png" alt="PRISM logo" class="w-10 h-10 object-contain">
+     </div>
+   </div>
+
+    <!--L menu items-->
+
+    <div class="flex-1 flex justify-center text-justify" style="font-family: 'Neue Montreal';">
+      <ul class="hidden md:flex items-center gap-8">
+
+        <li>
+          <a href="m-index.html" class="flex items-center gap-2 hover:text-green-400 transition">
+            <img src="images/home_white.png" alt="Home" class="w-4 h-4" style="color: white;">
+            <span>HOME</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="mobile/m-product-scanner.html" class="flex items-center gap-2 hover:text-green-400 transition">
+            <img src="images/product scanner_white.png" alt="Product Scanner" class="w-4 h-4">
+            <span>PRODUCT SCANNER</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="mobile/m-dashboard.html" class="flex items-center gap-2 hover:text-green-400 transition">
+            <img src="images/dashboard_white.png" alt="Dashboard" class="w-4 h-4">
+            <span>DASHBOARD</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="mobile/m-marketplace.html" class="flex items-center gap-2 hover:text-green-400 transition">
+            <img src="images/marketplace_white.png" alt="MarketPlace" class="w-4 h-4">
+            <span>MARKET PLACE</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="mobile/m-admin-panel.html" class="flex items-center gap-2 hover:text-green-400 transition">
+            <img src="images/admin_white.png" alt="Admin Panel" class="w-4 h-4">
+            <span>ADMIN PANEL</span>
+          </a>
+        </li>
+      </ul>
+      </div>
+
+      <!--menu icon-->
+      <div>
+        <img src="images/menu.png" alt="Menu" class="hidden md:flex justify-between h-10 cursor-pointer">
+        <button class="md:hidden text-white h-10">☰</button>
+      </div>
+  </div>
+
+  <!-- home section -->
+   
+<section class="hero-section flex items-center justify-center min-h-screen px-6">
+    <div class="text-center max-w-5xl">
+
+      <h1 class="text-6xl sm:text-7xl lg:text-8xl font-medium leading-[1.1] tracking-tight text-white" style="font-family: 'Neue Montreal';">
+      Empowering <br><i>Smart Markets</i><br>Through AI</h1>
+
+      <p class="mt-8 text-lg font-medium text-pretty text-gray-400 sm:text-xl/8" style="font-family: 'Neue Book';">
+        PRISM is an AI-powered platform that analyzes real transaction data to determine fair market values and detect pricing anomalies with precision.
+      </p>
+
+      <div class="mt-10 flex items-center justify-center gap-x-6">
+       <a href="#" class="px-12 py-5 rounded-full bg-[#00FF4F] text-black font-semibold text-lg shadow-lg hover:bg-[#00e645] transition">Create Account</a>
+       <a href="#" class="px-12 py-5 rounded-full bg-[#00FF4F] text-black font-semibold text-lg shadow-lg hover:bg-[#00e645] transition">Log in<span aria-hidden="true">→</span></a>
+    </div>
+</section>
+
+    <!--price checker -->
+    <main class="flex-1 flex items-center justify-center p-4">
+        <div class="bg-gray-900 rounded-xl shadow-2xl p-8 max-w-md w-full border border-gray-800">
+            <h2 class="text-2xl font-light mb-2 text-green-400" style="font-family: 'Valonik';">Check a price</h2>
+            <p class="text-gray-400 mb-6 text-sm">Enter an item and the price you were charged.</p>
+
+            <div class="space-y-4">
+                <input type="text" id="item" placeholder="e.g., red onions" 
+                       class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 text-white placeholder-gray-500">
+                <input type="number" id="price" placeholder="Price in ₱" 
+                       class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 text-white placeholder-gray-500">
+                <button onclick="checkPrice()" 
+                        class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition font-medium">
+                    Check Fairness
+                </button>
+            </div>
+
+            <div id="result" class="mt-6 p-4 rounded-lg hidden"></div>
+        </div>
+    </main>
+
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

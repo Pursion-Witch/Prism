@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import cors from 'cors';
 import express, { type NextFunction, type Request, type Response } from 'express';
+import fs from 'node:fs';
 import path from 'node:path';
 import adminRoutes from './routes/admin';
 import analyzeRoutes from './routes/analyze';
@@ -23,6 +24,8 @@ app.use('/api/analyze', analyzeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', imageAnalyzeRoute);
 app.use('/api/documents', documentRoutes);
+
+app.use(express.static(publicDir, { redirect: false }));
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

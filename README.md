@@ -60,3 +60,12 @@ To eliminate price opacity and empower every Filipino consumer and businesses wi
 
 3. Open `<IPADDRESS>:3000` on your phone browser
 
+**To enable AI functionality**
+
+1. Create a file in the outermost folder: `.env`
+   - This file should **not** be committed to the repo and is private
+
+2. Request AI API key
+
+3. Input into `.env` the following:
+   - `DEEPSEEK_API_KEY=<API key here>`

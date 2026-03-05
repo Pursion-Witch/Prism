@@ -15,7 +15,7 @@
     "express": "^4.22.1",
     "fuse.js": "^6.6.2",
     "js-levenshtein": "^1.1.6",
-    "multer": "^2.1.0",
+    "multer": "^2.1.1",
     "pg": "^8.19.0",
     "sharp": "^0.33.0",
     "tesseract.js": "^5.1.1"
